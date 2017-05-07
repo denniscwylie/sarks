@@ -21,15 +21,15 @@ class Sarks(object):
     
     def __init__(self, inFasta, catFasta, scores,
                  suffixArrayFile=None,
-                 windowSize=501,
+                 halfWindow=250,
                  minScore=-10, maxScore = 10, maxRun=np.inf,
                  seqs=None, catSeq=None, bounds=None, sa=None,
-                 windBlockGini=None, spatialLength=None, spatGini=None,
+                 windGini=None, spatialLength=None, spatGini=None,
                  regenerateSuffixArray=False):
         self.inFasta = inFasta
         self.catFasta = catFasta
         self.suffixArrayFile = suffixArrayFile
-        self.windowSize = windowSize
+        self.halfWindow = halfWindow
         self.minScore = minScore
         self.maxScore = maxScore
         self.maxRun = maxRun
@@ -50,10 +50,10 @@ class Sarks(object):
         else:
             self.calcSuffixArray(catFasta, suffixArrayFile,
                                  regenerateSuffixArray)
-        if windBlockGini is not None:
-            self.windBlockGini = windBlockGini
+        if windGini is not None:
+            self.windGini = windGini
         else:
-            self.windowBlockGini(recalculate=True)
+            self.windowGini(recalculate=True)
         self.spatialLength = spatialLength
         self.spatGini = spatGini
         self.window(recalculate=True)
@@ -116,27 +116,23 @@ class Sarks(object):
         out['block'] = out['block'].astype(int)
         return out[['block', 'score']]
 
-    def windowBlockGini(self, recalculate=False):
-        if "windBlockGini" not in dir(self) or recalculate:
+    def windowGini(self, recalculate=False):
+        if "windGini" not in dir(self) or recalculate:
             block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
-            self.windBlockGini = windGiniImpurities(
-                block,
-                int(np.floor(self.windowSize/2))
-            )
-        return self.windBlockGini
+            self.windGini = windGiniImpurities(block, int(self.halfWindow))
+        return self.windGini
 
     def spatialGini(self, recalculate=False):
-        ## need to double-check and test...
         if self.spatGini is None or recalculate:
-            sortedGini = self.windBlockGini.copy()
+            sortedGini = self.windGini.copy()
             sortedGini.sort_index(inplace=True)
             self.spatGini = sortedGini.copy()
             giniCumul = self.spatGini.cumsum()
             self.spatGini = giniCumul.iloc[(self.spatialLength-1):] - \
-                                   np.concatenate([
-                                       np.zeros(1),
-                                       giniCumul.iloc[0:(-self.spatialLength)].values
-                                   ])
+                            np.concatenate([
+                                np.zeros(1),
+                                giniCumul.iloc[0:(-self.spatialLength)].values
+                            ])
             self.spatGini /= self.spatialLength
             self.spatGini.index = \
                     sortedGini.iloc[range(len(self.spatGini))].index
@@ -148,19 +144,20 @@ class Sarks(object):
         else:
             return stats.entropy(self.kmers(s+j, 1).value_counts(), base=2)
 
-    def window(self, windowSize=None, maxRun=None, recalculate=False):
-        if windowSize != self.windowSize or recalculate:
-            if windowSize is None:
-                windowSize = self.windowSize
-            if windowSize != self.windowSize:
-                self.windowBlockGini(recalculate=True)
-            self.windowSize = windowSize
+    def window(self, halfWindow=None, maxRun=None, recalculate=False):
+        if halfWindow is None:
+            halfWindow = self.halfWindow
+        if halfWindow != self.halfWindow or recalculate:
+            if halfWindow != self.halfWindow:
+                self.windowGini(recalculate=True)
+            self.halfWindow = halfWindow
             if maxRun is not None:
                 self.maxRun = maxRun
             saScores = self.sourceScore(self.sa,
                                         process=True,
                                         maxRun=self.maxRun)['score']
             saCumul = saScores.cumsum()
+            windowSize = (2 * halfWindow) + 1
             self.windowed = saCumul.iloc[(windowSize-1):] - \
                             np.concatenate([
                                 np.zeros(1),
@@ -168,8 +165,8 @@ class Sarks(object):
                             ])
             self.windowed /= windowSize
             saWindowCenters = range(
-                int(np.floor(windowSize / 2)),
-                int(np.floor(windowSize / 2)) + len(self.windowed)
+                int(halfWindow),
+                int(halfWindow) + len(self.windowed)
             )
             self.windowed.index = saScores.iloc[saWindowCenters].index
         return self.windowed
@@ -189,11 +186,6 @@ class Sarks(object):
                                        windCumul.iloc[0:(-length)].values
                                    ])
             self.spatialWindowed /= length
-            # spWindowCenters = range(
-            #     int(np.floor(length / 2)),
-            #     int(np.floor(length / 2)) + len(self.spatialWindowed)
-            # )
-            # self.spatialWindowed.index = windowed.iloc[spWindowCenters].index
             self.spatialWindowed.index = \
                     windowed.iloc[range(len(self.spatialWindowed))].index
         return self.spatialWindowed
@@ -212,9 +204,7 @@ class Sarks(object):
             self.kmerBounds = {}
         k = len(kmer)
         def km(i):
-            return str(
-                self.catSeq[int(self.sa.loc[i]):int(self.sa.loc[i]+k)]
-            )
+            return str(self.catSeq[int(self.sa.loc[i]):int(self.sa.loc[i]+k)])
         def startGood(start):
             kms = km(start)
             if start == 0 and kms == kmer:
@@ -272,7 +262,7 @@ class Sarks(object):
     def peaks(self, theta, prune=True,
               spatialLength=None, spatialTheta=None,
               k=12, minK=None,
-              minBlockGini=None, minSpatialGini=None,
+              minGini=None, minSpatialGini=None,
               s=None, deduplicate=False):
         scores = None
         if spatialLength is not None:
@@ -285,19 +275,34 @@ class Sarks(object):
         scoreDiffF = scoreDiffB.copy().iloc[1:].copy()
         scoreDiffF.index = scoreDiffB.index[:-1]
         scoreDiffB = scoreDiffB.iloc[:-1]
-        scores = scores.loc[self.windowed.index]
-        pos = scores.loc[(self.windowed >= theta) &
-                         (scores >= spatialTheta)].index
-        pos = pd.Series(pos.values, index=pos.values)
+        pos = self.filter(minGini=minGini, minSpatialGini=minSpatialGini,
+                          minK=minK,
+                          theta=theta,
+                          spatialLength=spatialLength, spatialTheta=spatialTheta,
+                          nearbyPars=None,
+                          k=k, prune=prune, deduplicate=deduplicate, s=s)
         pos = pos.loc[(scoreDiffB.loc[pos] >= 0) &
                       (scoreDiffF.loc[pos] <= 0)]
+        return self.sa.loc[self.sa.isin(set(pos))]
+
+    def filter(self, minGini=None, minSpatialGini=None, minK=None,
+               theta=None, spatialLength=None, spatialTheta=None,
+               nearbyPars=None, k=12, prune=True, deduplicate=True, s=None):
+        pos = pd.Series(self.windowed.index)
+        pos.index = pos
         posSubtable = None
-        if minBlockGini is not None:
-            pos = pos[self.windBlockGini[pos] >= minBlockGini]
-        if minSpatialGini is not None:
-            pos = pos[self.spatialGini()[pos] >= minSpatialGini]
+        if minGini is not None:
+            pos = pos.loc[self.windGini[pos] >= minGini]
+        if theta is not None:
+            pos = pos.loc[(self.windowed.loc[pos] >= theta)]
+        if spatialLength is not None:
+            spat = self.spatialWindow(spatialLength)
+            if minSpatialGini is not None:
+                pos = pos.loc[self.spatialGini()[pos] >= minSpatialGini]
+            if spatialTheta is not None:
+                pos = pos.loc[spat.loc[pos] >= spatialTheta]
         if s is not None:
-            pos = pos[pos.isin(s)]
+            pos = pos.loc[pos.isin(s)]
         if deduplicate:
             posSubK = self.quickSubtable(pos, k).copy()
             posSubK.sort_values('windowed', inplace=True)
@@ -308,13 +313,21 @@ class Sarks(object):
             posIntervals = [(ess, ess+len(posSubtable.loc[ess, 'kmer']))
                             for ess in posSubtable.index]
             posIntervals = Sarks.pruneIntervals(posIntervals)
-            pos = pos[pos.isin([iv[0] for iv in posIntervals])]
+            pos = pos.loc[pos.isin([iv[0] for iv in posIntervals])]
             posSubtable = posSubtable.loc[pos]
         if minK is not None:
             if posSubtable is None:
                 posSubtable = self.subtable(pos, k).loc[pos]
-            pos = pos[posSubtable['khat'] >= minK]
-        return self.sa.loc[self.sa.isin(set(pos))]
+            pos = pos.loc[posSubtable['khat'] >= minK]
+        if nearbyPars is not None:
+            if posSubtable is None:
+                posSubtable = self.subtable(pos, k).loc[pos]
+            pos = pd.Series([s for s in pos if self.rankNearbyKmers(
+                posSubtable.loc[s, 'kmer'],
+                **nearbyPars
+            ).shape[0] > 0])
+            pos.index = pos
+        return pos
 
     def extendKmers(self, subtable):
         subtable = subtable.copy()
@@ -336,9 +349,8 @@ class Sarks(object):
                             subtable.loc[s, 's'] += shift
                             subtable.loc[s, 'wi'] += shift
                             subtable.loc[s, 'kmer'] = shiftKmer
-                            # subtable.loc[s, 'kent'] = np.nan
                             subtable.loc[s, 'khat'] = np.nan
-                            subtable.loc[s, 'blockgini'] = np.nan
+                            subtable.loc[s, 'gini'] = np.nan
                             subtable.loc[s, 'windowed'] = np.nan
                             if "spatialWindowed" in dir(self):
                                 subtable.loc[s, 'spatial_windowed'] = np.nan
@@ -399,7 +411,6 @@ class Sarks(object):
         srcScr = self.sourceScore(s)
         eyes = [self.s2i(sel) for sel in s]
         kmers = self.kmers(s, k, sanitize=False).loc[s]
-        windHalf = int(np.floor(self.windowSize / 2))
         block = self.scores.iloc[srcScr.loc[s, 'block']].index
         wi = s.values - self.bounds[srcScr.loc[s, 'block'].values]
         wi = wi + np.array([len(self.seqs[t]) + 1 for t in block])
@@ -407,29 +418,19 @@ class Sarks(object):
             "i" : eyes,
             "s" : s.values,
             "kmer" : kmers,
-            # "kent" : [self.windowBlockCharEntropy(
-            #               self.sa[list(range(i-windHalf, i+windHalf+1))],
-            #               j = list(range(6, k))
-            #           )
-            #           for i in eyes],
-            "khat" : [Sarks.prefixAgreeSum(km,
-                                           self.kmers(self.sa[
-                                               list(range(i-windHalf, i)) +
-                                               list(range(i+1, i+windHalf+1))
-                                           ], k, 0, False))
-                                           # [self.kmers([self.i2s(i+j)],
-                                           #             k, 0, False).iloc[0]
-                                           #  for j in range(-windHalf,
-                                           #                 windHalf+1)
-                                           #  if j != 0])
-                      for i, km in zip(eyes, kmers)],
+            "khat" : [Sarks.prefixAgreeSum(
+                km,
+                self.kmers(self.sa[
+                    list(range(i-self.halfWindow, i)) +
+                    list(range(i+1, i+self.halfWindow+1))
+                ], k, 0, False)) for i, km in zip(eyes, kmers)],
             "block" : block,
             "wi" : wi,
-            "blockgini" : self.windBlockGini.loc[s],
+            "gini" : self.windGini.loc[s],
             "score" : srcScr.loc[s, 'score'],
             "windowed" : self.windowed.loc[s]
         }, index=s)[['i', 's', 'kmer', 'khat', 'block',
-                     'wi', 'blockgini', 'score', 'windowed']]
+                     'wi', 'gini', 'score', 'windowed']]
         if "spatialWindowed" in dir(self):
             out['spatial_windowed'] = self.spatialWindowed[s]
         for idx in out.index:
@@ -450,11 +451,11 @@ class Sarks(object):
             'kmer' : kmers,
             'block' : block,
             'wi' : wi,
-            'blockgini' : self.windBlockGini.loc[s],
+            'gini' : self.windGini.loc[s],
             'score' : srcScr.loc[s, 'score'],
             'windowed' : self.windowed.loc[s]
         }, index=s)[['i', 's', 'kmer', 'block',
-                     'wi', 'blockgini', 'score', 'windowed']]
+                     'wi', 'gini', 'score', 'windowed']]
         return out
 
     def kmerMatrix(self, s, k=12, k0=0):
@@ -498,8 +499,8 @@ class Sarks(object):
         strLens = strings.str.len()
         if includePosition:
             out = pd.concat([str(i) + ' ' +
-                              strings.loc[strLens >= i+k].str[i:(i+k)]
-                              for i in range(strLens.max()-k+1)])
+                             strings.loc[strLens >= i+k].str[i:(i+k)]
+                             for i in range(strLens.max()-k+1)])
             out = out.value_counts()
             out = pd.DataFrame({
                 "pos" : window[0] + out.index.str.replace(r' .*',
@@ -555,19 +556,6 @@ class Sarks(object):
                     for s in scOut.split("\n") if s != ""}
         return clusters
         
-    # def pruneClusters(kmerClusters):
-    #     out = {}
-    #     for cluster in kmerClusters:
-    #         out[cluster] = [cluster]
-    #         for el2 in kmerClusters[cluster]:
-    #             addEl2 = True
-    #             for el1 in out[cluster]:
-    #                 if el2 in el1:
-    #                     addEl2 = False
-    #             if addEl2:
-    #                 out[cluster].append(el2)
-    #     return out
-
     def alignCluster(self, kmers, theta=None,
                      start=-3, length=20,
                      minCount=None, minFrac=0.5,
@@ -631,10 +619,21 @@ class Sarks(object):
             end -= 1
         return pwm.loc[range(start, end)]
 
+    def permute(self, perm):
+        permutedScores = pd.Series(self.scores.iloc[perm].values,
+                                   index = self.scores.index)
+        permutedSarks = Sarks(self.inFasta, self.catFasta, permutedScores,
+                              self.suffixArrayFile,
+                              self.halfWindow, self.minScore,
+                              self.maxScore, self.maxRun,
+                              self.seqs, self.catSeq, self.bounds, self.sa,
+                              self.windGini, self.spatialLength, self.spatGini)
+        return permutedSarks
+
     def permutationDistribution(self, reps, k=12,
                                 quantiles=None,
                                 spatialLength=None,
-                                minBlockGini=None,
+                                minGini=None,
                                 minSpatialGini=None,
                                 seed=None):
         if seed is not None:
@@ -643,34 +642,19 @@ class Sarks(object):
         sl = len(self.scores)
         for r in range(reps):
             rperm = np.random.choice(sl, sl, replace=False)
-            rscores = pd.Series(self.scores.iloc[rperm].values,
-                                index = self.scores.index)                                
-            rsarks = Sarks(self.inFasta, self.catFasta, rscores,
-                           self.suffixArrayFile,
-                           self.windowSize, self.minScore,
-                           self.maxScore, self.maxRun,
-                           self.seqs, self.catSeq, self.bounds, self.sa,
-                           self.windBlockGini, self.spatialLength, self.spatGini)
-            rwind = rsarks.window()
-            if minBlockGini is not None:
-                rwind = rwind.loc[self.windBlockGini[rwind.index] >=
-                                  minBlockGini]
-            if minSpatialGini is not None:
-                self.spatialLength = spatialLength
-                rwind = rwind.loc[self.spatialGini()[rwind.index] >=
-                                  minSpatialGini]
-            permResults.append({'windowed': rwind})
+            rsarks = self.permute(rperm)
+            rpos = rsarks.filter(minGini = minGini,
+                                 spatialLength = spatialLength,
+                                 minSpatialGini = minSpatialGini,
+                                 k = k,
+                                 prune = False,
+                                 deduplicate = False)
+            permResults.append({'windowed' : rsarks.windowed.loc[rpos]})
             if spatialLength is None and self.spatialLength is not None:
                 spatialLength = self.spatialLength
             if spatialLength is not None:
-                rspat = rsarks.spatialWindow(spatialLength)
-                if minBlockGini is not None:
-                    rspat = rspat.loc[self.windBlockGini[rspat.index] >=
-                                      minBlockGini]
-                if minSpatialGini is not None:
-                    rspat = rspat.loc[self.spatialGini()[rspat.index] >=
-                                      minSpatialGini]
-                permResults[-1]['spatial_windowed'] = rspat
+                permResults[-1]['spatial_windowed'] = \
+                        rsarks.spatialWindow(spatialLength).loc[rpos].dropna()
             if quantiles is not None:
                 permResults[-1]['windowed'] = np.percentile(
                         permResults[-1]['windowed'], 100*quantiles)
@@ -683,7 +667,7 @@ class Sarks(object):
                         k=12,
                         spatialLength=None, spatialTheta=None,
                         nearbyPars=None,
-                        minBlockGini=None, minSpatialGini=None,
+                        minGini=None, minSpatialGini=None,
                         seed=None):
         if seed is not None:
             np.random.seed(seed)
@@ -691,45 +675,27 @@ class Sarks(object):
         sl = len(self.scores)
         for r in range(reps):
             rperm = np.random.choice(sl, sl, replace=False)
-            rscores = pd.Series(self.scores.iloc[rperm].values,
-                                index = self.scores.index)
-            rsarks = Sarks(self.inFasta, self.catFasta, rscores,
-                           self.suffixArrayFile,
-                           self.windowSize, self.minScore,
-                           self.maxScore, self.maxRun,
-                           self.seqs, self.catSeq, self.bounds, self.sa,
-                           self.windBlockGini, self.spatialLength, self.spatGini)
-            rwind = rsarks.window()
-            rover = rwind.loc[rwind >= theta].index
-            if spatialTheta is not None:
-                if spatialLength is None:
-                    spatialLength = self.spatialLength
-                rspat = rsarks.spatialWindow(spatialLength)
-                rover = rover[rover.isin(rspat.index)]
-                rspat = rspat.loc[rover]
-                rover = rspat.loc[rspat >= spatialTheta].index
-            if minBlockGini is not None and len(rover) > 0:
-                rover = rover[self.windBlockGini[rover] >= minBlockGini]
-            if minSpatialGini is not None and len(rover) > 0:
-                rover = rover[self.spatialGini()[rover] >= minSpatialGini]
-            if len(rover) == 0:
+            rsarks = self.permute(rperm)
+            rpos = rsarks.filter(minGini = minGini,
+                                 theta = theta,
+                                 spatialLength = spatialLength,
+                                 minSpatialGini = minSpatialGini,
+                                 spatialTheta = spatialTheta,
+                                 nearbyPars = nearbyPars,
+                                 k = k,
+                                 prune = False,
+                                 deduplicate = False)
+            if len(rpos) == 0:
                 permResults.append(pd.DataFrame({
                     'i':[], 's':[], 'kmer':[], 'khat':[],
-                    'block':[], 'wi':[], 'blockgini':[],
+                    'block':[], 'wi':[], 'gini':[],
                     'score':[], 'windowed':[]
                 })[['i', 's', 'kmer', 'khat', 'block', 'wi',
-                    'blockgini', 'score', 'windowed']])
+                    'gini', 'score', 'windowed']])
                 if spatialTheta is not None:
                     permResults[-1]['spatial_windowed'] = []
             else:
-                rout = rsarks.subtable(rover, k=k)
+                rout = rsarks.subtable(rpos, k=k)
                 rout = rout.loc[~rout['kmer'].str.match(r".*\$")]
-                if nearbyPars is not None:
-                    keepInds = [s for s in rout.index
-                                if self.rankNearbyKmers(rout.loc[s, 'kmer'],
-                                                        **nearbyPars).shape[0] > 0]
-                    rout = rout.loc[keepInds]
-                if spatialTheta is not None:
-                    rout['spatial_windowed'] = rspat.loc[rout.index]
                 permResults.append(rout)
         return permResults
