@@ -556,69 +556,6 @@ class Sarks(object):
                     for s in scOut.split("\n") if s != ""}
         return clusters
         
-    def alignCluster(self, kmers, theta=None,
-                     start=-3, length=20,
-                     minCount=None, minFrac=0.5,
-                     msaFile=None, logoFile=None):
-        seqFile = tempfile.NamedTemporaryFile()
-        if msaFile is None:
-            msaFile = tempfile.NamedTemporaryFile()
-            msaFilename = msaFile.name
-        else:
-            msaFilename = msaFile
-        kmerBounds = [self.findKmer(km) for km in kmers]
-        clustEsses = [self.sa[kmb[0]:kmb[1]] for kmb in kmerBounds]
-        clustEsses= pd.concat(clustEsses)
-        if theta is not None:
-            clustEsses = clustEsses.iloc[(self.scores.iloc[
-                    self.sourceBlock(clustEsses)] >= theta).values]
-        clustSeqs = self.kmers(clustEsses+start, k=length)
-        clustSeqs = clustSeqs.loc[~clustSeqs.str.match(r".*\$")]
-        with open(seqFile.name, "w") as outhandle:
-            for seqName in clustSeqs.index:
-                outhandle.write(">" + str(seqName) + "\n")
-                outhandle.write(str(clustSeqs.loc[seqName]) + "\n")
-        check_output("mafft " + seqFile.name + " > " + msaFilename, shell=True)
-        seqFile.close()
-        msaFasta = Fasta(msaFilename)
-        seqNames = list(msaFasta.keys())
-        alignMatrix = pd.DataFrame([list(str(msaFasta[seqName]).upper())
-                                    for seqName in seqNames])
-        alphabet = sorted(list(set(alignMatrix.values.flatten()) - set('-')))
-        counts = pd.DataFrame(np.zeros((len(msaFasta[seqNames[0]]),
-                                        len(alphabet))),
-                              columns = alphabet)
-        counts.index = range(counts.shape[0])
-        for letter in alphabet:
-            counts[letter] = (alignMatrix == letter).sum(axis=0)
-        pwm = Sarks.pwmClean(counts, minCount, minFrac)
-        if logoFile is not None:
-            subFile = tempfile.NamedTemporaryFile()
-            check_output("fasta-substring.py " + msaFilename +
-                         " " + str(pwm.index.min()+1) +
-                         " " + str(pwm.index.max()+1) +
-                         " " + subFile.name,
-                         shell=True)
-            check_output("weblogo -A dna -D fasta -F pdf < "
-                         + subFile.name + " > " + logoFile,
-                         shell=True)
-            subFile.close()
-        return pwm
-
-    def pwmClean(counts, minCount=None, minFrac=0.5):
-        countSums = counts.sum(axis=1)
-        if minCount is None:
-            minCount = countSums.max() * 0.95
-        pwm = counts.divide(countSums, axis=0)
-        pwmMaxes = pwm.max(axis=1)
-        start = 0
-        while countSums.loc[start] < minCount or pwmMaxes.loc[start] < minFrac:
-            start += 1
-        end = counts.shape[0]
-        while countSums.loc[end-1] < minCount or pwmMaxes.loc[end-1] < minFrac:
-            end -= 1
-        return pwm.loc[range(start, end)]
-
     def permute(self, perm):
         permutedScores = pd.Series(self.scores.iloc[perm].values,
                                    index = self.scores.index)
