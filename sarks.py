@@ -14,15 +14,13 @@ from scipy import stats
 from subprocess import check_output
 import tempfile
 
-from windginiimp import windGiniImpurities
-
 
 class Sarks(object):
     
     def __init__(self, inFasta, catFasta, scores,
                  suffixArrayFile=None,
                  halfWindow=250,
-                 minScore=-10, maxScore = 10, maxRun=np.inf,
+                 minScore=-10, maxScore = 10,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
                  regenerateSuffixArray=False):
@@ -32,7 +30,6 @@ class Sarks(object):
         self.halfWindow = halfWindow
         self.minScore = minScore
         self.maxScore = maxScore
-        self.maxRun = maxRun
         if seqs is not None:
             self.seqs = seqs
         else:
@@ -95,22 +92,13 @@ class Sarks(object):
     def sourceBlock(self, s):
         return np.searchsorted(self.bounds, s+1)
 
-    def sourceScore(self, s, process=False, maxRun=None):
+    def sourceScore(self, s, process=False):
         srcBlk = self.sourceBlock(s)
         out = pd.DataFrame({
             'block' : srcBlk,
             'score' : self.scores.iloc[srcBlk].values
         }, index=s)
         if process:
-            if maxRun is None:
-                maxRun = self.maxRun
-            if maxRun < np.inf:
-                out['pos'] = out.index
-                out['inrun'] = (out['block'].diff() == 0).astype(int)
-                out['rundex'] = np.array(range(out.shape[0])) - \
-                                out['inrun'].cumsum().values
-                out = out.groupby('rundex').nth(list(range(maxRun)))
-                out.index = out['pos']
             out.loc[out['score'] < self.minScore, 'score'] = self.minScore
             out.loc[out['score'] > self.maxScore, 'score'] = self.maxScore
         out['block'] = out['block'].astype(int)
@@ -119,7 +107,22 @@ class Sarks(object):
     def windowGini(self, recalculate=False):
         if "windGini" not in dir(self) or recalculate:
             block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
-            self.windGini = windGiniImpurities(block, int(self.halfWindow))
+            btmp = tempfile.NamedTemporaryFile()
+            np.savetxt(btmp.name, block.values, '%d')
+            gtmp = tempfile.NamedTemporaryFile()
+            check_output(
+                "windginiimp " + str(self.halfWindow) + ' ' + btmp.name + \
+                ' > ' + gtmp.name,
+                shell = True
+            )
+            self.windGini = pd.Series(np.loadtxt(gtmp.name))
+            btmp.close()
+            gtmp.close()
+            saWindowCenters = range(
+                int(self.halfWindow),
+                int(self.halfWindow) + len(self.windGini)
+            )
+            self.windGini.index = self.sa.iloc[saWindowCenters]
         return self.windGini
 
     def spatialGini(self, recalculate=False):
@@ -144,18 +147,15 @@ class Sarks(object):
         else:
             return stats.entropy(self.kmers(s+j, 1).value_counts(), base=2)
 
-    def window(self, halfWindow=None, maxRun=None, recalculate=False):
+    def window(self, halfWindow=None, recalculate=False):
         if halfWindow is None:
             halfWindow = self.halfWindow
         if halfWindow != self.halfWindow or recalculate:
             if halfWindow != self.halfWindow:
                 self.windowGini(recalculate=True)
             self.halfWindow = halfWindow
-            if maxRun is not None:
-                self.maxRun = maxRun
             saScores = self.sourceScore(self.sa,
-                                        process=True,
-                                        maxRun=self.maxRun)['score']
+                                        process=True)['score']
             saCumul = saScores.cumsum()
             windowSize = (2 * halfWindow) + 1
             self.windowed = saCumul.iloc[(windowSize-1):] - \
@@ -561,8 +561,7 @@ class Sarks(object):
                                    index = self.scores.index)
         permutedSarks = Sarks(self.inFasta, self.catFasta, permutedScores,
                               self.suffixArrayFile,
-                              self.halfWindow, self.minScore,
-                              self.maxScore, self.maxRun,
+                              self.halfWindow, self.minScore, self.maxScore,
                               self.seqs, self.catSeq, self.bounds, self.sa,
                               self.windGini, self.spatialLength, self.spatGini)
         return permutedSarks
