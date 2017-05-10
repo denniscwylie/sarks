@@ -20,7 +20,7 @@ class Sarks(object):
     def __init__(self, inFasta, catFasta, scores,
                  suffixArrayFile=None,
                  halfWindow=250,
-                 minScore=-10, maxScore = 10,
+                 minScore=-np.inf, maxScore=np.inf,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
                  regenerateSuffixArray=False):
@@ -141,12 +141,6 @@ class Sarks(object):
                     sortedGini.iloc[range(len(self.spatGini))].index
         return self.spatGini
     
-    def windowBlockCharEntropy(self, s, j):
-        if "__contains__" in dir(j):
-            return np.sum([self.windowBlockCharEntropy(s, jel) for jel in j])
-        else:
-            return stats.entropy(self.kmers(s+j, 1).value_counts(), base=2)
-
     def window(self, halfWindow=None, recalculate=False):
         if halfWindow is None:
             halfWindow = self.halfWindow
@@ -361,28 +355,6 @@ class Sarks(object):
         subtable.index = subtable['s']
         return subtable
 
-    def similarPositions(self, s, d):
-        if "__contains__" not in dir(s):
-            s = [s]
-        if "__contains__" not in dir(d):
-            d = (-d, d+1)
-        eyes = list(set().union(*[
-            set(range(i+d[0], i+d[1]))
-            for i in self.sa.loc[self.sa.isin(s)].index
-        ]))
-        return self.sa.loc[eyes]
-
-    def nearbyPositions(self, s, d):
-        if "__contains__" not in dir(s):
-            s = [s]
-        if "__contains__" not in dir(d):
-            d = (0, d)
-        esses = list(set().union(*[
-            set(range(ess+d[0], ess+d[1]))
-            for ess in s
-        ]))
-        return self.sa.loc[self.sa.isin(esses)]
-
     def kmers(self, s, k=12, k0=0, sanitize=True):
         catSeqMaxPos = len(self.catSeq) - 1
         def proc1(i):
@@ -458,36 +430,6 @@ class Sarks(object):
                      'wi', 'gini', 'score', 'windowed']]
         return out
 
-    def kmerMatrix(self, s, k=12, k0=0):
-        kmers = self.kmers(s, k, k0=k0, sanitize=True).loc[s]
-        alignMatrix = pd.DataFrame([list(str(km)) for km in kmers])
-        return alignMatrix
-
-    def kmerPositionFrequencies(self, s, k=12, k0=0, alphabet=None):
-        if alphabet is None:
-            alphabet = ['A', 'C', 'G', 'T']
-        counts = pd.DataFrame(np.zeros((k-k0, len(alphabet))),
-                              columns = alphabet)
-        counts = self.kmerMatrix(s, k=k, k0=k0)
-        for letter in alphabet:
-            counts[letter] = (alignMatrix == letter).sum(axis=0)
-        return counts
-
-    def nearbyMatrix(self, seed, theta, k=12, k0=0):
-        s = self.sa.loc[range(*self.findKmer(seed))].copy()
-        s = s.iloc[(self.scores.iloc[self.sourceBlock(s)] >= theta).values]
-        kmers = self.kmers(s, k, k0=k0, sanitize=True).loc[s]
-        s = s.iloc[(~kmers.str.match(r".*\$")).values]
-        return self.kmerMatrix(s, k, k0=k0)
-
-    def nearbyPositionFrequencies(self, s, k=12, k0=0, alphabet=None):
-        if alphabet is None:
-            alphabet = ['A', 'C', 'G', 'T']
-        counts = self.nearbyMatrix(s, k=k, k0=k0)
-        for letter in alphabet:
-            counts[letter] = (alignMatrix == letter).sum(axis=0)
-        return counts
-
     def nearbyKmers(self, seed, theta=-np.inf, window=6, k=3,
                     includePosition=False):
         s = self.sa.loc[range(*self.findKmer(seed))].copy()
@@ -559,11 +501,21 @@ class Sarks(object):
     def permute(self, perm):
         permutedScores = pd.Series(self.scores.iloc[perm].values,
                                    index = self.scores.index)
-        permutedSarks = Sarks(self.inFasta, self.catFasta, permutedScores,
-                              self.suffixArrayFile,
-                              self.halfWindow, self.minScore, self.maxScore,
-                              self.seqs, self.catSeq, self.bounds, self.sa,
-                              self.windGini, self.spatialLength, self.spatGini)
+        permutedSarks = Sarks(inFasta = self.inFasta,
+                              catFasta = self.catFasta,
+                              permutedScores = permutedScores,
+                              suffixArrayFile = self.suffixArrayFile,
+                              halfWindow = self.halfWindow,
+                              minScore = self.minScore,
+                              maxScore = self.maxScore,
+                              seqs = self.seqs,
+                              catSeq = self.catSeq,
+                              bounds = self.bounds,
+                              sa = self.sa,
+                              windGini = self.windGini,
+                              spatialLength = self.spatialLength,
+                              spatGini = self.spatGini,
+                              regenerateSuffixArray = False)
         return permutedSarks
 
     def permutationDistribution(self, reps, k=12,
