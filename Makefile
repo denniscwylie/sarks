@@ -11,8 +11,9 @@ windginiimp: windginiimp.cpp
 	$(CPP) windginiimp.cpp -o windginiimp $(CPPFLAGS)
 
 install: suffix-array windginiimp
-	install -m 0755 suffix-array ${PREFIX}/bin
-	install -m 0755 windginiimp ${PREFIX}/bin
+	$(eval PREFIX ?= ~)
+	install -m 0755 suffix-array ${PREFIX}/bin/
+	install -m 0755 windginiimp ${PREFIX}/bin/
 	rm suffix-array
 	rm windginiimp
 
