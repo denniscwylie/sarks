@@ -1,10 +1,11 @@
 CPP = g++
 CPPFLAGS = -O3
+# INC = -I/work/03319/dwylie/seqan/seqan-library-1.4.2/include
 
 all: suffix-array windginiimp
 
 suffix-array: suffix-array.cpp
-	$(CPP) suffix-array.cpp -o suffix-array $(CPPFLAGS)
+	$(CPP) $(INC) suffix-array.cpp -o suffix-array $(CPPFLAGS)
 
 windginiimp: windginiimp.cpp
 	$(CPP) windginiimp.cpp -o windginiimp $(CPPFLAGS)
