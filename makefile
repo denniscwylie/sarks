@@ -5,7 +5,7 @@ CPPFLAGS = -O3
 all: suffix-array windginiimp
 
 suffix-array: suffix-array.cpp
-	$(CPP) $(INC) suffix-array.cpp -o suffix-array $(CPPFLAGS)
+	$(CPP) ${INC} suffix-array.cpp -o suffix-array $(CPPFLAGS)
 
 windginiimp: windginiimp.cpp
 	$(CPP) windginiimp.cpp -o windginiimp $(CPPFLAGS)

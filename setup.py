@@ -6,11 +6,14 @@ from subprocess import check_output
 
 prefix = os.environ['HOME']
 
+# incdir = '-I/work/03319/dwylie/seqan/seqan-library-1.4.2/include'
+incdir = ''
+
 bindir = prefix + '/bin'
 if not os.path.exists(bindir):
     os.makedirs(bindir)
 
-check_output('make PREFIX="' + prefix + '" install', shell=True)
+check_output('make INC="' + incdir + '" PREFIX="' + prefix + '" install', shell=True)
 
 setup(
     name = 'sarks',
