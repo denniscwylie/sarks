@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from Bio.Alphabet import DNAAlphabet
 from Bio import SeqIO
 from Bio.Seq import Seq
