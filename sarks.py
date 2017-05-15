@@ -14,7 +14,13 @@ import tempfile
 
 
 class Sarks(object):
-    
+    """Sarks class implements suffix array kernel smoothing for de novo correlative motif discovery, conducted in several steps:
+1. initialize Sarks object (requires fasta file and pandas Series containing scores, as well as specification of smoothing window size),
+2. assessment of distribution of scores under null-hypothesis using permutationDistribution specifying Gini impurity cutoffs (minGini and/or minSpatialGini),
+3. call to peaks method specifying filter parameters (e.g., minGini and smoothed score cutoff theta),
+4. extraction of kmer table for top peaks using subtable method (followed by optional use of extendKmers if desired),
+5. clustering of extracted kmers using clusterKmers."""
+
     def __init__(self, inFasta, catFasta, scores,
                  suffixArrayFile=None,
                  halfWindow=250,
@@ -22,6 +28,11 @@ class Sarks(object):
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
                  regenerateSuffixArray=False):
+        """Construction of Sarks object requires, at minimum:
+@param: inFasta specification of fasta file containing sequences to be analyzed,
+@param: catFasta file name to be used for fasta file containing concatenated sequence produced by Sarks,
+@param: scores pandas Series object with index matching the sequence ids in inFasta, and
+@param: halfWindow half-width of smoothing window."""
         self.inFasta = inFasta
         self.catFasta = catFasta
         self.suffixArrayFile = suffixArrayFile
@@ -73,7 +84,7 @@ class Sarks(object):
 
     def calcSuffixArray(self, catFasta, suffixArrayFile,
                         regenerateSuffixArray=False):
-        """run Burrows-Wheeler algorithm to get suffix array"""
+        """Construct suffix array for concatenated sequence held in catFasta"""
         if suffixArrayFile is None:
             suffixArrayFile = re.sub(r"\..*", "", catFasta) + "_sa.txt"
         if regenerateSuffixArray or not os.path.exists(suffixArrayFile + ".gz"):
@@ -88,9 +99,11 @@ class Sarks(object):
         self.sa = self.sa.loc[self.sa < len(self.catSeq)]
         
     def sourceBlock(self, s):
+        """Map suffix array *value* s (position within concatenated sequence) back to numeric index of source block within scores"""
         return np.searchsorted(self.bounds, s+1)
 
     def sourceScore(self, s, process=False):
+        """Map suffix array *value* s (position within concatenated sequence) back to score of block from which s is derived"""
         srcBlk = self.sourceBlock(s)
         out = pd.DataFrame({
             'block' : srcBlk,
@@ -103,6 +116,7 @@ class Sarks(object):
         return out[['block', 'score']]
 
     def windowGini(self, recalculate=False):
+        """Calculate Gini impurities for all positions; result is stored (windGini) as pandas Series indexed by suffix array *value* (position within concatenated sequence)"""
         if "windGini" not in dir(self) or recalculate:
             block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
             btmp = tempfile.NamedTemporaryFile()
@@ -124,6 +138,7 @@ class Sarks(object):
         return self.windGini
 
     def spatialGini(self, recalculate=False):
+        """Calculate Gini impurities, averaged over a spatial window of length spatialLength, for all positions; result is stored (windGini) as pandas Series indexed by suffix array *value* (position within concatenated sequence) of the start of the spatial window"""
         if self.spatGini is None or recalculate:
             sortedGini = self.windGini.copy()
             sortedGini.sort_index(inplace=True)
@@ -140,6 +155,7 @@ class Sarks(object):
         return self.spatGini
     
     def window(self, halfWindow=None, recalculate=False):
+        """Access to sorted-suffix-smoothed scores yhat"""
         if halfWindow is None:
             halfWindow = self.halfWindow
         if halfWindow != self.halfWindow or recalculate:
@@ -164,6 +180,7 @@ class Sarks(object):
         return self.windowed
 
     def spatialWindow(self, length):
+        """Access to spatially-smoothed scores yhathat"""
         if 'spatialLength' not in dir(self) or \
            length != self.spatialLength or \
            'spatialWindowed' not in dir(self):
@@ -183,9 +200,11 @@ class Sarks(object):
         return self.spatialWindowed
 
     def i2s(self, i):
+        """Get suffix array *value* s (position with concatenated sequence) corresponding to given suffix array *index* i (position of suffix in lexicographically sorted list of suffixes)"""
         return int(self.sa.loc[i])
 
     def s2i(self, s):
+        """Get suffix array *index* i (position of suffix in lexicographically sorted list of suffixes) corresponding to given suffix array *value* s (position with concatenated sequence)"""
         return int(self.sa.loc[self.sa == s].index[0])
 
     def findKmer(self, kmer):
