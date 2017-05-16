@@ -14,31 +14,33 @@ import tempfile
 
 
 class Sarks(object):
-    """Sarks class implements suffix array kernel smoothing for de novo correlative motif discovery, conducted in several steps:
-1. initialize Sarks object (requires fasta file and pandas Series containing scores, as well as specification of smoothing window size),
-2. assessment of distribution of scores under null-hypothesis using permutationDistribution specifying Gini impurity cutoffs (minGini and/or minSpatialGini),
-3. call to peaks method specifying filter parameters (e.g., minGini and smoothed score cutoff theta),
-4. extraction of kmer table for top peaks using subtable method (followed by optional use of extendKmers if desired),
-5. clustering of extracted kmers using clusterKmers."""
+    """
+    Sarks class implements suffix array kernel smoothing for de novo correlative motif discovery, conducted in several steps:
+
+    1. initialize Sarks object (requires fasta file and pandas Series containing scores, as well as specification of smoothing window size),
+    2. assessment of distribution of scores under null-hypothesis using permutationDistribution specifying Gini impurity cutoffs (minGini and/or minSpatialGini),
+    3. call to peaks method specifying filter parameters (e.g., minGini and smoothed score cutoff theta),
+    4. extraction of kmer table for top peaks using subtable method (followed by optional use of extendKmers if desired),
+    5. clustering of extracted kmers using clusterKmers."""
 
     def __init__(self, inFasta, catFasta, scores,
                  suffixArrayFile=None,
                  halfWindow=250,
-                 minScore=-np.inf, maxScore=np.inf,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
                  regenerateSuffixArray=False):
-        """Construction of Sarks object requires, at minimum:
-@param: inFasta specification of fasta file containing sequences to be analyzed,
-@param: catFasta file name to be used for fasta file containing concatenated sequence produced by Sarks,
-@param: scores pandas Series object with index matching the sequence ids in inFasta, and
-@param: halfWindow half-width of smoothing window."""
+        """
+        Construction of Sarks object requires, at minimum:
+
+        @param inFasta: specification of fasta file containing sequences to be analyzed,
+        @param catFasta: file name to be used for fasta file containing concatenated sequence produced by Sarks,
+        @param scores: pandas Series object with index matching the sequence ids in inFasta, and
+        @param halfWindow: half-width of smoothing window.
+        """
         self.inFasta = inFasta
         self.catFasta = catFasta
         self.suffixArrayFile = suffixArrayFile
         self.halfWindow = halfWindow
-        self.minScore = minScore
-        self.maxScore = maxScore
         if seqs is not None:
             self.seqs = seqs
         else:
@@ -66,7 +68,12 @@ class Sarks(object):
 
     def concatenateSeqs(self, catFasta,
                         regenerateSuffixArray=False):
-        """concatenate seqs together and write to catFasta"""
+        """
+        Concatenate seqs together and write to catFasta
+        
+        @param catFasta: name of file to write concatenated sequence to
+        @param regenerateSuffixArray: if True, overwrite any existing concatenated sequence file
+        """
         if regenerateSuffixArray or not os.path.exists(catFasta):
             catSeq = SeqRecord(Seq("".join([str(self.seqs[t]) + "$"
                                             for t in self.transcripts]),
@@ -78,13 +85,19 @@ class Sarks(object):
             with open(catFasta, "w") as outhandle:
                 SeqIO.write([catSeq], outhandle, "fasta")
         ## now read catFasta back in and calculate block boundaries
-        self.catSeq =  Fasta(catFasta)['concatenated_promoters']
+        self.catSeq = Fasta(catFasta)['concatenated_promoters']
         self.bounds = np.cumsum([len(self.seqs[t]) + 1
                                  for t in self.transcripts])
 
     def calcSuffixArray(self, catFasta, suffixArrayFile,
                         regenerateSuffixArray=False):
-        """Construct suffix array for concatenated sequence held in catFasta"""
+        """
+        Construct suffix array for concatenated sequence held in catFasta
+
+        @param catFasta: name of file containing concatenated sequence
+        @param suffixArrayFile: name of file to write suffix array data to (or load from if already exists and regenerateSuffixArray is False)
+        @param regenerateSuffixArray: if True, overwrite any existing suffix array file
+        """
         if suffixArrayFile is None:
             suffixArrayFile = re.sub(r"\..*", "", catFasta) + "_sa.txt"
         if regenerateSuffixArray or not os.path.exists(suffixArrayFile + ".gz"):
@@ -99,24 +112,36 @@ class Sarks(object):
         self.sa = self.sa.loc[self.sa < len(self.catSeq)]
         
     def sourceBlock(self, s):
-        """Map suffix array *value* s (position within concatenated sequence) back to numeric index of source block within scores"""
+        """
+        Map suffix array *value* s back to numeric index of source block
+
+        @param s: suffix array value (position of suffix within concatenated sequence)
+        @return: numeric index of source block in the Series scores
+        """
         return np.searchsorted(self.bounds, s+1)
 
-    def sourceScore(self, s, process=False):
-        """Map suffix array *value* s (position within concatenated sequence) back to score of block from which s is derived"""
+    def sourceScore(self, s):
+        """
+        Map suffix array *value* s back to score of block from which s is derived
+
+        @param s: suffix array value (position of suffix within concatenated sequence)
+        @return: score of block from which s is derived
+        """
         srcBlk = self.sourceBlock(s)
         out = pd.DataFrame({
             'block' : srcBlk,
             'score' : self.scores.iloc[srcBlk].values
         }, index=s)
-        if process:
-            out.loc[out['score'] < self.minScore, 'score'] = self.minScore
-            out.loc[out['score'] > self.maxScore, 'score'] = self.maxScore
         out['block'] = out['block'].astype(int)
         return out[['block', 'score']]
 
     def windowGini(self, recalculate=False):
-        """Calculate Gini impurities for all positions; result is stored (windGini) as pandas Series indexed by suffix array *value* (position within concatenated sequence)"""
+        """
+        Calculate Gini impurities for all positions
+        
+        @param recalculate: if False and windGini already set simply return existing values
+        @return: pandas Series indexed by suffix array *value* s (position within concatenated sequence); also stored internally as windGini
+        """
         if "windGini" not in dir(self) or recalculate:
             block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
             btmp = tempfile.NamedTemporaryFile()
@@ -138,7 +163,12 @@ class Sarks(object):
         return self.windGini
 
     def spatialGini(self, recalculate=False):
-        """Calculate Gini impurities, averaged over a spatial window of length spatialLength, for all positions; result is stored (windGini) as pandas Series indexed by suffix array *value* (position within concatenated sequence) of the start of the spatial window"""
+        """
+        Calculate Gini impurities, averaged over a spatial window of length spatialLength, for all positions
+
+        @param recalculate: if False and windGini already set simply return existing values
+        @return: pandas Series indexed by suffix array *value* s (position within concatenated sequence) of start of spatial window; also stored internally as spatGini
+        """
         if self.spatGini is None or recalculate:
             sortedGini = self.windGini.copy()
             sortedGini.sort_index(inplace=True)
@@ -155,15 +185,20 @@ class Sarks(object):
         return self.spatGini
     
     def window(self, halfWindow=None, recalculate=False):
-        """Access to sorted-suffix-smoothed scores yhat"""
+        """
+        Access to sorted-suffix-smoothed scores yhat
+
+        @param halfWindow: number of suffixes before and after central suffix in window to smooth over
+        @param recalculate: if False and windGini already set simply return existing values
+        @return: pandas Series indexed by suffix array *value* s (position within concatenated sequence)
+        """
         if halfWindow is None:
             halfWindow = self.halfWindow
         if halfWindow != self.halfWindow or recalculate:
             if halfWindow != self.halfWindow:
                 self.windowGini(recalculate=True)
             self.halfWindow = halfWindow
-            saScores = self.sourceScore(self.sa,
-                                        process=True)['score']
+            saScores = self.sourceScore(self.sa)['score']
             saCumul = saScores.cumsum()
             windowSize = (2 * halfWindow) + 1
             self.windowed = saCumul.iloc[(windowSize-1):] - \
@@ -180,7 +215,12 @@ class Sarks(object):
         return self.windowed
 
     def spatialWindow(self, length):
-        """Access to spatially-smoothed scores yhathat"""
+        """
+        Access to spatially-smoothed scores yhathat
+        
+        @param length: spatial distance to smooth over
+        @return: pandas Series indexed by suffix array *value* s (position within concatenated sequence)
+        """
         if 'spatialLength' not in dir(self) or \
            length != self.spatialLength or \
            'spatialWindowed' not in dir(self):
@@ -200,14 +240,30 @@ class Sarks(object):
         return self.spatialWindowed
 
     def i2s(self, i):
-        """Get suffix array *value* s (position with concatenated sequence) corresponding to given suffix array *index* i (position of suffix in lexicographically sorted list of suffixes)"""
+        """
+        Get suffix array *value* s corresponding to given suffix array *index* i
+
+        @param i: suffix array index (position of suffix in lexicographically sorted list of suffixes) (int)
+        @return: suffix array value s (position with concatenated sequence) (int)
+        """
         return int(self.sa.loc[i])
 
     def s2i(self, s):
-        """Get suffix array *index* i (position of suffix in lexicographically sorted list of suffixes) corresponding to given suffix array *value* s (position with concatenated sequence)"""
+        """
+        Get suffix array *index* i corresponding to given suffix array *value* s
+
+        @param s: suffix array value (position with concatenated sequence) (int)
+        @return: suffix array index (position of suffix in lexicographically sorted list of suffixes) (int)
+        """
         return int(self.sa.loc[self.sa == s].index[0])
 
     def findKmer(self, kmer):
+        """
+        Find interval [imin, imax) such that all suffix array index positions imin <= i < imax correspond to suffixes beginning with string kmer
+
+        @param kmer: string representing the common prefix to all suffixes of concatenated sequence stored in catFasta whose suffix array index is >= imin and < imax
+        @return: tuple (imin, imax)
+        """
         if 'kmerBounds' in dir(self):
             if kmer in self.kmerBounds:
                 return self.kmerBounds[kmer]
@@ -262,6 +318,12 @@ class Sarks(object):
         return start, end
 
     def pruneIntervals(intervals):
+        """
+        Use intervaltree to remove any nested intervals
+
+        @param intervals: list of tuples representing intervals to prune
+        @return: list of tuple representations of intervals remaining after pruning
+        """
         tree = intervaltree.IntervalTree(intervals=[intervaltree.Interval(*iv)
                                                     for iv in intervals])
         nests = tree.find_nested()
@@ -274,7 +336,21 @@ class Sarks(object):
               spatialLength=None, spatialTheta=None,
               k=12, minK=None,
               minGini=None, minSpatialGini=None,
-              s=None, deduplicate=False):
+              deduplicate=False):
+        """
+        Identify local score maxima when sorted by suffix array index i
+
+        @param theta: minimum smoothed score value for peak to be reported (float)
+        @param prune: whether to apply pruneIntervals to resulting kmer intervals (bool)
+        @param spatialLength: length of spatial window to apply (if any) (int)
+        @param spatialTheta: minimum spatially smoothed score value for peak to be reported (if any, requires spatialLength to be specified) (float)
+        @param k: maximum kmer length to consider (int)
+        @param minK: minimum kmer length to report (int)
+        @param minGini: minimum Gini impurity value for suffix position to be reported as peak (float)
+        @param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be reported as peak (float)
+        @param deduplicate: if True, report only highest scoring position corresponding to any given kmer (bool)
+        @return: suffix array *values* s corresponding to desired peak positions (pandas Series)
+        """
         scores = None
         if spatialLength is not None:
             scores = self.spatialWindow(spatialLength)
@@ -291,14 +367,29 @@ class Sarks(object):
                           theta=theta,
                           spatialLength=spatialLength, spatialTheta=spatialTheta,
                           nearbyPars=None,
-                          k=k, prune=prune, deduplicate=deduplicate, s=s)
+                          k=k, prune=prune, deduplicate=deduplicate)
         pos = pos.loc[(scoreDiffB.loc[pos] >= 0) &
                       (scoreDiffF.loc[pos] <= 0)]
         return self.sa.loc[self.sa.isin(set(pos))]
 
     def filter(self, minGini=None, minSpatialGini=None, minK=None,
                theta=None, spatialLength=None, spatialTheta=None,
-               nearbyPars=None, k=12, prune=True, deduplicate=True, s=None):
+               nearbyPars=None, k=12, prune=True, deduplicate=True):
+        """
+        Return suffix array *values* s satisfying specified filters
+        
+        @param minGini: minimum Gini impurity value for suffix position to be reported as peak (float)
+        @param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be reported as peak (float)
+        @param minK: minimum kmer length to report (int)
+        @param theta: minimum smoothed score value for peak to be reported (float)
+        @param spatialLength: length of spatial window to apply (if any) (int)
+        @param spatialTheta: minimum spatially smoothed score value for peak to be reported (if any, requires spatialLength to be specified) (float)
+        @param nearbyPars: args for nearbyKmers (dict)
+        @param k: maximum kmer length to consider (int)
+        @param prune: whether to apply pruneIntervals to resulting kmer intervals (bool)
+        @param deduplicate: if True, report only highest scoring position corresponding to any given kmer (bool)
+        @return: suffix array *values* s satisfying specified filters (pandas Series)
+        """
         pos = pd.Series(self.windowed.index)
         pos.index = pos
         posSubtable = None
@@ -312,8 +403,6 @@ class Sarks(object):
                 pos = pos.loc[self.spatialGini()[pos] >= minSpatialGini]
             if spatialTheta is not None:
                 pos = pos.loc[spat.loc[pos] >= spatialTheta]
-        if s is not None:
-            pos = pos.loc[pos.isin(s)]
         if deduplicate:
             posSubK = self.quickSubtable(pos, k).copy()
             posSubK.sort_values('windowed', inplace=True)
@@ -341,6 +430,12 @@ class Sarks(object):
         return pos
 
     def extendKmers(self, subtable):
+        """
+        Extend kmers when adding neighboring characters would result in another reported kmer string
+
+        @param subtable: result of calling subtable method on filtered peaks (pandas DataFrame)
+        @return: subtable with extended kmer values in kmer column (pandas DataFrame)
+        """
         subtable = subtable.copy()
         maxLen = subtable['kmer'].str.len().max()
         oldS = pd.Series(-1, index=subtable.index)
@@ -373,6 +468,15 @@ class Sarks(object):
         return subtable
 
     def kmers(self, s, k=12, k0=0, sanitize=True):
+        """
+        Report (k-k0)-mers starting at positions s+k0 ending at s+k
+
+        @param s: list/array/Series of suffix array *values* at which kmers are located
+        @param k: int offset specifying how many characters downstream of s kmers should end
+        @param k0: int offset specifying how many characters downstream of s kmers should start
+        @param sanitize: if True, remove any kmers not of length (k-k0) (from end of concatenated sequence)
+        @return: (k-k0)-mers starting at positions s+k0 ending at s+k (pandas Series)
+        """
         catSeqMaxPos = len(self.catSeq) - 1
         def proc1(i):
             return max(0, min(catSeqMaxPos-1, int(i)))
@@ -386,17 +490,31 @@ class Sarks(object):
             out = out.loc[out.str.len() == (k-k0)]
         return out
 
-    def prefixAgreeSum(s, esses):
+    def prefixAgreeSum(kmer, esses):
+        """
+        Calculate average length of prefix agreement between kmer and suffixes specified by esses
+        
+        @param kmer: string to assess average length of maximum prefix agreement with
+        @param esses: suffix array *values* (positions within concatenated sequence) of suffixes to compare with prefix
+        @return: average length of prefix agreement between kmer and suffixes specified by esses (float)
+        """
         esses = pd.Series(esses)
         out = 0
         aliveIndices = esses.index
-        for i, letter in enumerate(str(s)):
+        for i, letter in enumerate(str(kmer)):
             iLetters = esses[aliveIndices].str[i].dropna()
             aliveIndices = esses[iLetters.index][iLetters == letter].index
             out += len(aliveIndices)
         return out / len(esses)
 
     def subtable(self, s, k=12):
+        """
+        Suffix array table for suffix array *values* s
+
+        @param s: pandas Series containing suffix array values (positions within concatenated sequence)
+        @param k: maximum kmer length to consider (int)
+        @return: pandas DataFrame containing info, including conserved kmers, for positions specified by s
+        """
         srcScr = self.sourceScore(s)
         eyes = [self.s2i(sel) for sel in s]
         kmers = self.kmers(s, k, sanitize=False).loc[s]
@@ -428,6 +546,13 @@ class Sarks(object):
         return out
 
     def quickSubtable(self, s, k=12):
+        """
+        Suffix array table for suffix array *values* s including kmers of pre-specified length k
+
+        @param s: pandas Series containing suffix array values (positions within concatenated sequence)
+        @param k: kmer length (int)
+        @return: pandas DataFrame containing info, including constant length kmers, for positions specified by s
+        """
         srcScr = self.sourceScore(s)
         eyes = [self.s2i(sel) for sel in s]
         kmers = self.kmers(s, k, sanitize=False).loc[s]
@@ -449,6 +574,16 @@ class Sarks(object):
 
     def nearbyKmers(self, seed, theta=-np.inf, window=6, k=3,
                     includePosition=False):
+        """
+        Count kmers downstream of specified seed sequence
+
+        @param seed: string representing head kmer for which enriched downstream tail kmers are sought
+        @param theta: minimum smoothed score for suffixes beginning with seed to be included in analysis (float)
+        @param window: maximum distance downstream of (end of) seed to consider (int)
+        @param k: minimum length of enriched kmer to analyze (int)
+        @param includePosition: format output as pandas DataFrame (otherwise returns Series)
+        @return: either pandas Series or DataFrame counting kmers downstream of specified seed sequence
+        """
         s = self.sa.loc[range(*self.findKmer(seed))].copy()
         s = s.iloc[(self.scores.iloc[self.sourceBlock(s)] >= theta).values]
         if not "__contains__" in dir(window):
@@ -461,7 +596,7 @@ class Sarks(object):
                              strings.loc[strLens >= i+k].str[i:(i+k)]
                              for i in range(strLens.max()-k+1)])
             out = out.value_counts()
-            out = pd.DataFrame({
+            out = pd.DataFrame({nnnnn
                 "pos" : window[0] + out.index.str.replace(r' .*',
                                                           '').astype(int),
                 "k" : k,
@@ -475,6 +610,18 @@ class Sarks(object):
 
     def rankNearbyKmers(self, seed, theta=-np.inf, window=10,
                         ks=range(3, 7), minCount=2, bg=None, maxP=None):
+        """
+        Identify potentially enriched kmers downstream of specified seed sequence
+
+        @param seed: string representing head kmer for which enriched downstream tail kmers are sought
+        @param theta: minimum smoothed score for suffixes beginning with seed to be included in analysis (float)
+        @param window: maximum distance downstream of (end of) seed to consider (int)
+        @param ks: tuple indicating (minimum, maximum+1) length of kmers to consider (tuple of ints)
+        @param minCount: minimum number of occurrences of kmer for consideration (int)
+        @param bg: null model probability of each possible character (pandas Series indexed by characters in sequence alphabet)
+        @param maxP: maximum p-value allowed to retain kmers in output (float)
+        @return: table of info for potentially enriched downstream kmers (pandas DataFrame)
+        """
         if bg is None:
             bg = pd.Series(np.ones(4), index=['A', 'C', 'G', 'T']) / 4.0
         if not "__contains__" in dir(window):
@@ -501,6 +648,13 @@ class Sarks(object):
         return kmers.sort_values('logp')
 
     def clusterKmers(kmers, d=None):
+        """
+        Uses starcode (-s --print-clusters -d d) to cluster specified kmers
+
+        @param kmers: list/array/Series of kmers to cluster (higher priority kmers first)
+        @param d: maximum edit distance between kmer and cluster center for inclusion (int)
+        @return: dict mapping cluster center to list of kmers included in cluster
+        """
         starcode = "starcode -s --print-clusters"
         if d is not None:
             starcode += " -d " + str(d)
@@ -523,8 +677,6 @@ class Sarks(object):
                               permutedScores = permutedScores,
                               suffixArrayFile = self.suffixArrayFile,
                               halfWindow = self.halfWindow,
-                              minScore = self.minScore,
-                              maxScore = self.maxScore,
                               seqs = self.seqs,
                               catSeq = self.catSeq,
                               bounds = self.bounds,
@@ -541,6 +693,17 @@ class Sarks(object):
                                 minGini=None,
                                 minSpatialGini=None,
                                 seed=None):
+        """
+        Estimate null distribution of smoothed (and spatially-smoothed, if desired) scores passing specified filters
+
+        @param reps: how many repetitions of random permutation to do (int)
+        @param k: maximum kmer length to consider (int)
+        @param quantiles: quantiles (between 0 and 1) of distribution to report (array or Series)
+        @param spatialLength: length of spatial window for spatial smoothing (int)
+        @param minGini: minimum Gini impurity value for suffix position to be included (float)
+        @param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be included (float)
+        @param seed: seed for random number generator (int)
+        """
         if seed is not None:
             np.random.seed(seed)
         permResults = []
