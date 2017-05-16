@@ -710,7 +710,7 @@ class Sarks(object):
         :param minGini: minimum Gini impurity value for suffix position to be included (float)
         :param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be included (float)
         :param seed: seed for random number generator (int)
-        :returns: returns dict (keyed by 'windowed' and, if applicable, 'spatial_windowed') containing requested quantiles of null distribution of smoothed scores
+        :returns: returns list of dicts (keyed by 'windowed' and, if applicable, 'spatial_windowed') containing requested quantiles of filtered smoothed scores
         """
         if seed is not None:
             np.random.seed(seed)
