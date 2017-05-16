@@ -680,7 +680,7 @@ class Sarks(object):
                                    index = self.scores.index)
         permutedSarks = Sarks(inFasta = self.inFasta,
                               catFasta = self.catFasta,
-                              permutedScores = permutedScores,
+                              scores = permutedScores,
                               suffixArrayFile = self.suffixArrayFile,
                               halfWindow = self.halfWindow,
                               seqs = self.seqs,
