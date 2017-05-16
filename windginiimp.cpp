@@ -9,9 +9,6 @@
 using std::ios;
 using std::cout;
 
-// compile with:
-// g++ windginiimp.cpp -o windginiimp -O3
-
 int* blockCounts(int i, int halfWindow, std::vector<int> block, int nBlocks) {
     int* out = (int*)calloc(nBlocks, sizeof(int));
     int j;
