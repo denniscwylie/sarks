@@ -694,23 +694,23 @@ class Sarks(object):
                     retain.add(kmers[j])
         return sorted(list(retain))
 
-    def estimateSignalToNoise(self, halfWindows, minGinis):
-        out = []
-        scoreMean = self.scores.mean()
-        scoreVar = self.scores.var(ddof=0)
-        for halfWindow in halfWindows:
-            windowed = self.window(halfWindow)
-            for minGini in minGinis:
-                acceptGini = (self.windGini >= minGini)
-                sig = windowed.loc[acceptGini] - scoreMean
-                estPermVar = scoreVar *\
-                             (1 - self.windGini.loc[acceptGini])
-                out.append((halfWindow,
-                            minGini,
-                            estPermVar.max(),
-                            sig.max() / np.sqrt(estPermVar.max())))
-        return pd.DataFrame(out, columns=[
-                'half_window', 'min_gini', 'est_perm_var', 'signal_to_noise'])
+    # def estimateSignalToNoise(self, halfWindows, minGinis):
+    #     out = []
+    #     scoreMean = self.scores.mean()
+    #     scoreVar = self.scores.var(ddof=0)
+    #     for halfWindow in halfWindows:
+    #         windowed = self.window(halfWindow)
+    #         for minGini in minGinis:
+    #             acceptGini = (self.windGini >= minGini)
+    #             sig = windowed.loc[acceptGini] - scoreMean
+    #             estPermVar = scoreVar *\
+    #                          (1 - self.windGini.loc[acceptGini])
+    #             out.append((halfWindow,
+    #                         minGini,
+    #                         estPermVar.max(),
+    #                         sig.max() / np.sqrt(estPermVar.max())))
+    #     return pd.DataFrame(out, columns=[
+    #             'half_window', 'min_gini', 'est_perm_var', 'signal_to_noise'])
         
     def permute(self, perm):
         """
