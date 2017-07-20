@@ -31,5 +31,5 @@ setup(
     author = 'Dennis Wylie',
     author_email = 'denniswylie@austin.utexas.edu',
     py_modules = ['sarks'],
-    install_requires = ['biopython', 'intervaltree', 'numpy', 'pandas', 'pyfaidx', 'scipy']
+    install_requires = ['biopython', 'editdistance', 'intervaltree', 'numpy', 'pandas', 'pyfaidx', 'scipy']
 )
