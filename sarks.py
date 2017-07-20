@@ -2,6 +2,7 @@ from Bio.Alphabet import DNAAlphabet
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+import editdistance
 import intervaltree
 import numpy as np
 import os
@@ -130,7 +131,8 @@ class Sarks(object):
         srcBlk = self.sourceBlock(s)
         out = pd.DataFrame({
             'block' : srcBlk,
-            'score' : self.scores.iloc[srcBlk].values
+            # 'score' : self.scores.iloc[srcBlk].values
+            'score' : self.scores.values[srcBlk]
         }, index=s)
         out['block'] = out['block'].astype(int)
         return out[['block', 'score']]
@@ -155,11 +157,13 @@ class Sarks(object):
             self.windGini = pd.Series(np.loadtxt(gtmp.name))
             btmp.close()
             gtmp.close()
-            saWindowCenters = range(
-                int(self.halfWindow),
-                int(self.halfWindow) + len(self.windGini)
-            )
-            self.windGini.index = self.sa.iloc[saWindowCenters]
+            # saWindowCenters = range(
+            #     int(self.halfWindow),
+            #     int(self.halfWindow) + len(self.windGini)
+            # )
+            # self.windGini.index = self.sa.iloc[saWindowCenters]
+            self.windGini.index = self.sa.values[
+                    int(self.halfWindow):(int(self.halfWindow)+len(self.windGini))]
         return self.windGini
 
     def spatialGini(self, recalculate=False):
@@ -181,7 +185,8 @@ class Sarks(object):
                             ])
             self.spatGini /= self.spatialLength
             self.spatGini.index = \
-                    sortedGini.iloc[range(len(self.spatGini))].index
+                    sortedGini.index.values[0:len(self.spatGini)]
+                    # sortedGini.iloc[range(len(self.spatGini))].index
         return self.spatGini
     
     def window(self, halfWindow=None, recalculate=False):
@@ -207,11 +212,13 @@ class Sarks(object):
                                 saCumul.iloc[0:(-windowSize)].values
                             ])
             self.windowed /= windowSize
-            saWindowCenters = range(
+            saWindowCenters = np.arange(
                 int(halfWindow),
                 int(halfWindow) + len(self.windowed)
             )
-            self.windowed.index = saScores.iloc[saWindowCenters].index
+            # self.windowed.index = saScores.iloc[saWindowCenters].index
+            self.windowed.index = saScores.index.values[
+                    int(halfWindow):(int(halfWindow)+len(self.windowed))]
         return self.windowed
 
     def spatialWindow(self, length):
@@ -222,21 +229,22 @@ class Sarks(object):
         :returns: pandas Series indexed by suffix array *value* s (position within concatenated sequence)
         """
         if 'spatialLength' not in dir(self) or \
-           length != self.spatialLength or \
+           int(length) != self.spatialLength or \
            'spatialWindowed' not in dir(self):
             self.spatGini = None
-            self.spatialLength = length
+            self.spatialLength = int(length)
             windowed = self.window().copy()
             windowed.sort_index(inplace=True)
             windCumul = windowed.cumsum()
-            self.spatialWindowed = windCumul.iloc[(length-1):] - \
+            self.spatialWindowed = windCumul.iloc[(int(length)-1):] - \
                                    np.concatenate([
                                        np.zeros(1),
-                                       windCumul.iloc[0:(-length)].values
+                                       windCumul.iloc[0:(-int(length))].values
                                    ])
-            self.spatialWindowed /= length
+            self.spatialWindowed /= int(length)
             self.spatialWindowed.index = \
-                    windowed.iloc[range(len(self.spatialWindowed))].index
+                    windowed.index.values[0:len(self.spatialWindowed)]
+                    # windowed.iloc[range(len(self.spatialWindowed))].index
         return self.spatialWindowed
 
     def i2s(self, i):
@@ -397,7 +405,7 @@ class Sarks(object):
             pos = pos.loc[self.windGini[pos] >= minGini]
         if theta is not None:
             pos = pos.loc[(self.windowed.loc[pos] >= theta)]
-        if spatialLength is not None:
+        if spatialLength is not None and spatialLength > 0:
             spat = self.spatialWindow(spatialLength)
             if minSpatialGini is not None:
                 pos = pos.loc[self.spatialGini()[pos] >= minSpatialGini]
@@ -647,6 +655,7 @@ class Sarks(object):
             kmers = kmers.loc[kmers['logp'] <= np.log10(maxP)]
         return kmers.sort_values('logp')
 
+    @staticmethod
     def clusterKmers(kmers, d=None):
         """
         Uses starcode (-s --print-clusters -d d) to cluster specified kmers
@@ -668,6 +677,40 @@ class Sarks(object):
         clusters = {s.split("\t")[0] : s.split("\t")[2].split(",")
                     for s in scOut.split("\n") if s != ""}
         return clusters
+
+    @staticmethod
+    def revCompFilter(kmers, d=None):
+        kmers = list(pd.Series(list(kmers)).str.replace('\$.*$', ''))
+        def revComp(s):
+            comp = {'a':'t', 'A':'T', 'c':'g', 'C':'G', 'n':'n', 'N':'N',
+                    'g':'c', 'G':'C', 't':'a', 'T':'A'}
+            return ''.join([comp[s[i]] for i in range(len(s)-1, -1, -1)])
+        retain = set()
+        for i, km in enumerate(kmers):
+            rkm = revComp(km)
+            for j in range(i+1, len(kmers)):
+                if editdistance.eval(rkm, kmers[j]) <= d:
+                    retain.add(km)
+                    retain.add(kmers[j])
+        return sorted(list(retain))
+
+    def estimateSignalToNoise(self, halfWindows, minGinis):
+        out = []
+        scoreMean = self.scores.mean()
+        scoreVar = self.scores.var(ddof=0)
+        for halfWindow in halfWindows:
+            windowed = self.window(halfWindow)
+            for minGini in minGinis:
+                acceptGini = (self.windGini >= minGini)
+                sig = windowed.loc[acceptGini] - scoreMean
+                estPermVar = scoreVar *\
+                             (1 - self.windGini.loc[acceptGini])
+                out.append((halfWindow,
+                            minGini,
+                            estPermVar.max(),
+                            sig.max() / np.sqrt(estPermVar.max())))
+        return pd.DataFrame(out, columns=[
+                'half_window', 'min_gini', 'est_perm_var', 'signal_to_noise'])
         
     def permute(self, perm):
         """
@@ -699,7 +742,8 @@ class Sarks(object):
                                 spatialLength=None,
                                 minGini=None,
                                 minSpatialGini=None,
-                                seed=None):
+                                seed=None,
+                                permutations=None):
         """
         Estimate null distribution of smoothed (and spatially-smoothed, if desired) scores passing specified filters
 
@@ -710,6 +754,7 @@ class Sarks(object):
         :param minGini: minimum Gini impurity value for suffix position to be included (float)
         :param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be included (float)
         :param seed: seed for random number generator (int)
+        :param permutations: reps-in-rows, entries-in-columns table of permutations to apply (pandas DataFrame)
         :returns: returns list of dicts (keyed by 'windowed' and, if applicable, 'spatial_windowed') containing requested quantiles of filtered smoothed scores
         """
         if seed is not None:
@@ -717,7 +762,10 @@ class Sarks(object):
         permResults = []
         sl = len(self.scores)
         for r in range(reps):
-            rperm = np.random.choice(sl, sl, replace=False)
+            if permutations is not None:
+                rperm = permutations.values[r, :]
+            else:
+                rperm = np.random.choice(sl, sl, replace=False)
             rsarks = self.permute(rperm)
             rpos = rsarks.filter(minGini = minGini,
                                  spatialLength = spatialLength,
@@ -739,12 +787,136 @@ class Sarks(object):
                             permResults[-1]['spatial_windowed'], 100*quantiles)
         return permResults
 
+    def permutationDistributionMultiFilter(self, reps, k=12,
+                                           quantiles=np.array([0, 0.5, 0.99,
+                                                               0.9999,
+                                                               0.999999, 1]),
+                                           filters = None,
+                                           seed = None,
+                                           permutations = None):
+        """
+        Estimate null distribution of smoothed (and spatially-smoothed, if desired) scores passing specified filters
+
+        :param reps: how many repetitions of random permutation to do (int)
+        :param k: maximum kmer length to consider (int)
+        :param quantiles: quantiles (between 0 and 1) of distribution to report (array or Series)
+        :param filters: table providing sets of spatialLength, minGini, and minSpatialGini values to assess (pandas DataFrame)
+        :param seed: seed for random number generator (int)
+        :param permutations: reps-in-rows, entries-in-columns table of permutations to apply (pandas DataFrame)
+        :returns: returns dict (keyed by 'windowed' and 'spatial_windowed') containing pandas DataFrames in turn containing requested quantiles of filtered smoothed scores
+        """
+        if seed is not None:
+            np.random.seed(seed)
+        permResults = []
+        sl = len(self.scores)
+        out = {'windowed' : [], 'spatial_windowed' : []}        
+        for r in range(reps):
+            if permutations is not None:
+                rperm = permutations.values[r, :]
+            else:
+                rperm = np.random.choice(sl, sl, replace=False)
+            rsarks = self.permute(rperm)
+            filts = filters.sort_values('spatialLength')
+            for filtIdx in filts.index:
+                filt = filts.loc[filtIdx]
+                rpos = rsarks.filter(minGini = filt['minGini'],
+                                     spatialLength = filt['spatialLength'],
+                                     minSpatialGini = filt['minSpatialGini'],
+                                     k = k,
+                                     prune = False,
+                                     deduplicate = False)
+                windQuants = np.percentile(rsarks.windowed.loc[rpos],
+                                           100 * quantiles)
+                windQuants = pd.DataFrame(
+                    windQuants,
+                    index = quantiles,
+                    columns = [len(out['windowed'])]
+                ).transpose()
+                windQuants['rep'] = r
+                windQuants['spatialLength'] = filt['spatialLength']
+                windQuants['minGini'] = filt['minGini']
+                windQuants['minSpatialGini'] = filt['minSpatialGini']
+                out['windowed'].append(windQuants)
+                if filt['spatialLength'] > 0:
+                    spatQuants = np.percentile(
+                        rsarks.spatialWindow(filt['spatialLength'])\
+                        .loc[rpos].dropna(),
+                        100 * quantiles
+                    )
+                    spatQuants = pd.DataFrame(
+                        spatQuants,
+                        index = quantiles,
+                        columns = [len(out['spatial_windowed'])]
+                    ).transpose()
+                    spatQuants['rep'] = r
+                    spatQuants['spatialLength'] = filt['spatialLength']
+                    spatQuants['minGini'] = filt['minGini']
+                    spatQuants['minSpatialGini'] = filt['minSpatialGini']
+                    out['spatial_windowed'].append(spatQuants)
+        out['windowed'] = pd.concat(out['windowed'])
+        if len(out['spatial_windowed']) > 0:
+            out['spatial_windowed'] = pd.concat(out['spatial_windowed'])
+        else:
+            out['spatial_windowed'] = None
+        return out
+
+    def permutationTestMultiFilter(self, reps, k=12,
+                                  filters = None,
+                                  seed = None,
+                                  permutations = None):
+        """
+        Estimate null distribution of smoothed (and spatially-smoothed, if desired) scores passing specified filters
+
+        :param reps: how many repetitions of random permutation to do (int)
+        :param k: maximum kmer length to consider (int)
+        :param filters: table providing sets of spatialLength, minGini, minSpatialGini, theta, and spatialTheta values to assess (pandas DataFrame)
+        :param seed: seed for random number generator (int)
+        :param permutations: reps-in-rows, entries-in-columns table of permutations to apply (pandas DataFrame)
+        :returns: returns dict (keyed by 'windowed' and 'spatial_windowed') containing pandas DataFrames in turn containing requested quantiles of filtered smoothed scores
+        """
+        if seed is not None:
+            np.random.seed(seed)
+        permResults = []
+        sl = len(self.scores)
+        out = []
+        for r in range(reps):
+            if permutations is not None:
+                rperm = permutations.values[r, :]
+            else:
+                rperm = np.random.choice(sl, sl, replace=False)
+            rsarks = self.permute(rperm)
+            filts = filters.sort_values('spatialLength')
+            for filtIdx in filts.index:
+                filt = filts.loc[filtIdx]
+                rpos = rsarks.filter(minGini = filt['minGini'],
+                                     spatialLength = filt['spatialLength'],
+                                     minSpatialGini = filt['minSpatialGini'],
+                                     k = filt['k'] if 'k' in filt.index else k,
+                                     prune = False,
+                                     deduplicate = True)
+                rpos = rpos.loc[rsarks.windowed >= filt['theta']]
+                if filt['spatialLength'] > 0:
+                    spatScores = rsarks.spatialWindow(filt['spatialLength'])\
+                                       .loc[rpos].dropna()
+                    spatScores = spatScores.loc[
+                        spatScores >= filt['spatialTheta']
+                    ]
+                    rpos = rpos.loc[rpos.isin(spatScores.index)]
+                if 'd' in filt.index:
+                    rkm = rsarks.kmers(rpos,
+                                       k = filt['k'] if 'k' in filt.index else k)
+                    rpos = rpos.loc[rkm.isin(revCompFilter(rkm, d=filt['d']))]
+                rout = filt.copy()
+                rout['count'] = len(rpos)
+                out.append(rout)
+        return pd.concat(out, axis=1).transpose()
+    
     def permutationTest(self, theta, reps,
                         k=12,
                         spatialLength=None, spatialTheta=None,
                         nearbyPars=None,
                         minGini=None, minSpatialGini=None,
-                        seed=None):
+                        seed=None, permutations=None):
         """
         Return filtered peaks, if any, obtained under permutation of input scores
 
@@ -757,6 +929,7 @@ class Sarks(object):
         :param minGini: minimum Gini impurity value for suffix position to be included (float)
         :param minSpatialGini: minimum spatially-averaged Gini impurity value for suffix position to be included (float)
         :param seed: seed for random number generator (int)
+        :param permutations: reps-in-rows, entries-in-columns table of permutations to apply (pandas DataFrame)
         :returns: returns suffix array subtables corresponding to peaks detected under each randonmly-generated permutation (list)
         """
         if seed is not None:
@@ -764,7 +937,10 @@ class Sarks(object):
         permResults = []
         sl = len(self.scores)
         for r in range(reps):
-            rperm = np.random.choice(sl, sl, replace=False)
+            if permutations is not None:
+                rperm = permutations.values[r, :]
+            else:
+                rperm = np.random.choice(sl, sl, replace=False)
             rsarks = self.permute(rperm)
             rpos = rsarks.filter(minGini = minGini,
                                  theta = theta,
