@@ -202,6 +202,9 @@ class Sarks(object):
         if halfWindow != self.halfWindow or recalculate:
             if halfWindow != self.halfWindow:
                 self.windowGini(recalculate=True)
+                self.spatGini = None
+                if 'spatialWindowed' in dir(self):
+                    del self.spatialWindowed
             self.halfWindow = halfWindow
             saScores = self.sourceScore(self.sa)['score']
             saCumul = saScores.cumsum()
@@ -498,6 +501,7 @@ class Sarks(object):
             out = out.loc[out.str.len() == (k-k0)]
         return out
 
+    # @staticmethod
     # def prefixAgreeSum(kmer, esses):
     #     """
     #     Calculate average length of prefix agreement between kmer and suffixes specified by esses
@@ -515,7 +519,16 @@ class Sarks(object):
     #         out += len(aliveIndices)
     #     return out / len(esses)
 
-    def prefixAgreeSum(self, i, halfWindow, kmax):
+    def prefixAgreeSum(self, i, halfWindow=None, kmax=12):
+        """
+        Calculate average length of prefix agreement between kmer specified by suffix array *index* i and suffixes in smoothing window
+
+        :param i: suffix array *index* at center of smoothing window (int)
+        :param halfWindow: half-width of smoothing window (int)
+        :param kmax: maximum kmer length to consider (int)
+        """
+        if halfWindow is None:
+            halfWindow = self.halfWindow
         kmer = self.kmers([self.sa[i]]).iloc[0]
         agreeSum = 0
         wstart, wend = i-halfWindow, i+halfWindow+1
@@ -547,7 +560,7 @@ class Sarks(object):
             "s" : s.values,
             "kmer" : kmers,
             "khat" : [self.prefixAgreeSum(i, self.halfWindow, k)
-                     for i in eyes],
+                      for i in eyes],
             # "khat" : [Sarks.prefixAgreeSum(
             #     km,
             #     self.kmers(self.sa[
@@ -878,9 +891,9 @@ class Sarks(object):
         return out
 
     def permutationTestMultiFilter(self, reps, k=12,
-                                  filters = None,
-                                  seed = None,
-                                  permutations = None):
+                                   filters = None,
+                                   seed = None,
+                                   permutations = None):
         """
         Estimate null distribution of smoothed (and spatially-smoothed, if desired) scores passing specified filters
 
@@ -982,3 +995,38 @@ class Sarks(object):
                 rout = rout.loc[~rout['kmer'].str.match(r".*\$")]
                 permResults.append(rout)
         return permResults
+
+    def multiWindow(self,
+                    halfWindows, filters, reps, k=12,
+                    quantiles=np.array([0, 0.5, 0.99, 0.9999, 0.999999, 1]),
+                    seed=None, permutations=None, assess='distribution'):
+        if seed is not None:
+            np.random.seed(seed)
+        permResults = []
+        sl = len(self.scores)
+        if permutations is None:
+            permutations = pd.DataFrame([
+                np.random.choice(sl, sl, replace=False)
+                for r in range(reps)
+            ])
+        out = []
+        for halfWindow in halfWindows:
+            self.window(halfWindow)
+            if assess == 'distribution':
+                out.append(self.permutationDistributionMultiFilter(
+                    reps=reps, k=k, quantiles=quantiles,
+                    filters=filters, seed=seed, permutations=permutations
+                ))
+            elif assess == 'test':
+                out.append(self.permutationTestMultiFilter(
+                    reps=reps, k=k,
+                    filters=filters, seed=seed, permutations=permutations
+                ))
+        if not isinstance(out[0], pd.DataFrame):
+            out = {'windowed' : pd.concat([x['windowed']
+                                           for x in out]),
+                   'spatial_windowed' : pd.concat([x['spatial_windowed']
+                                                   for x in out])}
+        else:
+            out = pd.concat(out)
+        return out
