@@ -848,6 +848,7 @@ class Sarks(object):
                     columns = [len(out['windowed'])]
                 ).transpose()
                 windQuants['rep'] = r
+                windQuants['halfWindow'] = self.halfWindow
                 windQuants['spatialLength'] = filt['spatialLength']
                 windQuants['minGini'] = filt['minGini']
                 windQuants['minSpatialGini'] = filt['minSpatialGini']
@@ -864,6 +865,7 @@ class Sarks(object):
                         columns = [len(out['spatial_windowed'])]
                     ).transpose()
                     spatQuants['rep'] = r
+                    spatQuants['halfWindow'] = self.halfWindow
                     spatQuants['spatialLength'] = filt['spatialLength']
                     spatQuants['minGini'] = filt['minGini']
                     spatQuants['minSpatialGini'] = filt['minSpatialGini']
@@ -887,7 +889,7 @@ class Sarks(object):
         :param filters: table providing sets of spatialLength, minGini, minSpatialGini, theta, and spatialTheta values to assess (pandas DataFrame)
         :param seed: seed for random number generator (int)
         :param permutations: reps-in-rows, entries-in-columns table of permutations to apply (pandas DataFrame)
-        :returns: returns dict (keyed by 'windowed' and 'spatial_windowed') containing pandas DataFrames in turn containing requested quantiles of filtered smoothed scores
+        :returns: returns pandas DataFrame indicating count of positive hits for each combination of parameters specified by a single row of filters
         """
         if seed is not None:
             np.random.seed(seed)
