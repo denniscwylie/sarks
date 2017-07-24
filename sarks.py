@@ -498,24 +498,24 @@ class Sarks(object):
             out = out.loc[out.str.len() == (k-k0)]
         return out
 
-    def prefixAgreeSum(kmer, esses):
-        """
-        Calculate average length of prefix agreement between kmer and suffixes specified by esses
+    # def prefixAgreeSum(kmer, esses):
+    #     """
+    #     Calculate average length of prefix agreement between kmer and suffixes specified by esses
         
-        :param kmer: string to assess average length of maximum prefix agreement with
-        :param esses: suffix array *values* (positions within concatenated sequence) of suffixes to compare with prefix
-        :returns: average length of prefix agreement between kmer and suffixes specified by esses (float)
-        """
-        esses = pd.Series(esses)
-        out = 0
-        aliveIndices = esses.index
-        for i, letter in enumerate(str(kmer)):
-            iLetters = esses[aliveIndices].str[i].dropna()
-            aliveIndices = esses[iLetters.index][iLetters == letter].index
-            out += len(aliveIndices)
-        return out / len(esses)
+    #     :param kmer: string to assess average length of maximum prefix agreement with
+    #     :param esses: suffix array *values* (positions within concatenated sequence) of suffixes to compare with prefix
+    #     :returns: average length of prefix agreement between kmer and suffixes specified by esses (float)
+    #     """
+    #     esses = pd.Series(esses)
+    #     out = 0
+    #     aliveIndices = esses.index
+    #     for i, letter in enumerate(str(kmer)):
+    #         iLetters = esses[aliveIndices].str[i].dropna()
+    #         aliveIndices = esses[iLetters.index][iLetters == letter].index
+    #         out += len(aliveIndices)
+    #     return out / len(esses)
 
-    def prefixAgreeSum2(self, i, halfWindow, kmax):
+    def prefixAgreeSum(self, i, halfWindow, kmax):
         kmer = self.kmers([self.sa[i]]).iloc[0]
         agreeSum = 0
         wstart, wend = i-halfWindow, i+halfWindow+1
@@ -546,12 +546,14 @@ class Sarks(object):
             "i" : eyes,
             "s" : s.values,
             "kmer" : kmers,
-            "khat" : [Sarks.prefixAgreeSum(
-                km,
-                self.kmers(self.sa[
-                    list(range(i-self.halfWindow, i)) +
-                    list(range(i+1, i+self.halfWindow+1))
-                ], k, 0, False)) for i, km in zip(eyes, kmers)],
+            "khat" : [self.prefixAgreeSum(i, self.halfWindow, k)
+                     for i in eyes],
+            # "khat" : [Sarks.prefixAgreeSum(
+            #     km,
+            #     self.kmers(self.sa[
+            #         list(range(i-self.halfWindow, i)) +
+            #         list(range(i+1, i+self.halfWindow+1))
+            #     ], k, 0, False)) for i, km in zip(eyes, kmers)],
             "block" : block,
             "wi" : wi,
             "gini" : self.windGini.loc[s],
