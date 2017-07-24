@@ -515,6 +515,19 @@ class Sarks(object):
             out += len(aliveIndices)
         return out / len(esses)
 
+    def prefixAgreeSum2(self, i, halfWindow, kmax):
+        kmer = self.kmers([self.sa[i]]).iloc[0]
+        agreeSum = 0
+        wstart, wend = i-halfWindow, i+halfWindow+1
+        kstart, kend = i, i+1
+        for k in range(kmax, 0, -1):
+            kwin = list(self.findKmer(kmer[0:k]))
+            kwin[0] = max(wstart, kwin[0])
+            kwin[1] = min(wend, kwin[1])
+            agreeSum += (k * ((kstart - kwin[0]) + (kwin[1] - kend)))
+            kstart, kend = kwin
+        return agreeSum / (2 * halfWindow)
+
     def subtable(self, s, k=12):
         """
         Suffix array table for suffix array *values* s
