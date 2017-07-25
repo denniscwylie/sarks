@@ -215,10 +215,10 @@ class Sarks(object):
                                 saCumul.iloc[0:(-windowSize)].values
                             ])
             self.windowed /= windowSize
-            saWindowCenters = np.arange(
-                int(halfWindow),
-                int(halfWindow) + len(self.windowed)
-            )
+            # saWindowCenters = np.arange(
+            #     int(halfWindow),
+            #     int(halfWindow) + len(self.windowed)
+            # )
             # self.windowed.index = saScores.iloc[saWindowCenters].index
             self.windowed.index = saScores.index.values[
                     int(halfWindow):(int(halfWindow)+len(self.windowed))]
