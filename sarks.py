@@ -202,11 +202,11 @@ class Sarks(object):
             halfWindow = self.halfWindow
         if halfWindow != self.halfWindow or recalculate:
             if halfWindow != self.halfWindow:
+                self.halfWindow = halfWindow
                 self.windowGini(recalculate=True)
                 self.spatGini = None
                 if 'spatialWindowed' in dir(self):
                     del self.spatialWindowed
-            self.halfWindow = halfWindow
             saScores = self.sourceScore(self.sa)['score']
             saCumul = saScores.cumsum()
             windowSize = (2 * halfWindow) + 1
@@ -363,13 +363,6 @@ class Sarks(object):
         :param deduplicate: if True, report only highest scoring position corresponding to any given kmer (bool)
         :returns: suffix array *values* s corresponding to desired peak positions (pandas Series)
         """
-        scores = None
-        if spatialLength is not None and spatialLength > 0:
-            scores = self.spatialWindow(spatialLength)
-        else:
-            scores = self.windowed
-        if spatialTheta is None:
-            spatialTheta = theta
         scoreDiffB = self.windowed.sort_index().diff()
         scoreDiffF = scoreDiffB.copy().iloc[1:].copy()
         scoreDiffF.index = scoreDiffB.index[:-1]
@@ -1006,8 +999,6 @@ class Sarks(object):
                 permResults.append(rout)
         return permResults
 
-    
-
     def multiWindowPermute(
             self,
             halfWindows, filters, reps, k=12,
@@ -1025,7 +1016,7 @@ class Sarks(object):
             ])
         out = []
         for halfWindow in halfWindows:
-            self.window(halfWindow)
+            self.window(int(halfWindow))
             if assess == 'distribution':
                 out.append(self.permutationDistributionMultiFilter(
                     reps=reps, k=k, quantiles=quantiles,
@@ -1037,10 +1028,15 @@ class Sarks(object):
                     filters=filters, seed=seed, permutations=permutations
                 ))
         if not isinstance(out[0], pd.DataFrame):
-            out = {'windowed' : pd.concat([x['windowed']
-                                           for x in out]),
-                   'spatial_windowed' : pd.concat([x['spatial_windowed']
-                                                   for x in out])}
+            out = {'windowed' : pd.concat([x['windowed'] for x in out])}
+            outSpat = [x['spatial_windowed']
+                       for x in out
+                       if 'spatial_windowed' in x
+                       and x['spatial_windowed'] is not None]
+            if len(outSpat) > 0:
+                out['spatial_windowed'] = pd.concat(outSpat)
+            else:
+                out['spatial_windowed'] = out['windowed'].copy().iloc[[]]
             if nsigma is not None:
                 groupCols = ['halfWindow', 'spatialLength',
                              'minGini', 'minSpatialGini']
@@ -1051,15 +1047,18 @@ class Sarks(object):
                 spatTheta = out['spatial_windowed'][[1.0] + groupCols]\
                             .groupby(groupCols)\
                             .agg(lambda x: x.mean() + nsigma*x.std(ddof=1))
-                spatTheta.columns = ['spatialTheta']
-                theta['spatialTheta'] = spatTheta.loc[theta.index,
-                                                       'spatialTheta']
-                theta.loc[~theta['spatialTheta'].isnull(), 'theta'] = -np.inf
+                if spatTheta.shape[1] == 1:
+                    spatTheta.columns = ['spatialTheta']
+                    theta['spatialTheta'] = spatTheta.loc[theta.index,
+                                                          'spatialTheta']
+                    theta.loc[~theta['spatialTheta'].isnull(), 'theta'] = -np.inf
+                else:
+                    theta['spatialTheta'] = -np.inf
                 theta['kmax'] = k
                 theta = theta[['kmax', 'theta', 'spatialTheta']]
                 out['theta'] = theta.reset_index()
-                out['theta']['spatialLength'] =\
-                        out['theta']['spatialLength'].astype(int)
+                # out['theta']['spatialLength'] =\
+                #         out['theta']['spatialLength'].astype(int)
         else:
             out = pd.concat(out)
         return out
