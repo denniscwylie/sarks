@@ -2,6 +2,7 @@ from Bio.Alphabet import DNAAlphabet
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from collections import OrderedDict
 import editdistance
 import intervaltree
 import numpy as np
@@ -363,7 +364,7 @@ class Sarks(object):
         :returns: suffix array *values* s corresponding to desired peak positions (pandas Series)
         """
         scores = None
-        if spatialLength is not None:
+        if spatialLength is not None and spatialLength > 0:
             scores = self.spatialWindow(spatialLength)
         else:
             scores = self.windowed
@@ -405,12 +406,16 @@ class Sarks(object):
         pos.index = pos
         posSubtable = None
         if minGini is not None:
+            if minGini >= 1:
+                minGini = 1 - (1 - self.windGini.median()) * minGini
             pos = pos.loc[self.windGini[pos] >= minGini]
         if theta is not None:
             pos = pos.loc[(self.windowed.loc[pos] >= theta)]
         if spatialLength is not None and spatialLength > 0:
             spat = self.spatialWindow(spatialLength)
             if minSpatialGini is not None:
+                if minSpatialGini >= 1:
+                    minSpatialGini = 1 - (1 - self.windGini.median()) * minSpatialGini
                 pos = pos.loc[self.spatialGini()[pos] >= minSpatialGini]
             if spatialTheta is not None:
                 pos = pos.loc[spat.loc[pos] >= spatialTheta]
@@ -804,15 +809,15 @@ class Sarks(object):
             permResults.append({'windowed' : rsarks.windowed.loc[rpos]})
             if spatialLength is None and self.spatialLength is not None:
                 spatialLength = self.spatialLength
-            if spatialLength is not None:
+            if spatialLength is not None and spatialLength > 0:
                 permResults[-1]['spatial_windowed'] = \
                         rsarks.spatialWindow(spatialLength).loc[rpos].dropna()
             if quantiles is not None:
                 permResults[-1]['windowed'] = np.percentile(
-                        permResults[-1]['windowed'], 100*quantiles)
-                if spatialLength is not None:
+                        permResults[-1]['windowed'], list(100*quantiles))
+                if spatialLength is not None and spatialLength > 0:
                     permResults[-1]['spatial_windowed'] = np.percentile(
-                            permResults[-1]['spatial_windowed'], 100*quantiles)
+                            permResults[-1]['spatial_windowed'], list(100*quantiles))
         return permResults
 
     def permutationDistributionMultiFilter(self, reps, k=12,
@@ -854,7 +859,7 @@ class Sarks(object):
                                      prune = False,
                                      deduplicate = False)
                 windQuants = np.percentile(rsarks.windowed.loc[rpos],
-                                           100 * quantiles)
+                                           list(100 * quantiles))
                 windQuants = pd.DataFrame(
                     windQuants,
                     index = quantiles,
@@ -870,7 +875,7 @@ class Sarks(object):
                     spatQuants = np.percentile(
                         rsarks.spatialWindow(filt['spatialLength'])\
                         .loc[rpos].dropna(),
-                        100 * quantiles
+                        list(100 * quantiles)
                     )
                     spatQuants = pd.DataFrame(
                         spatQuants,
@@ -918,9 +923,14 @@ class Sarks(object):
             filts = filters.sort_values('spatialLength')
             for filtIdx in filts.index:
                 filt = filts.loc[filtIdx]
+                spatTheta = filt['spatialTheta']
+                if np.isnan(spatTheta):
+                    spatTheta = None
                 rpos = rsarks.filter(minGini = filt['minGini'],
                                      spatialLength = filt['spatialLength'],
                                      minSpatialGini = filt['minSpatialGini'],
+                                     theta = filt['theta'],
+                                     spatialTheta = spatTheta,
                                      k = filt['k'] if 'k' in filt.index else k,
                                      prune = False,
                                      deduplicate = True)
@@ -996,10 +1006,14 @@ class Sarks(object):
                 permResults.append(rout)
         return permResults
 
-    def multiWindow(self,
-                    halfWindows, filters, reps, k=12,
-                    quantiles=np.array([0, 0.5, 0.99, 0.9999, 0.999999, 1]),
-                    seed=None, permutations=None, assess='distribution'):
+    
+
+    def multiWindowPermute(
+            self,
+            halfWindows, filters, reps, k=12,
+            quantiles=np.array([0, 0.5, 0.99, 0.9999, 0.999999, 1]),
+            nsigma=None,
+            seed=None, permutations=None, assess='distribution'):
         if seed is not None:
             np.random.seed(seed)
         permResults = []
@@ -1027,6 +1041,49 @@ class Sarks(object):
                                            for x in out]),
                    'spatial_windowed' : pd.concat([x['spatial_windowed']
                                                    for x in out])}
+            if nsigma is not None:
+                groupCols = ['halfWindow', 'spatialLength',
+                             'minGini', 'minSpatialGini']
+                theta = out['windowed'][[1.0] + groupCols]\
+                        .groupby(groupCols)\
+                        .agg(lambda x: x.mean() + nsigma*x.std(ddof=1))
+                theta.columns = ['theta']
+                spatTheta = out['spatial_windowed'][[1.0] + groupCols]\
+                            .groupby(groupCols)\
+                            .agg(lambda x: x.mean() + nsigma*x.std(ddof=1))
+                spatTheta.columns = ['spatialTheta']
+                theta['spatialTheta'] = spatTheta.loc[theta.index,
+                                                       'spatialTheta']
+                theta.loc[~theta['spatialTheta'].isnull(), 'theta'] = -np.inf
+                theta['kmax'] = k
+                theta = theta[['kmax', 'theta', 'spatialTheta']]
+                out['theta'] = theta.reset_index()
+                out['theta']['spatialLength'] =\
+                        out['theta']['spatialLength'].astype(int)
         else:
             out = pd.concat(out)
         return out
+
+    def multiWindowPeaks(self, filters, k=12,
+                         prune=False, extend=False, deduplicate=False):
+        peakTables = OrderedDict()
+        for filtIdx in filters.index:
+            filt = filters.loc[filtIdx].copy()
+            filtKey = tuple([(k, filt[k]) for k in filt.index])
+            self.window(int(filt['halfWindow']))
+            spatTheta = filt['spatialTheta']
+            if np.isnan(spatTheta):
+                spatTheta = None
+            peaks = self.peaks(minGini = filt['minGini'],
+                               spatialLength = int(filt['spatialLength']),
+                               minSpatialGini = filt['minSpatialGini'],
+                               theta = filt['theta'],
+                               spatialTheta = spatTheta,
+                               prune = prune,
+                               deduplicate = deduplicate,
+                               k = k)
+            peakTable = self.subtable(peaks)
+            if extend and peakTable.shape[0] > 0:
+                peakTable = self.extendKmers(peakTable)
+            peakTables[filtKey] = peakTable
+        return peakTables
