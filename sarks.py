@@ -1028,9 +1028,10 @@ class Sarks(object):
                     filters=filters, seed=seed, permutations=permutations
                 ))
         if not isinstance(out[0], pd.DataFrame):
-            out = {'windowed' : pd.concat([x['windowed'] for x in out])}
+            preout = out
+            out = {'windowed' : pd.concat([x['windowed'] for x in preout])}
             outSpat = [x['spatial_windowed']
-                       for x in out
+                       for x in preout
                        if 'spatial_windowed' in x
                        and x['spatial_windowed'] is not None]
             if len(outSpat) > 0:
@@ -1047,7 +1048,7 @@ class Sarks(object):
                 spatTheta = out['spatial_windowed'][[1.0] + groupCols]\
                             .groupby(groupCols)\
                             .agg(lambda x: x.mean() + nsigma*x.std(ddof=1))
-                if spatTheta.shape[1] == 1:
+                if spatTheta.shape[0] > 0:
                     spatTheta.columns = ['spatialTheta']
                     theta['spatialTheta'] = spatTheta.loc[theta.index,
                                                           'spatialTheta']
