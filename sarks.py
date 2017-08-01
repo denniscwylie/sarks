@@ -924,17 +924,9 @@ class Sarks(object):
                                      minSpatialGini = filt['minSpatialGini'],
                                      theta = filt['theta'],
                                      spatialTheta = spatTheta,
-                                     k = filt['k'] if 'k' in filt.index else k,
+                                     k = filt['kmax'] if 'kmax' in filt.index else k,
                                      prune = False,
-                                     deduplicate = True)
-                rpos = rpos.loc[rsarks.windowed >= filt['theta']]
-                if filt['spatialLength'] > 0:
-                    spatScores = rsarks.spatialWindow(filt['spatialLength'])\
-                                       .loc[rpos].dropna()
-                    spatScores = spatScores.loc[
-                        spatScores >= filt['spatialTheta']
-                    ]
-                    rpos = rpos.loc[rpos.isin(spatScores.index)]
+                                     deduplicate = False)
                 if 'd' in filt.index:
                     rkm = rsarks.kmers(rpos,
                                        k = filt['k'] if 'k' in filt.index else k)
@@ -942,7 +934,7 @@ class Sarks(object):
                 rout = filt.copy()
                 rout['count'] = len(rpos)
                 out.append(rout)
-        return pd.concat(out, axis=1).transpose()
+        return pd.concat(out, axis=1, ignore_index=True).transpose()
     
     def permutationTest(self, theta, reps,
                         k=12,
