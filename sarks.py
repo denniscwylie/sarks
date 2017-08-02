@@ -916,6 +916,7 @@ class Sarks(object):
             filts = filters.sort_values('spatialLength')
             for filtIdx in filts.index:
                 filt = filts.loc[filtIdx]
+                self.window(int(filt['halfWindow']))
                 spatTheta = filt['spatialTheta']
                 if np.isnan(spatTheta):
                     spatTheta = None
