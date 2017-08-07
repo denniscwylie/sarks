@@ -933,6 +933,7 @@ class Sarks(object):
                                        k = filt['k'] if 'k' in filt.index else k)
                     rpos = rpos.loc[rkm.isin(revCompFilter(rkm, d=filt['d']))]
                 rout = filt.copy()
+                rout['rep'] = r
                 rout['count'] = len(rpos)
                 out.append(rout)
         return pd.concat(out, axis=1, ignore_index=True).transpose()
