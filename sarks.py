@@ -449,7 +449,7 @@ class Sarks(object):
         maxLen = subtable['kmer'].str.len().max()
         oldS = pd.Series(-1, index=subtable.index)
         while not (oldS == subtable['s']).all():
-            oldS = subtable['s']
+            oldS = subtable['s'].copy()
             kmerSet = set(subtable['kmer'])
             kmerLens = subtable['kmer'].str.len()
             for s in subtable['s'].loc[kmerLens < maxLen].index:
