@@ -27,11 +27,11 @@ class Sarks(object):
     5. clustering of extracted kmers using clusterKmers."""
 
     def __init__(self, inFasta, catFasta, scores,
-                 suffixArrayFile=None,
+                 # suffixArrayFile=None,
                  halfWindow=250,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
-                 regenerateSuffixArray=False):
+                 regenerateCatFasta=False):
         """
         Construction of Sarks object requires, at minimum:
 
@@ -42,7 +42,7 @@ class Sarks(object):
         """
         self.inFasta = inFasta
         self.catFasta = catFasta
-        self.suffixArrayFile = suffixArrayFile
+        # self.suffixArrayFile = suffixArrayFile
         self.halfWindow = halfWindow
         if seqs is not None:
             self.seqs = seqs
@@ -55,12 +55,11 @@ class Sarks(object):
             self.catSeq = catSeq
             self.bounds = bounds
         else:
-            self.concatenateSeqs(catFasta, regenerateSuffixArray)
+            self.concatenateSeqs(catFasta, regenerateCatFasta)
         if sa is not None:
             self.sa = sa
         else:
-            self.calcSuffixArray(catFasta, suffixArrayFile,
-                                 regenerateSuffixArray)
+            self.calcSuffixArray(catFasta)
         if windGini is not None:
             self.windGini = windGini
         else:
@@ -70,14 +69,14 @@ class Sarks(object):
         self.window(recalculate=True)
 
     def concatenateSeqs(self, catFasta,
-                        regenerateSuffixArray=False):
+                        regenerateCatFasta=False):
         """
         Concatenate seqs together and write to catFasta
         
         :param catFasta: name of file to write concatenated sequence to
-        :param regenerateSuffixArray: if True, overwrite any existing concatenated sequence file
+        :param regenerateCatFasta: if True, overwrite any existing concatenated sequence file
         """
-        if regenerateSuffixArray or not os.path.exists(catFasta):
+        if regenerateCatFasta or not os.path.exists(catFasta):
             catSeq = SeqRecord(Seq("".join([str(self.seqs[t]) + "$"
                                             for t in self.transcripts]),
                                    DNAAlphabet()),
@@ -92,17 +91,14 @@ class Sarks(object):
         self.bounds = np.cumsum([len(self.seqs[t]) + 1
                                  for t in self.transcripts])
 
-    def calcSuffixArray(self, catFasta, suffixArrayFile,
-                        regenerateSuffixArray=False):
+    def calcSuffixArray(self, catFasta):
         """
         Construct suffix array for concatenated sequence held in catFasta
 
         :param catFasta: name of file containing concatenated sequence
-        :param suffixArrayFile: name of file to write suffix array data to (or load from if already exists and regenerateSuffixArray is False)
-        :param regenerateSuffixArray: if True, overwrite any existing suffix array file
         """
-        if suffixArrayFile is None:
-            suffixArrayFile = re.sub(r"\..*", "", catFasta) + "_sa.txt"
+        # if suffixArrayFile is None:
+        #     suffixArrayFile = re.sub(r"\..*", "", catFasta) + "_sa.txt"
         # if regenerateSuffixArray or not os.path.exists(suffixArrayFile + ".gz"):
         #     check_output(
         #         "suffix-array " + catFasta +
@@ -154,15 +150,19 @@ class Sarks(object):
             block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
             btmp = tempfile.NamedTemporaryFile()
             np.savetxt(btmp.name, block.values, '%d')
-            gtmp = tempfile.NamedTemporaryFile()
-            check_output(
-                "windginiimp " + str(self.halfWindow) + ' ' + btmp.name + \
-                ' > ' + gtmp.name,
+            # gtmp = tempfile.NamedTemporaryFile()
+            # check_output(
+            #     "windginiimp " + str(self.halfWindow) + ' ' + btmp.name + \
+            #     ' > ' + gtmp.name,
+            #     shell = True
+            # )
+            # self.windGini = pd.Series(np.loadtxt(gtmp.name))
+            self.windGini = pd.read_csv(StringIO(check_output(
+                'windginiimp ' + str(self.halfWindow) + ' ' + btmp.name,
                 shell = True
-            )
-            self.windGini = pd.Series(np.loadtxt(gtmp.name))
+            ).decode('utf-8')), index_col=None, header=None).iloc[:, 0]
             btmp.close()
-            gtmp.close()
+            # gtmp.close()
             # saWindowCenters = range(
             #     int(self.halfWindow),
             #     int(self.halfWindow) + len(self.windGini)
@@ -755,7 +755,7 @@ class Sarks(object):
         permutedSarks = Sarks(inFasta = self.inFasta,
                               catFasta = self.catFasta,
                               scores = permutedScores,
-                              suffixArrayFile = self.suffixArrayFile,
+                              # suffixArrayFile = self.suffixArrayFile,
                               halfWindow = self.halfWindow,
                               seqs = self.seqs,
                               catSeq = self.catSeq,
@@ -764,7 +764,7 @@ class Sarks(object):
                               windGini = self.windGini,
                               spatialLength = self.spatialLength,
                               spatGini = self.spatGini,
-                              regenerateSuffixArray = False)
+                              regenerateCatFasta = False)
         return permutedSarks
 
     def permutationDistribution(self, reps, k=12,
