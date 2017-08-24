@@ -209,6 +209,7 @@ class Sarks(object):
             if halfWindow != self.halfWindow:
                 self.halfWindow = halfWindow
                 self.windowGini(recalculate=True)
+                self.spatialLength = None
                 self.spatGini = None
                 if 'spatialWindowed' in dir(self):
                     del self.spatialWindowed
@@ -581,6 +582,8 @@ class Sarks(object):
             out['spatial_windowed'] = self.spatialWindowed[s]
         for idx in out.index:
             kidx = int(np.round(out.loc[idx, 'khat']))
+            if self.spatialLength is not None and self.spatialLength > 0:
+                kidx = max(kidx, self.spatialLength)
             out.loc[idx, 'kmer'] = out.loc[idx, 'kmer'][0:kidx]
         return out
 
@@ -709,6 +712,38 @@ class Sarks(object):
                     for s in scOut.split("\n") if s != ""}
         return clusters
 
+    @staticmethod
+    def mergeKmers(subtable):
+        """
+        Merges overlapping kmers in subtable resulting from spatially extended sarks run
+
+        :param subtable: result of calling subtable method on filtered peaks (pandas DataFrame)
+        :returns: subtable with merged kmer values in kmer column (pandas DataFrame)
+        """
+        worktable = subtable.copy()
+        worktable.sort_values('s', ascending=False, inplace=True)
+        sdiff = -worktable['s'].diff()
+        worktable.sort_values('s', ascending=True, inplace=True)
+        skeep = pd.Series([True]*worktable.shape[0], index=worktable.index)
+        si = 0
+        sj = 1
+        jump = sdiff.iloc[-1]
+        while si < (worktable.shape[0] - 1) and sj < worktable.shape[0]:
+            jump = int(jump)
+            ksi = len(worktable.iloc[si]['kmer'])
+            if jump < ksi:
+                s = worktable.iloc[si]['s']
+                worktable.loc[s, 'kmer'] +=\
+                        worktable.iloc[sj]['kmer'][(ksi-jump):]
+                skeep.iloc[sj] = False
+                jump += sdiff.iloc[-1-sj]
+                sj += 1
+            else:
+                jump = sdiff.iloc[-1-sj]
+                si = sj
+                sj = si + 1
+        return worktable
+    
     @staticmethod
     def revCompFilter(kmers, d=None):
         kmers = list(pd.Series(list(kmers)).str.replace('\$.*$', ''))
