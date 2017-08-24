@@ -5,6 +5,7 @@ from Bio.SeqRecord import SeqRecord
 from collections import OrderedDict
 import editdistance
 import intervaltree
+from io import StringIO
 import numpy as np
 import os
 import pandas as pd
@@ -102,14 +103,18 @@ class Sarks(object):
         """
         if suffixArrayFile is None:
             suffixArrayFile = re.sub(r"\..*", "", catFasta) + "_sa.txt"
-        if regenerateSuffixArray or not os.path.exists(suffixArrayFile + ".gz"):
-            check_output(
-                "suffix-array " + catFasta +
-                " | grep -v '>' > " + suffixArrayFile,
-                shell = True
-            )
-            check_output("gzip -f " + suffixArrayFile, shell=True)
-        self.sa = pd.Series(np.loadtxt(suffixArrayFile + ".gz").astype(int))
+        # if regenerateSuffixArray or not os.path.exists(suffixArrayFile + ".gz"):
+        #     check_output(
+        #         "suffix-array " + catFasta +
+        #         " | grep -v '>' > " + suffixArrayFile,
+        #         shell = True
+        #     )
+        #     check_output("gzip -f " + suffixArrayFile, shell=True)
+        # self.sa = pd.Series(np.loadtxt(suffixArrayFile + ".gz").astype(int))
+        self.sa = pd.read_csv(StringIO(check_output(
+            'suffix-array ' + catFasta + ' | grep -v ">"',
+            shell = True
+        ).decode('utf-8')), index_col=None, header=None).iloc[:, 0].astype(int)
         ## need to remove extra end-of-string position
         self.sa = self.sa.loc[self.sa < len(self.catSeq)]
         
