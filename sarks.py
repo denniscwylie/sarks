@@ -712,15 +712,43 @@ class Sarks(object):
                     for s in scOut.split("\n") if s != ""}
         return clusters
 
+    def spatialSubPeaks(self, subtable, theta=None, minGini=None):
+        peakScores = pd.concat([pd.DataFrame({
+            'left' : s,
+            'windowed' : self.windowed[
+                    list(range(s, s + self.spatialLength))]
+        }) for s in subtable['s']])
+        peakScores['s'] = peakScores.index
+        peakScores['offset'] = peakScores['s'] - peakScores['left']
+        # peakScores['kmer'] = subtable.loc[peakScores['left'], 'kmer'].values
+        # for off in peakScores['offset'].unique():
+        #     offinds = (peakScores['offset'] == off)
+        #     peakScores.loc[offinds, 'kmer'] =\
+        #             peakScores.loc[offinds, 'kmer'].str[off:]
+        peakScores = peakScores.sort_values('offset')\
+                               .drop_duplicates(subset=['s'], keep='first')
+        if theta is not None:
+            peakScores = peakScores.loc[self.windowed[peakScores['s']] >= theta]
+        if minGini is not None:
+            if minGini >= 1:
+                minGini = 1 - (1 - self.windGini.median()) * minGini
+            peakScores = peakScores.loc[self.windGini[peakScores['s']] >= minGini]
+        return self.extendKmers(self.subtable(peakScores['s']))
+        
     @staticmethod
-    def mergeKmers(subtable):
+    def mergeKmers(subpeaks):
         """
-        Merges overlapping kmers in subtable resulting from spatially extended sarks run
+        Merges overlapping kmers in subpeaks resulting from spatially extended sarks run
 
         :param subtable: result of calling subtable method on filtered peaks (pandas DataFrame)
         :returns: subtable with merged kmer values in kmer column (pandas DataFrame)
         """
-        worktable = subtable.copy()
+        worktable = subpeaks.copy()
+        khat = worktable['khat'].round().astype(int)
+        for kh in khat.unique():
+            khinds = (khat == kh)
+            worktable.loc[khinds, 'kmer'] =\
+                    worktable.loc[khinds, 'kmer'].str[0:kh]
         worktable.sort_values('s', ascending=False, inplace=True)
         sdiff = -worktable['s'].diff()
         worktable.sort_values('s', ascending=True, inplace=True)
@@ -742,7 +770,16 @@ class Sarks(object):
                 jump = sdiff.iloc[-1-sj]
                 si = sj
                 sj = si + 1
-        return worktable
+        return worktable.loc[skeep]
+
+    @staticmethod
+    def clusterWithinK(kmers, d):
+        kmers = kmers.copy().drop_duplicates()
+        out = OrderedDict()
+        klens = kmers.str.len()
+        for k in sorted(klens.unique()):
+            out[k] = Sarks.clusterKmers(kmers.loc[klens == k], d=d)
+        return out
     
     @staticmethod
     def revCompFilter(kmers, d=None):
