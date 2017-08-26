@@ -733,7 +733,8 @@ class Sarks(object):
             if minGini >= 1:
                 minGini = 1 - (1 - self.windGini.median()) * minGini
             peakScores = peakScores.loc[self.windGini[peakScores['s']] >= minGini]
-        return self.extendKmers(self.subtable(peakScores['s']))
+        # return self.extendKmers(self.subtable(peakScores['s']))
+        return self.subtable(peakScores['s'])
         
     @staticmethod
     def mergeKmers(subpeaks):
