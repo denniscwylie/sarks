@@ -760,7 +760,7 @@ class Sarks(object):
         while si < (worktable.shape[0] - 1) and sj < worktable.shape[0]:
             jump = int(jump)
             ksi = len(worktable.iloc[si]['kmer'])
-            if jump < ksi:
+            if jump == 1: ## < ksi:
                 s = worktable.iloc[si]['s']
                 worktable.loc[s, 'kmer'] +=\
                         worktable.iloc[sj]['kmer'][(ksi-jump):]
