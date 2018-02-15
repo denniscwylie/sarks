@@ -533,7 +533,7 @@ class Sarks(object):
         """
         if halfWindow is None:
             halfWindow = self.halfWindow
-        kmer = self.kmers([self.sa[i]]).iloc[0]
+        kmer = self.kmers([self.sa[i]], sanitize=False).iloc[0]  ## modified 180214
         agreeSum = 0
         wstart, wend = i-halfWindow, i+halfWindow+1
         kstart, kend = i, i+1
