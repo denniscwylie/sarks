@@ -31,7 +31,7 @@ class Sarks(object):
                  halfWindow=250,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
-                 regenerateCatFasta=False):
+                 regenerateCatFasta=False, bw=False):
         """
         Construction of Sarks object requires, at minimum:
 
@@ -67,6 +67,26 @@ class Sarks(object):
         self.spatialLength = spatialLength
         self.spatGini = spatGini
         self.window(recalculate=True)
+        if bw:
+            self.burrowsWheeler()
+
+    def burrowsWheeler(self):
+        seq = str(self.catSeq[0:int(len(self.catSeq))])
+        charIndexer = pd.Series({i : chr(i) for i in range(256)})
+        seq = charIndexer.reindex(np.fromstring(seq, np.int8))
+        seq.index = range(len(seq))
+        self.bw = seq.reindex(self.sa.values - 1)
+        self.bw.index = range(0, len(seq))
+        self.c = self.bw.value_counts().sort_index()
+        self.c = self.c.cumsum() - self.c
+        self.o = pd.DataFrame({
+            char : (self.bw == char).cumsum().reindex(np.arange(0, len(self.bw), 100))
+            for char in charIndexer.unique()
+        })
+        self.o.loc[0] = [0] * self.o.shape[1]
+        self.o.loc[-100] = [0] * self.o.shape[1]
+        for column in self.o.columns:
+            self.o[column] = self.o[column].astype(int)
 
     def concatenateSeqs(self, catFasta,
                         regenerateCatFasta=False):
@@ -335,6 +355,35 @@ class Sarks(object):
         self.kmerBounds[kmer] = (start, end)
         return start, end
 
+    def findKmerBW(self, kmer):
+        """
+        Find interval [imin, imax) such that all suffix array index positions imin <= i < imax correspond to suffixes beginning with string kmer
+
+        :param kmer: string representing the common prefix to all suffixes of concatenated sequence stored in catFasta whose suffix array index is >= imin and < imax
+        :returns: tuple (imin, imax)
+        """
+        if 'kmerBounds' in dir(self):
+            if kmer in self.kmerBounds:
+                return self.kmerBounds[kmer]
+        else:
+            self.kmerBounds = {}
+        k = len(kmer)
+        start = 0
+        end = len(self.catSeq)
+        for char in [kmer[idx] for idx in range(k-1, -1, -1)]:
+            startRounded = int(100 * ((start-1) // 100))
+            start = int(self.c.loc[char] +
+                        self.o.loc[startRounded, char] +
+                        (self.bw.loc[(startRounded+1):(start-1)] == char).sum() + 1)
+            endRounded = int(100 * ((end-1) // 100))
+            end = int(self.c.loc[char] +
+                      self.o.loc[endRounded, char] +
+                      (self.bw.loc[(endRounded+1):(end-1)] == char).sum() + 1)
+        if kmer == '$':
+            start = 0
+        self.kmerBounds[kmer] = (start, end)
+        return start, end
+
     def pruneIntervals(intervals):
         """
         Use intervaltree to remove any nested intervals
@@ -538,7 +587,7 @@ class Sarks(object):
         wstart, wend = i-halfWindow, i+halfWindow+1
         kstart, kend = i, i+1
         for k in range(kmax, 0, -1):
-            kwin = list(self.findKmer(kmer[0:k]))
+            kwin = list(self.findKmer(kmer[0:k])) if not 'bw' in dir(self) else list(self.findKmerBW(kmer[0:k]))
             kwin[0] = max(wstart, kwin[0])
             kwin[1] = min(wend, kwin[1])
             agreeSum += (k * ((kstart - kwin[0]) + (kwin[1] - kend)))
@@ -554,17 +603,18 @@ class Sarks(object):
         :returns: pandas DataFrame containing info, including conserved kmers, for positions specified by s
         """
         srcScr = self.sourceScore(s)
-        eyes = [self.s2i(sel) for sel in s]
+        # eyes = [self.s2i(sel) for sel in s]
+        eyes = self.sa.loc[self.sa.isin(s)].reset_index().set_index(0).iloc[:, 0].reindex(s)
         kmers = self.kmers(s, k, sanitize=False).loc[s]
         block = self.scores.iloc[srcScr.loc[s, 'block']].index
         wi = s.values - self.bounds[srcScr.loc[s, 'block'].values]
         wi = wi + np.array([len(self.seqs[t]) + 1 for t in block])
         out = pd.DataFrame({
-            "i" : eyes,
+            "i" : eyes.values,
             "s" : s.values,
             "kmer" : kmers,
-            "khat" : [self.prefixAgreeSum(i, self.halfWindow, k)
-                      for i in eyes],
+            "khat" : [self.prefixAgreeSum(int(i), self.halfWindow, k)
+                      for i in eyes.values],
             # "khat" : [Sarks.prefixAgreeSum(
             #     km,
             #     self.kmers(self.sa[
@@ -596,13 +646,14 @@ class Sarks(object):
         :returns: pandas DataFrame containing info, including constant length kmers, for positions specified by s
         """
         srcScr = self.sourceScore(s)
-        eyes = [self.s2i(sel) for sel in s]
+        # eyes = [self.s2i(sel) for sel in s]
+        eyes = self.sa.loc[self.sa.isin(s)].reset_index().set_index(0).iloc[:, 0].reindex(s)
         kmers = self.kmers(s, k, sanitize=False).loc[s]
         block = self.scores.iloc[srcScr.loc[s, 'block']].index
         wi = s.values - self.bounds[srcScr.loc[s, 'block'].values]
         wi = wi + np.array([len(self.seqs[t]) + 1 for t in block])
         out = pd.DataFrame({
-            'i' : eyes,
+            'i' : eyes.values,
             's' : s.values,
             'kmer' : kmers,
             'block' : block,
@@ -626,7 +677,10 @@ class Sarks(object):
         :param includePosition: format output as pandas DataFrame (otherwise returns Series)
         :returns: either pandas Series or DataFrame counting kmers downstream of specified seed sequence
         """
-        s = self.sa.loc[range(*self.findKmer(seed))].copy()
+        if not 'bw' in dir(self):
+            s = self.sa.loc[range(*self.findKmer(seed))].copy()
+        else:
+            s = self.sa.loc[range(*self.findKmerBW(seed))].copy()
         s = s.iloc[(self.scores.iloc[self.sourceBlock(s)] >= theta).values]
         if not "__contains__" in dir(window):
             window = [len(seed), window + len(seed)]
