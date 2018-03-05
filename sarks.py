@@ -81,7 +81,7 @@ class Sarks(object):
         self.c = self.c.cumsum() - self.c
         self.o = pd.DataFrame({
             char : (self.bw == char).cumsum().reindex(np.arange(0, len(self.bw), 100))
-            for char in charIndexer.unique()
+            for char in self.bw.unique()
         })
         self.o.loc[0] = [0] * self.o.shape[1]
         self.o.loc[-100] = [0] * self.o.shape[1]
