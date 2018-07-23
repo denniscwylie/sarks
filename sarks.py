@@ -106,8 +106,9 @@ class Sarks(object):
                 os.remove(catFasta + ".fai")
             with open(catFasta, "w") as outhandle:
                 SeqIO.write([catSeq], outhandle, "fasta")
-        ## now read catFasta back in and calculate block boundaries
-        self.catSeq = Fasta(catFasta)['concatenated_promoters']
+            self.catSeq = str(catSeq._seq)
+        else:
+            self.catSeq = str(Fasta(catFasta)['concatenated_promoters'])   ## 180717
         self.bounds = np.cumsum([len(self.seqs[t]) + 1
                                  for t in self.transcripts])
 
@@ -295,13 +296,15 @@ class Sarks(object):
         """
         return int(self.sa.loc[self.sa == s].index[0])
 
-    def findKmer(self, kmer):
+    def findKmer(self, kmer, cache=np.inf, limits=None):
         """
         Find interval [imin, imax) such that all suffix array index positions imin <= i < imax correspond to suffixes beginning with string kmer
 
         :param kmer: string representing the common prefix to all suffixes of concatenated sequence stored in catFasta whose suffix array index is >= imin and < imax
         :returns: tuple (imin, imax)
         """
+        if kmer == '':
+            return 0, len(self.sa)
         if 'kmerBounds' in dir(self):
             if kmer in self.kmerBounds:
                 return self.kmerBounds[kmer]
@@ -309,19 +312,25 @@ class Sarks(object):
             self.kmerBounds = {}
         k = len(kmer)
         def km(i):
-            return str(self.catSeq[int(self.sa.loc[i]):int(self.sa.loc[i]+k)])
+            s = int(self.sa.loc[i])
+            return str(self.catSeq[s:(s+k)])
         def startGood(start):
             kms = km(start)
+            # if start == len(self.sa) - 1 and kms < kmer:
+            #     return True
             if start == 0 and kms == kmer:
                 return True
-            elif kms == kmer and km(start-1) != kmer:
+            elif kms >= kmer and km(start-1) < kmer:
                 return True
             else:
                 return False
         startLower = 0
         startUpper = len(self.sa)
+        if limits is not None:
+            startLower, startUpper = limits
         start = startLower + (startUpper-startLower) // 2
-        while not startGood(start):
+        # while start < len(self.sa) and not startGood(start):   ## 180717
+        while start < startUpper and not startGood(start):
             if km(start) >= kmer:
                 startUpper = start
             else:
@@ -333,17 +342,19 @@ class Sarks(object):
                 start = newStart
         def endGood(end):
             kmem1 = km(end-1)
-            if end == len(self.sa) and kmem1 == kmer:
+            if end == len(self.sa) and kmem1 <= kmer:
                 return True
-            elif kmem1 == kmer and km(end) != kmer:
+            elif kmem1 <= kmer and km(end) > kmer:
                 return True
             else:
                 return False
         endLower = start
         endUpper = len(self.sa)
-        end = endLower + (endUpper-endLower) // 2
-        while not endGood(end):
-            if km(end) <= kmer:
+        end = endLower + (endUpper-endLower+1) // 2
+        while end > start and not endGood(end):
+            if end == len(self.sa):
+                endUpper = end
+            elif km(end) <= kmer:
                 endLower = end
             else:
                 endUpper = end
@@ -352,7 +363,8 @@ class Sarks(object):
                 end = endUpper
             else:
                 end = newEnd
-        self.kmerBounds[kmer] = (start, end)
+        if len(kmer) <= cache:
+            self.kmerBounds[kmer] = (start, end)
         return start, end
 
     def findKmerBW(self, kmer):
