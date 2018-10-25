@@ -16,7 +16,7 @@ Requirements
 	dpkg -p seqan-dev
 	```
   - otherwise can be downloaded from
-    [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
+    [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](https://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
   - if installed in a local directory, may need to edit the
     setup.py script to indicate location (see below)
 - GNU make for compiling suffix-array.cpp and windginiimp.cpp utilities
