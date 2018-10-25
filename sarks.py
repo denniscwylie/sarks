@@ -31,7 +31,7 @@ class Sarks(object):
                  halfWindow=250,
                  seqs=None, catSeq=None, bounds=None, sa=None,
                  windGini=None, spatialLength=None, spatGini=None,
-                 regenerateCatFasta=False, bw=False):
+                 regenerateCatFasta=True, bw=False):
         """
         Construction of Sarks object requires, at minimum:
 
@@ -48,9 +48,11 @@ class Sarks(object):
             self.seqs = seqs
         else:
             self.seqs = Fasta(inFasta)
-        self.transcripts = sorted(list(set(scores.index) &
+        self.scores = scores.copy()
+        self.scores.index = self.scores.index.astype(str)
+        self.transcripts = sorted(list(set(self.scores.index) &
                                        set(self.seqs.keys())))
-        self.scores = scores.loc[self.transcripts].copy()
+        self.scores = self.scores.reindex(self.transcripts)
         if catSeq is not None and bounds is not None:
             self.catSeq = catSeq
             self.bounds = bounds
@@ -135,16 +137,22 @@ class Sarks(object):
         ## need to remove extra end-of-string position
         self.sa = self.sa.loc[self.sa < len(self.catSeq)]
         
-    def sourceBlock(self, s):
+    def sourceBlock(self, s=None):
         """
         Map suffix array *value* s back to numeric index of source block
 
         :param s: suffix array value (position of suffix within concatenated sequence)
         :returns: numeric index of source block in the Series scores
         """
-        return np.searchsorted(self.bounds, s+1)
+        if s is not None:
+            return np.searchsorted(self.bounds, s+1)
+        else:
+            out = np.zeros(len(self.sa))
+            for b in range(len(self.bounds)-1):
+                out[int(self.bounds[b]):int(self.bounds[b+1])] = b+1
+            return pd.Series(out).loc[self.sa.values].values.astype(int)
 
-    def sourceScore(self, s):
+    def sourceScore(self, s=None):
         """
         Map suffix array *value* s back to score of block from which s is derived
 
@@ -152,6 +160,8 @@ class Sarks(object):
         :returns: score of block from which s is derived
         """
         srcBlk = self.sourceBlock(s)
+        if s is None:
+            s = self.sa
         out = pd.DataFrame({
             'block' : srcBlk,
             # 'score' : self.scores.iloc[srcBlk].values
@@ -168,9 +178,11 @@ class Sarks(object):
         :returns: pandas Series indexed by suffix array *value* s (position within concatenated sequence); also stored internally as windGini
         """
         if "windGini" not in dir(self) or recalculate:
-            block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
+            # block = pd.Series(self.sourceBlock(self.sa), index=self.sa)
+            block = pd.Series(self.sourceBlock(), index=self.sa)
             btmp = tempfile.NamedTemporaryFile()
-            np.savetxt(btmp.name, block.values, '%d')
+            # np.savetxt(btmp.name, block.values, '%d')
+            block.to_csv(btmp.name, header=False, index=False)
             # gtmp = tempfile.NamedTemporaryFile()
             # check_output(
             #     "windginiimp " + str(self.halfWindow) + ' ' + btmp.name + \
@@ -234,7 +246,8 @@ class Sarks(object):
                 self.spatGini = None
                 if 'spatialWindowed' in dir(self):
                     del self.spatialWindowed
-            saScores = self.sourceScore(self.sa)['score']
+            # saScores = self.sourceScore(self.sa)['score']
+            saScores = self.sourceScore()['score']
             saCumul = saScores.cumsum()
             windowSize = (2 * halfWindow) + 1
             self.windowed = saCumul.iloc[(windowSize-1):] - \
@@ -527,8 +540,8 @@ class Sarks(object):
                         shiftInt = (int(s)+shift, int(s+sKmerLen+ext+shift))
                         shiftKmer = str(self.catSeq[shiftInt[0]:shiftInt[1]])
                         if shiftKmer in kmerSet:
-                            subtable.loc[s, 'i'] += shift
                             subtable.loc[s, 's'] += shift
+                            subtable.loc[s, 'i'] = self.s2i(subtable.loc[s, 's'])
                             subtable.loc[s, 'wi'] += shift
                             subtable.loc[s, 'kmer'] = shiftKmer
                             subtable.loc[s, 'khat'] = np.nan
