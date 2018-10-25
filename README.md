@@ -1,11 +1,15 @@
 # sarks
 
-__SArKS__ (_S_uffix _Ar_ray _K_ernel _S_moothing) is an algorithm for
+__SArKS__ (Suffix Array Kernel Smoothing) is an algorithm for
 identifying sequence motifs correlated with numeric scores (such as
 differential expression statistics from RNA-seq experiments). A
 preprint describing the algorithm may be found at:
 
 https://www.biorxiv.org/content/early/2018/03/11/133934
+
+
+## Installation
+See [INSTALL.md](INSTALL.md).
 
 
 ## Using sarks

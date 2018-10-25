@@ -6,11 +6,13 @@ Requirements
   - setup.py should install required python modules if necessary
     (biopython, editdistance, intervaltree, numpy, pandas, pyfaidx, scipy)
 - examples/cluster_seqs.R script uses philentropy and msa R libraries
-- SeqAn C++ library (https://www.seqan.de/) version 1.4.x
+- SeqAn C++ library (https://www.seqan.de/) version 1.3.x or 1.4.x
   - on Ubuntu 16.04 or 18.04, can be installed using
-    apt-get install seqan-dev
+    `apt-get install seqan-dev`
+  - on systems with dpkg, can check what version of seqan (if any) is installed using
+    `dpkg -p seqan-dev`
   - otherwise can be downloaded from
-    packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2
+    [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
   - if installed in a local directory, may need to edit the
     setup.py script to indicate location (see below)
 - GNU make for compiling suffix-array.cpp and windginiimp.cpp utilities
@@ -29,7 +31,7 @@ Installation
    cd sarks
    ```
 
-3. *If* SeqAn C++ library (v1.4) is installed in local directory:
+3. *If* SeqAn C++ library (v1.3.x or v1.4.x) is locally installed (i.e., not installed via package manager):
 
    Open setup.py and edit the line
 
