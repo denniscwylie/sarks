@@ -69,7 +69,12 @@ contained within individually at the shell script as you get to them.
 After going through the simulated example, try sarks out on the Mo
 2015 downstream seqs. Recommend following the same procedure as for
 the simulated data set but referencing the mo2015 downstream example
-shell script file.
+shell script file; also note that you will have to gunzip the fasta
+file first:
+
+```
+gunzip mo2015_downstream_seqs.fa.gz
+```
 
 NOTE: as this is a much larger data set than the simulated set,
 running this example will take a bit longer. Only one smoothing window
