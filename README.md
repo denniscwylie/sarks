@@ -5,7 +5,7 @@ identifying sequence motifs correlated with numeric scores (such as
 differential expression statistics from RNA-seq experiments). A
 preprint describing the algorithm may be found at:
 
-https://www.biorxiv.org/content/early/2018/03/11/133934
+https://www.biorxiv.org/content/early/2018/10/25/133934
 
 
 ## Installation
