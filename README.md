@@ -60,7 +60,7 @@ directory,
 ```
 cd examples/
 ```
-Recommend reading through the script file and running the commands
+I recommend reading through the script file and running the commands
 contained within individually at the shell script as you get to them.
 
 
