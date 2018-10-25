@@ -30,9 +30,13 @@ Installation
    ```
 
 3. *If* SeqAn C++ library (v1.4) is installed in local directory:
+
    Open setup.py and edit the line
+
    incdir = ''
+
    replacing the empty string '' with the correct location on your system
+
    (a commented-out example of how to do so is shown in setup.py).
 
 4. Install using pip3 to run setup.py; recommend building local and editable version
