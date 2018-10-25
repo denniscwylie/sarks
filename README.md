@@ -1,9 +1,9 @@
 # sarks
 
-__SArKS__ (__S__uffix __Ar__ray __K__ernel __S__moothing) is an
-algorithm for identifying sequence motifs correlated with numeric
-scores (such as differential expression statistics from RNA-seq
-experiments). A preprint describing the algorithm may be found at:
+__SArKS__ (_S_uffix _Ar_ray _K_ernel _S_moothing) is an algorithm for
+identifying sequence motifs correlated with numeric scores (such as
+differential expression statistics from RNA-seq experiments). A
+preprint describing the algorithm may be found at:
 
 https://www.biorxiv.org/content/early/2018/03/11/133934
 
@@ -87,6 +87,7 @@ minutes to complete depending on hardware.
 ### Mo 2015 upstream example
 
 NOTE: UPSTREAM EXAMPLE REQUIRES > 32 GIGABYTES AVAILABLE RAM
+
 (recommend at least 48G available to run comfortably)
 
 The Mo 2015 upstream example script is similar to the downstream

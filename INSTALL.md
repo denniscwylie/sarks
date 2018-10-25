@@ -44,13 +44,13 @@ Installation
    If all goes well this should both set up the python module sarks and
    run make to build the utilities suffix-array and windginiimp.
    
-   These two executables should have shown up in the directory to which
+   These two executables should have shown up in the directory to which the python code
    ```python
    site.USER_BASE + '/bin'
    ```
    evaluates (likely `$HOME/.local/bin`).
 
-5. Make sure that the path for the directory indicated by
+5. Make sure that the path for the directory indicated by the python code
    ```python
    site.USER_BASE + '/bin'
    ```
