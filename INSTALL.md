@@ -8,9 +8,13 @@ Requirements
 - examples/cluster_seqs.R script uses philentropy and msa R libraries
 - SeqAn C++ library (https://www.seqan.de/) version 1.3.x or 1.4.x
   - on Ubuntu 16.04 or 18.04, can be installed using
-    `apt-get install seqan-dev`
+    ```bash
+	apt-get install seqan-dev
+	```
   - on systems with dpkg, can check what version of seqan (if any) is installed using
-    `dpkg -p seqan-dev`
+    ```bash
+	dpkg -p seqan-dev
+	```
   - otherwise can be downloaded from
     [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
   - if installed in a local directory, may need to edit the
@@ -48,14 +52,20 @@ Installation
    If all goes well this should both set up the python module sarks and
    run make to build the utilities suffix-array and windginiimp.
    
-   These two executables should have shown up in the directory to which the python code
+   These two executables should have shown up in the directory to which the Python code
+
+   (run code below in Python interpreter)
    ```python
+   import site
    site.USER_BASE + '/bin'
    ```
    evaluates (likely `$HOME/.local/bin`).
 
-5. Make sure that the path for the directory indicated by the python code
+5. Make sure that the path for the directory indicated by the Python code
+
+   (run code below in Python interpreter)
    ```python
+   import site
    site.USER_BASE + '/bin'
    ```
    is in your PATH. This is necessary so that the suffix-array and windginiimp
