@@ -25,7 +25,7 @@ python3 sarkselect.py -f mo2015_downstream_seqs.fa\
                       -r 25\
                       -z 4\
                       -o mo2015_downstream_w250_l0_selection
-# only used -r 25 permutations for setting threshold for speed here
+# only used -r 25 permutations for setting threshold for speed here.
 
 # If we just want to inspect the set of k-mers selected,
 # can use included z-ranking script;
