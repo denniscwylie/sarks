@@ -11,8 +11,8 @@ Requirements
     apt-get install seqan-dev
   - otherwise can be downloaded from
     packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2
-  - if installed in a local directory, may need to edit the sarks makefile
-    and setup.py script to indicate location (see below)
+  - if installed in a local directory, may need to edit the
+    setup.py script to indicate location (see below)
 - GNU make for compiling suffix-array.cpp and windginiimp.cpp utilities
 - installation has been tested on unix systems, may need to be modified for others
 
@@ -30,12 +30,10 @@ Installation
    ```
 
 3. *If* SeqAn C++ library (v1.4) is installed in local directory:
-   open the makefile and uncomment the line
-   # INC = -I...
-   edit the ... to point to to correct location on your system.
-   Then open setup.py and edit the line
+   Open setup.py and edit the line
    incdir = ''
-   replacing the empty string '' with the correct location on your system.
+   replacing the empty string '' with the correct location on your system
+   (a commented-out example of how to do so is shown in setup.py).
 
 4. Install using pip3 to run setup.py; recommend building local and editable version
    ```bash
