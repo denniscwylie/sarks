@@ -71,8 +71,10 @@ python3 sarkselect.py -f simulated_seqs.fa\
 #         Most useful with small data sets like this example.)
 # -r <number R of permutations to use in setting significance thresholds
 #     for peak-calling>
-# -z <multiple z of standard deviations above mean defining threshold
-#     as described in supplementary Section S2.6, Eq (S24-S25) of paper>
+# -z <multiple z of standard deviations above mean (of maximum smoothed suffix
+#     scores obtained after randomly permuting scores assigned to sequences)
+#     defining threshold as described in
+#     supplementary Section S2.6, Eq (S24-S25) of paper>
 # -o <output directory to be created/overwritten>
 ## -----------------------------------------------------------------
 

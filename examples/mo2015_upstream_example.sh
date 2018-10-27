@@ -60,9 +60,10 @@ python3 zrank_singly_smoothed_kmers.py mo2015_upstream_w500-2500_l0-10_selection
 ## -----------------------------------------------------------------
 # As in the first example, This shows each unique k-mer for which a
 # peak was found without spatial smoothing (hence 'singly_smoothed' in
-# the name of the script) along with the highest value of the
-# standard-deviation-above-mean multiple z for which the peak would
-# have been called.
+# the name of the script) along with the highest value of z
+# multiplying the standard-deviation-above-mean (of maximum smoothed
+# suffix scores obtained after randomly permuting scores assigned to
+# sequences) for which the peak would have been called.
 #
 # NOTE: zmax values will vary somewhat b/c permutations are stochastic;
 #       possible that lowest k-mer may fall below 4 and thus not show up
