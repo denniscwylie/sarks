@@ -25,7 +25,32 @@ python3 sarkselect.py -f mo2015_downstream_seqs.fa\
                       -r 25\
                       -z 4\
                       -o mo2015_downstream_w250_l0_selection
+# The arguments here are:
+## -----------------------------------------------------------------
+# -f <fasta file containing sequences to analyze>
+# -s <scores tsv file, col 1: sequence identifiers matching the fasta file,
+#                      col 2: numeric scores>
+# -w <half window width for first kernel smoothing pass (kappa in paper),
+#     can supply multiple values using commas (no spaces)>
+# -l <spatial smoothing length (lambda in paper),
+#     can supply multiple vlaues using commas (no spaces)>
+# -g <parameter for calculation of Gini impurity filter (gamma in paper),
+#     can supply multiple vlaues using commas (no spaces)>
+# -r <number R of permutations to use in setting significance thresholds
+#     for peak-calling>
+# -z <multiple z of standard deviations above mean (of maximum smoothed suffix
+#     scores obtained after randomly permuting scores assigned to sequences)
+#     defining threshold as described in
+#     supplementary Section S2.6, Eq (S24-S25) of paper>
+# -o <output directory to be created/overwritten>
+## -----------------------------------------------------------------
 # only used -r 25 permutations for setting threshold for speed here.
+# NOTE: generally recommend using more permutations (100+)
+#       for more stable threshold estimation, though smaller numbers
+#       can be useful as 'quick-and-dirty' first look.
+#       Because of the less precise threshold estimation, lower permutation
+#       numbers can sometimes result in larger false positive rates
+#       when tested with sarkstest.py below
 
 # If we just want to inspect the set of k-mers selected,
 # can use included z-ranking script;
