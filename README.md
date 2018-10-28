@@ -26,6 +26,9 @@ shell scripts making use of this python module, including:
 - examples/count_kmers.py for counting or locating sarks k-mers
   (or clusters of k-mers) in sequences contained in a fasta file
 
+For detailed information on the usage of these scripts, consult
+[user_guide.md](user_guide.md).
+
 The best way to learn how to use sarks is to read through the example
 scripts provided in the examples/ folder included in the github
 repository.
