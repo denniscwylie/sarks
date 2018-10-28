@@ -14,21 +14,21 @@ For installation instructions, consult [INSTALL.md](INSTALL.md).
 
 Included in the sarks project are several scripts for usage at the command line:
 
-- **sarkselect.py**  
+- [**sarkselect.py**](#sarkselect.py)  
   main script for motif discovery
-- **sarkstest.py**  
+- [**sarkstest.py**](#sarkstest.py)  
   estimate false positive rate associated with motif set determined by
   sarkselect.py
-- **extract_kmers.py**  
+- [**extract_kmers.py**](#extract_kmers.py)  
   extract list of unique k-mers identified by sarkselect.py
-- **zrank_singly_smoothed_kmers.py**  
+- [**zrank_singly_smoothed_kmers.py**](#zrank_singly_smoothed_kmers.py)  
   rank those k-mers which were selected without use of spatial
   smoothing according to maximum z threshold at which they could be
   identified
-- **cluster_seqs.R**  
+- [**cluster_seqs.R**](#cluster_seqs.r)  
   assign k-mers to clusters; requires specification of number of
   clusters to generate
-- **count_kmers.py**  
+- [**count_kmers.py**](#count_kmers.py)  
   count (or locate) occurrences of k-mer motifs or of clusters of
   k-mers within sequences in a fasta file
 
@@ -323,6 +323,13 @@ Once one has constructed such an object, you can use its *peaks*
 method to identify suffix positions corresponding to smoothed score
 peaks
 
+```python
+topLocations = sarks.peaks(theta = 1,
+                           minGini = 0)
+```
+
+The full list of arguments for peaks are:
+
 - **theta**  
   minimum smoothed score value for peak to be reported (float;
   required)
@@ -340,10 +347,41 @@ peaks
   kmer length to report (int; default None)
 - **minGini**  
   minimum Gini impurity value for suffix position to be reported as
-  peak (float; default None)
+  peak (if less than 1.0) *or* gamma value used to determine minimum
+  Gini impurity value (if greater than 1.0) (float; default None)
 - **minSpatialGini**  
   minimum spatially-averaged Gini impurity value for suffix position
   to be reported as peak (float; default None)
 - **deduplicate**  
   if True, report only highest scoring position corresponding to any
   given kmer (bool, default False)
+
+The locations of the peaks in and of themselves are not very
+interesting; you can use the sarks objects' *subtable* see more
+detailed information about these peaks:
+
+```python
+topTable = sarks.subtable(topLocations).sort_values('khat',
+                                                    ascending=False)
+```
+
+topTable then contains
+
+|    i |    s | kmer       |   khat | block |  wi |     gini | score | windowed |
+|------|------|------------|--------|-------|-----|----------|-------|----------|
+| 2257 | 3959 | CATACTGAGA | 10.250 |    22 | 194 | 0.888889 |     1 |      1.0 |
+| 2258 | 4518 | CATACTGAGA | 10.250 |    25 |   0 | 0.888889 |     1 |      1.0 |
+| 2256 | 3544 | CATACTGAGA |  9.625 |    21 |  30 | 0.864198 |     1 |      1.0 |
+| 1460 | 3960 | ATACTGAGA  |  9.250 |    22 | 195 | 0.888889 |     1 |      1.0 |
+| 1461 | 4519 | ATACTGAGA  |  9.250 |    25 |   1 | 0.888889 |     1 |      1.0 |
+| 1459 | 3545 | ATACTGAGA  |  8.750 |    21 |  31 | 0.888889 |     1 |      1.0 |
+| 1462 | 3456 | ATACTGAG   |  8.500 |    20 | 193 | 0.864198 |     1 |      1.0 |
+| 1458 | 4442 | ATACTGAG   |  8.250 |    24 | 175 | 0.864198 |     1 |      1.0 |
+| 5864 | 3961 | TACTGAGA   |  8.250 |    22 | 196 | 0.888889 |     1 |      1.0 |
+| 5865 | 4520 | TACTGAGA   |  8.250 |    25 |   2 | 0.888889 |     1 |      1.0 |
+| 1463 | 5595 | ATACTGAG   |  7.875 |    29 |  73 | 0.864198 |     1 |      1.0 |
+| 5863 | 3546 | TACTGAGA   |  7.750 |    21 |  32 | 0.888889 |     1 |      1.0 |
+| 5862 | 4443 | TACTGAG    |  7.250 |    24 | 176 | 0.864198 |     1 |      1.0 |
+| 1464 | 5174 | ATACTGA    |  7.125 |    27 | 154 | 0.839506 |     1 |      1.0 |
+| 5861 | 5430 | TACTGAG    |  6.875 |    28 | 159 | 0.839506 |     1 |      1.0 |
+| 1465 | 4232 | ATACTG     |  6.250 |    23 | 216 | 0.814815 |     1 |      1.0 |

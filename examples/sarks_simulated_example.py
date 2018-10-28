@@ -18,10 +18,9 @@ sarks = Sarks(
 )
 
 topLocations = sarks.peaks(theta = 1,
-                           prune = False,
                            minGini = 0)
-topTable = sarks.subtable(topLocations, k=12).sort_values('khat',
-                                                          ascending=False)
+topTable = sarks.subtable(topLocations).sort_values('khat',
+                                                    ascending=False)
 #    i     s        kmer    khat block   wi      gini  score  windowed
                                                                     
 # 2257  3959  CATACTGAGA  10.250    22  194  0.888889      1       1.0
