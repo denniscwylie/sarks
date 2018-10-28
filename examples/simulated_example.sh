@@ -2,7 +2,7 @@
 
 # Suffix Array Kernel Smoothing, or SArKS, aims to find motifs and
 # multi-motif domains (MMDs)
-# (https://www.biorxiv.org/content/early/2018/03/11/133934) whose
+# (https://www.biorxiv.org/content/early/2018/10/25/133934) whose
 # presence or absence within each of a set of sequences (contained
 # within a fasta file) is correlated with numeric scores assigned to
 # those sequences (contained with a two column tab-separated-values
