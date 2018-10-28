@@ -19,16 +19,16 @@ Included in the sarks project are several scripts for usage at the command line:
 - [**sarkstest.py**](#sarkstest.py)  
   estimate false positive rate associated with motif set determined by
   sarkselect.py
-- [**extract_kmers.py**](#extract_kmers.py)  
+- [**extract_kmers.py**](#extract\_kmers.py)  
   extract list of unique k-mers identified by sarkselect.py
-- [**zrank_singly_smoothed_kmers.py**](#zrank_singly_smoothed_kmers.py)  
+- [**zrank_singly_smoothed_kmers.py**](#zrank\_singly\_smoothed\_kmers.py)  
   rank those k-mers which were selected without use of spatial
   smoothing according to maximum z threshold at which they could be
   identified
-- [**cluster_seqs.R**](#cluster_seqs.r)  
+- [**cluster_seqs.R**](#cluster\_seqs.r)  
   assign k-mers to clusters; requires specification of number of
   clusters to generate
-- [**count_kmers.py**](#count_kmers.py)  
+- [**count_kmers.py**](#count\_kmers.py)  
   count (or locate) occurrences of k-mer motifs or of clusters of
   k-mers within sequences in a fasta file
 
