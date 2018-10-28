@@ -424,7 +424,7 @@ class Sarks(object):
             out -= nests[containing]
         return sorted([iv[0:2] for iv in out])
 
-    def peaks(self, theta, prune=True,
+    def peaks(self, theta, prune=False,
               spatialLength=None, spatialTheta=None,
               k=12, minK=None,
               minGini=None, minSpatialGini=None,
@@ -459,7 +459,7 @@ class Sarks(object):
 
     def filter(self, minGini=None, minSpatialGini=None, minK=None,
                theta=None, spatialLength=None, spatialTheta=None,
-               nearbyPars=None, k=12, prune=True, deduplicate=True):
+               nearbyPars=None, k=12, prune=False, deduplicate=True):
         """
         Return suffix array *values* s satisfying specified filters
         

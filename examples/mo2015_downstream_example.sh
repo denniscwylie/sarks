@@ -33,9 +33,9 @@ python3 sarkselect.py -f mo2015_downstream_seqs.fa\
 # -w <half window width for first kernel smoothing pass (kappa in paper),
 #     can supply multiple values using commas (no spaces)>
 # -l <spatial smoothing length (lambda in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -g <parameter for calculation of Gini impurity filter (gamma in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -r <number R of permutations to use in setting significance thresholds
 #     for peak-calling>
 # -z <multiple z of standard deviations above mean (of maximum smoothed suffix

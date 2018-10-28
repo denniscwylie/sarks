@@ -62,9 +62,9 @@ python3 sarkselect.py -f simulated_seqs.fa\
 # -w <half window width for first kernel smoothing pass (kappa in paper),
 #     can supply multiple values using commas (no spaces)>
 # -l <spatial smoothing length (lambda in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -g <parameter for calculation of Gini impurity filter (gamma in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -p     (takes no argument;
 #         a logical flag indicating to remove redundant kmer output,
 #         as described in supplementary Section S2.3 of the paper.

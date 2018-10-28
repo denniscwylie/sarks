@@ -37,9 +37,9 @@ python3 sarkselect.py -f mo2015_upstream_seqs.fa\
 # -w <half window width for first kernel smoothing pass (kappa in paper),
 #     can supply multiple values using commas (no spaces)>
 # -l <spatial smoothing length (lambda in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -g <parameter for calculation of Gini impurity filter (gamma in paper),
-#     can supply multiple vlaues using commas (no spaces)>
+#     can supply multiple values using commas (no spaces)>
 # -r <number R of permutations to use in setting significance thresholds
 #     for peak-calling>
 # -z <multiple z of standard deviations above mean (of maximum smoothed suffix
@@ -164,7 +164,7 @@ Rscript cluster_seqs.R\
 python3 extract_kmers.py\
  mo2015_upstream_w500-2500_l0-10_selection/merged_peaks.tsv |\
  wc -l
-# I got 994, though this will vary somewhat from run to run.
+# I got 865, though this will vary somewhat from run to run.
 # By default, extract_kmers.py considers reverse complements to be
 # equivalent (and prints only the lexicographically lower value
 # of the identified k-mer and its reverse complement).
