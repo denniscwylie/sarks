@@ -6,7 +6,7 @@ Requirements
   - setup.py should install required python modules if necessary
     (biopython, editdistance, intervaltree, numpy, pandas, pyfaidx, scipy)
 - examples/cluster_seqs.R script uses [philentropy](https://cran.r-project.org/web/packages/philentropy/index.html) and [msa](https://bioconductor.org/packages/release/bioc/html/msa.html) R libraries
-- SeqAn C++ library (https://www.seqan.de/) **version 1.3.x or 1.4.x**
+- SeqAn C++ library (https://www.seqan.de/) **version 1.3.x** or **1.4.x**
   - on Ubuntu 16.04 or 18.04, can be installed using
     ```bash
 	apt-get install seqan-dev
