@@ -12,7 +12,8 @@ For installation instructions, consult [INSTALL.md](INSTALL.md).
 
 # sarks command-line execution
 
-Included in the sarks project are several scripts for usage at the command line:
+Included in the sarks project examples/ folder are several scripts for
+usage at the command line:
 
 - [**sarkselect.py**](#sarkselectpy)  
   main script for motif discovery
