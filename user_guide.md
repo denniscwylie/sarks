@@ -358,8 +358,8 @@ The full list of arguments for peaks are:
   given kmer (bool, default False)
 
 The locations of the peaks in and of themselves are not very
-interesting; you can use the sarks objects' *subtable* method about
-these peaks:
+interesting; you can use the sarks objects' *subtable* method to get
+more detailed information about these peaks:
 
 ```python
 topTable = sarks.subtable(topLocations).sort_values('khat',
