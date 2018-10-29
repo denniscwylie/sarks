@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-i', action='store', dest='indir', default=None,
                     help='input directory for sarkstest.py is'+
                          ' output directory from sarkselect.py')
-parser.add_argument('-o', action='store', dest='out', default=None,
+parser.add_argument('-o', action='store', dest='outdir', default=None,
                     help='output directory to be created/overwritten')
 parser.add_argument('-f', action='store', dest='fasta', default=None,
                     help='input fasta file containing sequences to analyze')
