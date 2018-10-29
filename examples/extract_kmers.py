@@ -6,8 +6,11 @@ import pandas as pd
 
 ## -----------------------------------------------------------------
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', action='store_true', dest='directional', default=False)
-parser.add_argument(action='store', dest='input', default=None)
+parser.add_argument('-d', action='store_true', dest='directional', default=False,
+                    help='(d)irectional mode: do not consider k-mer equivalent' +
+                         ' to its reverse-complement')
+parser.add_argument(action='store', dest='input', default=None,
+                    help='tsv file with kmer column')
 
 parsed = parser.parse_args()
 

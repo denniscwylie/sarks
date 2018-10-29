@@ -8,6 +8,9 @@ import sys
 sarksDir = ''
 if len(sys.argv) > 1:
     sarksDir = sys.argv[1]
+    if sarksDir in ['-h', '--help']:
+        print('Usage: zrank_singly_smoothed_kmers.py <sarkselect.py output directory>')
+        sys.exit(0)
 
 if len(sarksDir) > 0 and os.path.exists(sarksDir):
     peaksFile = sarksDir + '/peaks.tsv'

@@ -4,6 +4,9 @@ library(philentropy)
 
 ## -----------------------------------------------------------------
 args = commandArgs(TRUE)
+if (all(args %in% c('-h', '--help'))) {
+    cat('Usage: cluster_seqs.R <tsv with kmer column> <number of clusters>\n')
+} else {
 dopfm = FALSE
 if ('--pfm' %in% args) {
     dopfm = TRUE
@@ -143,4 +146,5 @@ if (is.na(nClusters)) {
         }
         clustNum = clustNum + 1
     }
+}
 }
