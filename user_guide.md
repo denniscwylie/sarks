@@ -358,8 +358,8 @@ The full list of arguments for peaks are:
   given kmer (bool, default False)
 
 The locations of the peaks in and of themselves are not very
-interesting; you can use the sarks objects' *subtable* see more
-detailed information about these peaks:
+interesting; you can use the sarks objects' *subtable* method about
+these peaks:
 
 ```python
 topTable = sarks.subtable(topLocations).sort_values('khat',
@@ -386,3 +386,36 @@ topTable then contains
 | 1464 | 5174 | ATACTGA    |  7.125 |    27 | 154 | 0.839506 |     1 |      1.0 |
 | 5861 | 5430 | TACTGAG    |  6.875 |    28 | 159 | 0.839506 |     1 |      1.0 |
 | 1465 | 4232 | ATACTG     |  6.250 |    23 | 216 | 0.814815 |     1 |      1.0 |
+
+In the context of this small example, it can be useful to employ the
+*extendKmers* method to clean up the k-mer output:
+
+```python
+extTopTable = sarks.extendKmers(topTable)
+
+```
+
+resulting in extTopTable having the value
+
+|    i |    s | kmer       |   khat | block |  wi |     gini | score | windowed |
+|------|------|------------|--------|-------|-----|----------|-------|----------|
+| 2257 | 3959 | CATACTGAGA | 10.250 |    22 | 194 | 0.888889 |     1 |      1.0 |
+| 2258 | 4518 | CATACTGAGA | 10.250 |    25 |   0 | 0.888889 |     1 |      1.0 |
+| 2256 | 3544 | CATACTGAGA |  9.625 |    21 |  30 | 0.864198 |     1 |      1.0 |
+| 2257 | 3959 | CATACTGAGA |    NaN |    22 | 194 |      NaN |     1 |      NaN |
+| 2258 | 4518 | CATACTGAGA |    NaN |    25 |   0 |      NaN |     1 |      NaN |
+| 2256 | 3544 | CATACTGAGA |    NaN |    21 |  30 |      NaN |     1 |      NaN |
+| 2259 | 3455 | CATACTGAGA |    NaN |    20 | 192 |      NaN |     1 |      NaN |
+| 2255 | 4441 | CATACTGAGA |    NaN |    24 | 174 |      NaN |     1 |      NaN |
+| 2257 | 3959 | CATACTGAGA |    NaN |    22 | 194 |      NaN |     1 |      NaN |
+| 2258 | 4518 | CATACTGAGA |    NaN |    25 |   0 |      NaN |     1 |      NaN |
+| 2260 | 5594 | CATACTGAGA |    NaN |    29 |  72 |      NaN |     1 |      NaN |
+| 2256 | 3544 | CATACTGAGA |    NaN |    21 |  30 |      NaN |     1 |      NaN |
+| 2255 | 4441 | CATACTGAGA |    NaN |    24 | 174 |      NaN |     1 |      NaN |
+| 2261 | 5173 | CATACTGAGA |    NaN |    27 | 153 |      NaN |     1 |      NaN |
+| 2254 | 5428 | CATACTGAGA |    NaN |    28 | 157 |      NaN |     1 |      NaN |
+| 2262 | 4231 | CATACTGAGA |    NaN |    23 | 215 |      NaN |     1 |      NaN |
+
+The extendKmers method tends to be most useful on small data sets.
+
+
