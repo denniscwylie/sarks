@@ -11,12 +11,26 @@ import sys
 
 ## -----------------------------------------------------------------
 parser = argparse.ArgumentParser()
-parser.add_argument('-c', action='store', dest='clusters', default=None)
-parser.add_argument('-d', action='store_true', dest='directional', default=False)
-parser.add_argument('-f', action='store', dest='fasta', default=None)
-parser.add_argument('-k', action='store', dest='kmers', default=None)
-parser.add_argument('-l', action='store_true', dest='locate', default=False)
-parser.add_argument('-o', action='store_true', dest='overlap', default=False)
+parser.add_argument('-k', action='store', dest='kmers', default=None,
+                    help='Input file containing k-mers to count/locate.' +
+                         ' Either tsv file with kmer column or simple list of k-mers,' +
+                         ' one per line. Alternately, can provide comma-delimited'
+                         ' (no spaces) of k-mers directly on command line.')
+parser.add_argument('-c', action='store', dest='clusters', default=None,
+                    help='Alternate input file containing k-mer clusters' +
+                         ' to count/locate. Only one of -k or -c should be provided.')
+parser.add_argument('-f', action='store', dest='fasta', default=None,
+                    help='Input fasta file containing sequences in which k-mers' +
+                         ' are to be counted or located.')
+parser.add_argument('-d', action='store_true', dest='directional', default=False,
+                    help='(d)irectional mode: count k-mers only in the' +
+                         ' forward (i.e., not reverse-complemented) orientation.')
+parser.add_argument('-l', action='store_true', dest='locate', default=False,
+                    help='(l)ocate mode: return tabular output with columns for' +
+                         'seqid, location, and kmer/cluster.')
+parser.add_argument('-o', action='store_true', dest='overlap', default=False,
+                    help='(o)verlapping mode: count overlapping matches as' +
+                         'separate instances (not available in locate mode).')
 
 parsed = parser.parse_args()
 
