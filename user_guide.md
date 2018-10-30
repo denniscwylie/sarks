@@ -34,7 +34,9 @@ usage at the command line:
   k-mers within sequences in a fasta file
 
 All Python scripts are written for Python 3. Details regarding the
-usage of these scripts are provided below.
+usage of these scripts are provided below (abbreviated usage
+information can be obtained for each script by calling it with the -h
+or --help flag).
 
 Examples of the usage of these scripts can be found in the shell
 scripts indicated below (I suggest going through them in the indicated
