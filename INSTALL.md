@@ -8,13 +8,23 @@ Requirements
 - examples/cluster_seqs.R script uses [philentropy](https://cran.r-project.org/web/packages/philentropy/index.html) and [msa](https://bioconductor.org/packages/release/bioc/html/msa.html) R libraries
 - SeqAn C++ library (https://www.seqan.de/) **version 1.3.x** or **1.4.x**
   - on Ubuntu 16.04 or 18.04, can be installed using
+
     ```bash
 	apt-get install seqan-dev
 	```
-  - on systems with dpkg, can check what version of seqan (if any) is installed using
+	
+  - If apt-cache is available on your system, can check what version of seqan (if any) is installed using
+
+    ```bash
+    apt-cache policy seqan-dev
+    ```
+
+    Alternatively, on systems with dpkg, may be able to check seqan version using
+
     ```bash
 	dpkg -p seqan-dev
 	```
+
   - otherwise can be downloaded from
     [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
   - if installed in a local directory, may need to edit the
