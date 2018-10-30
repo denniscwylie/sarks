@@ -61,12 +61,14 @@ The shell script
 
 examples/simulated_example.sh
 
-uses the small utility scripts also contained in the examples folder
-to analyze these sequences and scores. After moving to the examples
+uses the utility scripts also contained in the examples folder to
+analyze these sequences and scores. After moving to the examples
 directory,
+
 ```
 cd examples/
 ```
+
 I recommend reading through the script file and running the commands
 contained within individually at the shell script as you get to them.
 
@@ -74,10 +76,13 @@ contained within individually at the shell script as you get to them.
 ### Mo 2015 downstream example
 
 After going through the simulated example, try sarks out on the Mo
-2015 downstream seqs. Recommend following the same procedure as for
-the simulated data set but referencing the mo2015 downstream example
-shell script file; also note that you will have to gunzip the fasta
-file first:
+2015 downstream seqs. An example of how to do this can be found in the
+
+examples/mo2015\_downstream\_example.sh
+
+file; again I would recommend reading through the script and running
+the commands line-by-line as you get to them. You will have to gunzip
+the fasta file first in order for sarks to access it properly:
 
 ```
 gunzip mo2015_downstream_seqs.fa.gz
