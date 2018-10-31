@@ -45,12 +45,11 @@ the upstream (5' of transcription start site) and downstream (3' of
 transcription start site) DNA regions for mouse genes whose expression
 profiles were quantified in the studies:
 
-Mo, Alisa, et al. "Epigenomic signatures of neuronal diversity in the
-mammalian brain." Neuron 86.6 (2015): 1369-1384.
-
-Close, Jennie L., et al. "Single-cell profiling of an in vitro model
-of human interneuron development reveals temporal dynamics of cell
-type production and maturation." Neuron 93.5 (2017): 1035-1048.
+- Mo, Alisa, et al. "Epigenomic signatures of neuronal diversity in the
+  mammalian brain." Neuron 86.6 (2015): 1369-1384.
+- Close, Jennie L., et al. "Single-cell profiling of an in vitro model
+  of human interneuron development reveals temporal dynamics of cell
+  type production and maturation." Neuron 93.5 (2017): 1035-1048.
 
 
 ### Simulated data example
