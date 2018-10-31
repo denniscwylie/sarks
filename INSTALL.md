@@ -91,7 +91,7 @@
    
    These two executables should have shown up in the directory to which the Python code
 
-   (run code below in Python interpreter)
+   (*run code below in Python interpreter*)
 
    ```python
    import site
@@ -102,7 +102,7 @@
 
 5. Make sure that the path for the directory indicated by the Python code
 
-   (run code below in Python interpreter)
+   (*run code below in Python interpreter*)
 
    ```python
    import site
