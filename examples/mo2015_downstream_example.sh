@@ -169,7 +169,7 @@ python3 count_kmers.py -c mo2015_downstream_w250_l0_selection/clusters_2.txt\
 ##         (can count overlapping kmer matches using -o (overlap) flag)
 ##       - for clusters, it counts a match to any kmer in the cluster
 ##         (cluster matching not compatible with -o option)
-##       - return matrix with one row per sequence,
+##       - returns matrix with one row per sequence,
 ##                            one column per kmer/cluster
 ##       - *unless* you pass -l (locate) flag, in which case
 ##         you get one line per match indicating

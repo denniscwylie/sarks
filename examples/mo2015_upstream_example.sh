@@ -15,7 +15,7 @@
 #       for this example. For these reasons, this SArKS example will
 #       take both more run-time (hours) and more memory than the
 #       downstream example: I would recommend using a machine with at
-#       48 gigabytes of RAM available.
+#       least 48 gigabytes of RAM available.
 
 # This time let's try a few parameter combinations:
 # use half-widths kappa=500,2500 from paper (-w 500,2500),
@@ -80,7 +80,7 @@ python3 zrank_singly_smoothed_kmers.py mo2015_upstream_w500-2500_l0-10_selection
 # CTGGAAG   2500        1.1      4.085612733875691
 # TTCCAGC   2500        1.1      4.049845865130561
 ## -----------------------------------------------------------------
-# As in the first example, This shows each unique k-mer for which a
+# As in the downstream example, This shows each unique k-mer for which a
 # peak was found without spatial smoothing (hence 'singly_smoothed' in
 # the name of the script) along with the highest value of z
 # multiplying the standard-deviation-above-mean (of maximum smoothed
@@ -153,11 +153,11 @@ Rscript cluster_seqs.R\
 
 # Because of the use of spatial smoothing, the z-ranked k-mers are
 # only a small fraction of the total k-mer set detected in this
-# example. The file 
+# example. The eighth column of the file 
 #  mo2015_upstream_w500-2500_l0-10_selection/merged_peaks.tsv
-# The eighth column of this file contains the final k-mer sets
-# M_spatial (Eq (S16) from the paper) broken out by
-# halfWindow (kappa), spatialLength (lambda), and minGini (gamma).
+# contains the final k-mer sets M_spatial (Eq (S16) from the paper)
+# broken out by halfWindow (kappa), spatialLength (lambda),
+# and minGini (gamma).
 #
 # We can extract and count the unique k-mers identified using
 # extract_kmers.py:

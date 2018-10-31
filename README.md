@@ -51,15 +51,15 @@ type production and maturation." Neuron 93.5 (2017): 1035-1048.
 
 The simulated data set consists of the 30 sequences contained in
 
-examples/simulated_seqs.fa
+- examples/simulated_seqs.fa
 
 together with the associated scores contained in
 
-examples/simulated_scores.tsv
+- examples/simulated_scores.tsv
 
-The shell script
+The file
 
-examples/simulated_example.sh
+[examples/simulated_example.md](examples/simulated_example.md)
 
 uses the utility scripts also contained in the examples folder to
 analyze these sequences and scores. After moving to the examples
@@ -69,7 +69,7 @@ directory,
 cd examples/
 ```
 
-I recommend reading through the script file and running the commands
+I recommend reading through the example and running the commands
 contained within individually at the shell script as you get to them.
 
 
@@ -78,9 +78,9 @@ contained within individually at the shell script as you get to them.
 After going through the simulated example, try sarks out on the Mo
 2015 downstream seqs. An example of how to do this can be found in the
 
-examples/mo2015\_downstream\_example.sh
+[examples/mo2015\_downstream\_example.md](examples/mo2015_downstream_example.md)
 
-file; again I would recommend reading through the script and running
+file; again I would recommend reading through the example and running
 the commands line-by-line as you get to them. You will have to gunzip
 the fasta file first in order for sarks to access it properly:
 
@@ -107,9 +107,10 @@ NOTE: UPSTREAM EXAMPLE REQUIRES > 32 GIGABYTES AVAILABLE RAM
 
 (recommend at least 48G available to run comfortably)
 
-The Mo 2015 upstream example script is similar to the downstream
-example but (1)) runs on a larger data set and (2) uses a few more
-SArKS features, including spatial smoothing.
+The [Mo 2015 upstream example](examples/mo2015_upstream_example.md) is
+similar to the downstream example but
+1. runs on a larger data set and
+2. uses a few more SArKS features, including spatial smoothing.
 
 Because of these features, this example will run slower and require
 a good deal more memory than the other examples included.
