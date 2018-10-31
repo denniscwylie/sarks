@@ -157,9 +157,9 @@ python3 sarkstest.py -f simulated_seqs.fa\
 # point estimate: 2.7%
 # 95% CI: (1.787%, 3.904%)
 ## -----------------------------------------------------------------
-# This tells us that 16 out of 1000 permutations generated nonempty
+# This tells us that 27 out of 1000 permutations generated nonempty
 # motif sets using the thresholds we calculated using sarkselect.py,
-# yielding an estimated false positive rate of 1.6% with the
+# yielding an estimated false positive rate of 2.7% with the
 # indicated confidence interval, calculated using the Clopper-Pearson
 # method:
 # https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Clopper%E2%80%93Pearson_interval
