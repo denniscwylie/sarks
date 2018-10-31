@@ -64,7 +64,7 @@
    (e.g., if you downloaded and extracted it as described in
    [Requirements above](#seqan-download)):
 
-   Open setup.py and edit the line
+   Open [setup.py](setup.py) and edit the line
 
    incdir = ''
 
