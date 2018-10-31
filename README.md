@@ -36,8 +36,8 @@ scripts
 examples/*_example.sh
 ```
 
-(markdown versions of each example are available as well) included in
-the github repository.
+(markdown versions of each of the examples are available as well)
+included in the github repository.
 
 These examples are taken from the data sets analyzed in the SArKS
 paper, including the toy simulated data set as well as the analyses of
