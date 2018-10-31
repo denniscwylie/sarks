@@ -70,7 +70,7 @@ cd examples/
 ```
 
 I recommend reading through the example and running the commands
-contained within individually at the shell script as you get to them.
+contained within individually at the command line as you get to them.
 
 
 ### Mo 2015 downstream example
