@@ -187,11 +187,11 @@ step, except for:
 The script sarkstest.py also emits a bit of text on stdout,
 should be something like:
 
+```
 27 / 1000
-
 point estimate: 2.7%
-
 95% CI: (1.787%, 3.904%)
+```
 
 This tells us that 16 out of 1000 permutations generated nonempty
 motif sets using the thresholds we calculated using sarkselect.py,
