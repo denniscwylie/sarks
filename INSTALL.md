@@ -13,7 +13,8 @@
 	apt-get install seqan-dev
 	```
 	
-  - If apt-cache is available on your system, can check what version of seqan (if any) is installed using
+  - If apt-cache is available on your system, can check what version
+    of seqan (if any) is installed using
 
     ```bash
     apt-cache policy seqan-dev
@@ -25,7 +26,8 @@
 	dpkg -p seqan-dev
 	```
 
-  - otherwise can be downloaded from
+  -  <a name="seqan-download"></a>
+     otherwise can be downloaded from
     [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
 	- sarks only needs to be able to access the include directory, so
       after downloading, just uncompress and untar the file in
@@ -59,7 +61,8 @@
 
 3. <a name="install-step-3"></a>
    *If* SeqAn C++ library (v1.3.x or v1.4.x) is locally installed
-   (i.e., not installed via package manager):
+   (e.g., if you downloaded and extracted it as described in
+   [Requirements above](seqan-download)):
 
    Open setup.py and edit the line
 
