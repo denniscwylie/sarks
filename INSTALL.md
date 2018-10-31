@@ -28,8 +28,8 @@
   - otherwise can be downloaded from
     [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
 	- sarks only needs to be able to access the include directory, so
-      after just uncompress and untar the file in whatever location
-      you prefer to keep it
+      after downloading, just uncompress and untar the file in
+      whatever location you prefer to keep it:
 
       ```bash
 	  bunzip2 seqan-library-1.4.2.tar.bz2
@@ -37,8 +37,8 @@
 	  ```
 
     - if installed in a local directory, may need to edit the sarks
-      setup.py script to indicate location (see
-      [Installation](#installation) step 3 below)
+      setup.py script to indicate the location of the seqan include
+      directory (see [Installation](#installation) step 3 below)
 - GNU make for compiling suffix-array.cpp and windginiimp.cpp utilities
 - installation has been tested on unix systems, may need to be modified for others
 
