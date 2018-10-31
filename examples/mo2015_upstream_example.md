@@ -276,7 +276,10 @@ point estimate: 2.0%
 
 Again, the exact numbers obtained may vary a bit.
 - Increasing the number of permutations used in sarkselect.py above
-  will result in more tightly controlled false positive rates,
+  will result in more tightly controlled (not necessarily lower!)
+  false positive rates,
 - while increasing the number of permutations used in sarkstest.py
   will result in more precise (tighter CI) estimates of false positive
   rate.
+- Higher values of the -z parameter in sarkselect.py/sarkstest.py will
+  lead to lower false positive rates.
