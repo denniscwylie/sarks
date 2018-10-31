@@ -30,8 +30,12 @@ For detailed information on the usage of these scripts, consult
 [user_guide.md](user_guide.md).
 
 The best way to learn how to use sarks is to read through the example
-scripts examples/*_example.sh (markdown versions of each example are
-available as well) included in the github repository.
+scripts
+
+examples/*_example.sh
+
+(markdown versions of each example are available as well) included in
+the github repository.
 
 These examples are taken from the data sets analyzed in the SArKS
 paper, including the toy simulated data set as well as the analyses of
