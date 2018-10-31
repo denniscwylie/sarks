@@ -32,7 +32,9 @@ For detailed information on the usage of these scripts, consult
 The best way to learn how to use sarks is to read through the example
 scripts
 
+```
 examples/*_example.sh
+```
 
 (markdown versions of each example are available as well) included in
 the github repository.
