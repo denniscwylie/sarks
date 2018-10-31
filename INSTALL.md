@@ -64,9 +64,11 @@
    (e.g., if you downloaded and extracted it as described in
    [Requirements above](#seqan-download)):
 
-   Open [setup.py](setup.py) and edit the line
+   Open setup.py and edit the line
 
+   ```python
    incdir = ''
+   ```
 
    replacing the empty string '' with the correct location on your system
 
