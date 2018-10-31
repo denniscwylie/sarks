@@ -38,23 +38,22 @@ usage of these scripts are provided below (abbreviated usage
 information can be obtained for each script by calling it with the -h
 or --help flag).
 
-Examples of the usage of these scripts can be found in the shell
-scripts indicated below (I suggest going through them in the indicated
-order, reading through the comments and running the commands
-line-by-line):
+Examples of the usage of these scripts can be found in the files
+indicated below (I suggest going through them in the indicated order,
+reading through the comments and running the commands line-by-line):
 
-- **examples/simulated_example.sh**  
+- [examples/simulated_example.md](examples/simulated_example.md)  
   toy simulated data example to illustrate basic functionality of
   sarks
-- **examples/mo2015_downstream_example.sh**  
+- [examples/mo2015_downstream_example.md](examples/mo2015_downstream_example.md)**  
   minimal introductory example of sarks applied to RNA-seq
   differential expression results, can still be run fairly quickly
   (though final sarkstest.py step may take 10+ minutes depending on
   hardware)
-- **examples/mo2015_upstream_example.sh**  
+- [examples/mo2015_upstream_example.md](examples/mo2015_upstream_example.md)  
   this example uses longer sequences and includes spatial smoothing,
-  hence it takes longer (hours) and requires more RAM (recommend
-  minimum 48G available)
+  hence it takes longer (hours) and requires more RAM (**recommend
+  minimum 48G available**)
 
 ## sarkselect.py
 
