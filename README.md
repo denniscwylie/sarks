@@ -103,9 +103,9 @@ minutes to complete depending on hardware.
 
 ### Mo 2015 upstream example
 
-NOTE: UPSTREAM EXAMPLE REQUIRES > 32 GIGABYTES AVAILABLE RAM
+- **NOTE:** UPSTREAM EXAMPLE REQUIRES > 32 GIGABYTES AVAILABLE RAM
 
-(recommend at least 48G available to run comfortably)
+(recommend *at least 48G available* to run comfortably)
 
 The [Mo 2015 upstream example](examples/mo2015_upstream_example.md) is
 similar to the downstream example but
