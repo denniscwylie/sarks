@@ -70,7 +70,7 @@ will still take a while (a couple of hours depending on machine used).
   estimation, lower permutation numbers can sometimes result in larger
   false positive rates when tested with sarkstest.py below
 
-use zrank_singly_smoothed_kmers.py to rank un-spatially-smoothed k-mers;
+use zrank\_singly\_smoothed_kmers.py to rank un-spatially-smoothed k-mers;
 takes one argument: output directory from sarkselect.py:
 
 ```bash
@@ -120,7 +120,7 @@ all of them are quite similar to each other. In order to cluster just
 this set of kmers, let's save the zrank-ed output...
 
 ```bash
-python3 zrank_singly_smoothed_kmers.py
+python3 zrank_singly_smoothed_kmers.py\
  mo2015_upstream_w500-2500_l0-10_selection >\
  mo2015_upstream_w500-2500_l0-10_selection/zranked_singly_smoothed.tsv
  ```

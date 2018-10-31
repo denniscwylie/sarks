@@ -99,7 +99,7 @@ python3 zrank_singly_smoothed_kmers.py mo2015_upstream_w500-2500_l0-10_selection
 # A quick glance through the above list of k-mers suggests some but
 # not all of them are quite similar to each other. In order to cluster
 # just this set of kmers, let's save the zrank-ed output...
-python3 zrank_singly_smoothed_kmers.py
+python3 zrank_singly_smoothed_kmers.py\
  mo2015_upstream_w500-2500_l0-10_selection >\
  mo2015_upstream_w500-2500_l0-10_selection/zranked_singly_smoothed.tsv
 # ...so that we can use clusters_seqs.R to cluster the k-mers:
