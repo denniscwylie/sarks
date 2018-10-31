@@ -93,13 +93,13 @@ the fasta file first in order for sarks to access it properly:
 gunzip mo2015_downstream_seqs.fa.gz
 ```
 
-NOTE: as this is a much larger data set than the simulated set,
-running this example will take a bit longer. Only one smoothing window
-(and no spatial smoothing) is applied in this analysis so that motif
-discovery can be run in a minute or two. The number of permutations
-used in initial permutational threshold setting has also been reduced
-in the interest of speed, so results will vary a bit more from run to
-run.
+- **NOTE:** as this is a much larger data set than the simulated set,
+  running this example will take a bit longer. Only one smoothing
+  window (and no spatial smoothing) is applied in this analysis so
+  that motif discovery can be run in a minute or two. The number of
+  permutations used in initial permutational threshold setting has
+  also been reduced in the interest of speed, so results will vary a
+  bit more from run to run.
 
 The sarkstest.py step applied to estimate false positive rates is
 still set to use 250 permutations and will thus likely take > 10
