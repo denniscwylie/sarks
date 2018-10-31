@@ -38,7 +38,7 @@
 
     - if installed in a local directory, may need to edit the sarks
       setup.py script to indicate the location of the seqan include
-      directory (see [Installation](#installation) step 3 below)
+      directory (see [Installation](#install-step-3) step 3 below)
 - GNU make for compiling suffix-array.cpp and windginiimp.cpp utilities
 - installation has been tested on unix systems, may need to be modified for others
 
@@ -57,7 +57,8 @@
    cd sarks
    ```
 
-3. *If* SeqAn C++ library (v1.3.x or v1.4.x) is locally installed
+3. <a name="install-step-3"></a>
+   *If* SeqAn C++ library (v1.3.x or v1.4.x) is locally installed
    (i.e., not installed via package manager):
 
    Open setup.py and edit the line
