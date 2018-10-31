@@ -141,6 +141,7 @@ Rscript cluster_seqs.R --pfm\
 ```
 
 Cluster 1: CAAGGTCA
+
 | pos | A | C | G | T |
 |-----|---|---|---|---|
 |   0 | 0 | 2 | 0 | 0 |
