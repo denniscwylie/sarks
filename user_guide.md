@@ -45,7 +45,7 @@ reading through the comments and running the commands line-by-line):
 - [examples/simulated_example.md](examples/simulated_example.md)  
   toy simulated data example to illustrate basic functionality of
   sarks
-- [examples/mo2015_downstream_example.md](examples/mo2015_downstream_example.md)**  
+- [examples/mo2015_downstream_example.md](examples/mo2015_downstream_example.md)  
   minimal introductory example of sarks applied to RNA-seq
   differential expression results, can still be run fairly quickly
   (though final sarkstest.py step may take 10+ minutes depending on
