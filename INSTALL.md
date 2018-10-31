@@ -70,9 +70,15 @@
    incdir = ''
    ```
 
-   replacing the empty string '' with the correct location on your system
+   replacing the empty string '' with the correct location on your system:
 
-   (a commented-out example of how to do so is shown in setup.py).
+   ```python
+   incdir = '-I/path/to/seqan/seqan-library-1.4.2/include'
+   ```
+
+   (replacing /path/to/seqan/ with the appropriate location in which
+   you have the seqan library downloaded; a commented-out example of
+   how to do so is shown in setup.py).
 
 4. Install using pip3 to run setup.py; recommend building local and editable version
 
