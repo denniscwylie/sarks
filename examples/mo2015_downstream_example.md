@@ -14,6 +14,7 @@ Let's try a single parameter set first:
 - use smallest half-width kappa=250 from paper (**-w 250**),
 - use lambda=0 for no spatial smoothing (**-l 0**),
 - select Gini impurity filter using gamma=1.1 (**-g 1.1**)
+
 (this may take a few minutes, depending on speed of computer):
 
 ```bash
