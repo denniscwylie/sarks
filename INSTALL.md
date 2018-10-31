@@ -29,7 +29,7 @@
   -  <a name="seqan-download"></a>
      If the correct seqan version is not available for your system via
      a package manager, you can download
-    [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
+     [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
 	- sarks only needs to be able to access the include directory, so
       after downloading, just uncompress and untar the file in
       whatever location you prefer to keep it:
