@@ -107,7 +107,7 @@ Additional optional flags/arguments:
   specifies path for outputting concatenated fasta file  
   default: a temporary file is automatically created (and removed when done)
 - **-e**
-  fixes random number generator seed to generate reproducible output
+  fixes random number generator seed to generate reproducible output  
   default: no seed
 
 ## sarkstest.py
