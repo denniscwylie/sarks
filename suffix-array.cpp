@@ -9,7 +9,7 @@ using std::cout;
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
-		cout << "suffix-aray requires 1 argument (name of fasta file).";
+		cout << "suffix-array requires 1 argument (name of fasta file).";
 		return 1;
 	}
 	std::fstream in(argv[1], std::ios::binary | std::ios::in);
