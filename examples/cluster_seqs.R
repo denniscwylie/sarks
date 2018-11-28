@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(philentropy)
+suppressMessages(library(msa))
 
 ## -----------------------------------------------------------------
 args = commandArgs(TRUE)
@@ -90,60 +91,67 @@ tetraCountsUnorient = data.frame(tetraCountsUnorient, row.names=kmers)
 tetraCountsUnorient = tetraCountsUnorient[ , colSums(tetraCountsUnorient) > 0]
 
 ## -----------------------------------------------------------------
-d = suppressMessages(distance(tetraCountsUnorient, method='jaccard'))
+d = suppressMessages(philentropy::distance(tetraCountsUnorient, method='jaccard'))
 rownames(d) = colnames(d) = rownames(tetraCountsUnorient)
 diag(d) = Inf
 d[d == 0] = min(d[d > 0]) / 2
 diag(d) = 0
+ddist = as.dist(d)
 
 ## -----------------------------------------------------------------
+hcout = hclust(ddist, method='average')
 if (is.na(nClusters)) {
-    mds1 = cmdscale(d, k=1)
-    mdsKmers = mds1[order(mds1[ , 1]), , drop=FALSE]
-    mdsKmers = structure(rownames(mdsKmers), names=rownames(mdsKmers))
-    writeLines(mdsKmers)
-} else {
-    suppressMessages(library(msa))
-    hcout = hclust(as.dist(d), method='average')
-    ctout = cutree(hcout, k=nClusters)
-    clusters = lapply(1:max(ctout), function(cl) {d[ctout==cl, ctout==cl, drop=FALSE]})
-    clustReps = sapply(clusters, function(d) {
-        rownames(d)[which.min(rowMeans(d))]
-    })
-    names(clusters) = clustReps
-    clustNum = 1
-    for (clust in clustReps) {
-        if (nrow(clusters[[clust]]) > 1) {
-            sink('/dev/null')
-            msaOut = msa(
-                orientSeqs(rownames(clusters[[clust]]), clust),
-                type = 'dna'
-            )
-            sink()
+    suppressMessages(library(cluster))
+    ctouts = data.frame(cutree(hcout, k=2:(nrow(d)-1)), check.names=FALSE)
+    sils = lapply(ctouts, cluster:::silhouette.default, ddist)
+    sils = sapply(sils, function(u) {mean(u[ , 3])})
+    nClusters = as.integer(names(which.max(sils)))
+}
+ctout = cutree(hcout, k=nClusters)
+clusters = lapply(1:max(ctout), function(cl) {d[ctout==cl, ctout==cl, drop=FALSE]})
+clustReps = sapply(clusters, function(d) {
+    rownames(d)[which.min(rowMeans(d))]
+})
+names(clusters) = clustReps
+clustNum = 1
+for (clust in clustReps) {
+    if (nrow(clusters[[clust]]) > 1) {
+        sink('/dev/null')
+        msaOut = msa(
+            orientSeqs(rownames(clusters[[clust]]), clust),
+            type = 'dna'
+        )
+        sink()
+        cat('Cluster ', clustNum, ': ', clust, '\n', sep='')
+        if (dopfm) {
+            pfm = data.frame(t(consensusMatrix(msaOut@unmasked)[1:4, ]))
+            pfm = data.frame(pos=0:(nrow(pfm)-1), pfm)
+            write.table(pfm, sep='\t', quote=FALSE, row.names=FALSE)
+        } else {
+            writeLines(as.character(msaOut@unmasked))
+        }
+        cat('\n')
+    } else {
+        if (dopfm) {
             cat('Cluster ', clustNum, ': ', clust, '\n', sep='')
-            if (dopfm) {
-                pfm = data.frame(t(consensusMatrix(msaOut@unmasked)[1:4, ]))
-                pfm = data.frame(pos=0:(nrow(pfm)-1), pfm)
-                write.table(pfm, sep='\t', quote=FALSE, row.names=FALSE)
-            } else {
-                writeLines(as.character(msaOut@unmasked))
+            pfm = data.frame(matrix(0, nrow=nchar(clust), ncol=5))
+            colnames(pfm) = c('pos', 'A', 'C', 'G', 'T')
+            pfm$pos = 0:(nrow(pfm)-1)
+            for (i in 1:nchar(clust)) {
+                pfm[i, substr(clust, i, i)] = 1
             }
+            write.table(pfm, sep='\t', quote=FALSE, row.names=FALSE)
             cat('\n')
         } else {
-            if (dopfm) {
-                cat('Cluster ', clustNum, ': ', clust, '\n', sep='')
-                pfm = data.frame(matrix(0, nrow=nchar(clust), ncol=5))
-                colnames(pfm) = c('pos', 'A', 'C', 'G', 'T')
-                pfm$pos = 0:(nrow(pfm)-1)
-                for (i in 1:nchar(clust)) {
-                    pfm[i, substr(clust, i, i)] = 1
-                }
-                write.table(pfm, sep='\t', quote=FALSE, row.names=FALSE)
-                cat('\n')
-            } else {
-                cat('Cluster ', clustNum, ': ', clust, '\n', clust, '\n\n', sep='')
-            }
+            cat('Cluster ', clustNum, ': ', clust, '\n', clust, '\n\n', sep='')
         }
+    }
+    clustNum = clustNum + 1
+}
+if (any(ctout == 0)) {
+    for (kmi in which(ctout == 0)) {
+        clust = rownames(d)[kmi]
+        cat('Cluster ', clustNum, ': ', clust, '\n', clust, '\n\n', sep='')
         clustNum = clustNum + 1
     }
 }

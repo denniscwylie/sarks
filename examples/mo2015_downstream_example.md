@@ -105,7 +105,7 @@ methods for interpretation of results are easier for lambda=0.
 For this parameter combination applied to the downstream sequences,
 all the k-mers look pretty similar. Can confirm this by aligning them
 into 1 cluster using included cluster\_seqs.R script (NOTE:
-cluster\_seqs.R requires *philentropy* and *msa* R libraries):
+cluster\_seqs.R requires R libraries *philentropy*, *msa*, and *cluster*):
 
 ```bash
 Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
@@ -179,6 +179,15 @@ CAAGGACA
 Selection of the "right" number of clusters is not an easy problem;
 it may not even be a well-defined problem depending on the sequences
 being analyzed!
+
+For convenience, however, if no number of clusters is specified
+(i.e., if only one argument is passed), cluster_seqs.R will
+estimate the optimal number of clusters by maximizing the
+average silhouette score
+(https://en.wikipedia.org/wiki/Silhouette_(clustering))
+- **NOTE:**  
+  this method will always estimate at least two clusters
+  and will always produce at least one cluster of size > 1
 
 Whether you prefer to cluster or not, you can count occurrences of
 the selected k-mers or clusters using count_kmers.py:

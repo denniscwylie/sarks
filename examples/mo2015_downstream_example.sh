@@ -89,7 +89,8 @@ python3 zrank_singly_smoothed_kmers.py mo2015_downstream_w250_l0_selection |\
 # For this parameter combination applied to the downstream sequences,
 # all the k-mers look pretty similar. Can confirm this by aligning them
 # into 1 cluster using included cluster_seqs.R script
-# (NOTE: cluster_seqs.R requires *philentropy* and *msa* R libraries):
+# (NOTE: cluster_seqs.R requires R libraries
+#        *philentropy*, *msa*, and *cluster*):
 Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
                        1
 # (first argument is tsv file containing a kmer column, such as peaks.tsv,
@@ -146,6 +147,14 @@ Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
 # Selection of the "right" number of clusters is not an easy problem;
 # it may not even be a well-defined problem depending on the sequences
 # being analyzed!
+
+# For convenience, however, if no number of clusters is specified
+# (i.e., if only one argument is passed), cluster_seqs.R will
+# estimate the optimal number of clusters by maximizing the
+# average silhouette score
+# (https://en.wikipedia.org/wiki/Silhouette_(clustering))
+# NOTE: this method will always estimate at least two clusters
+#       and will always produce at least one cluster of size > 1
 
 # Whether you prefer to cluster or not, you can count occurrences of
 # the selected k-mers or clusters using count_kmers.py:

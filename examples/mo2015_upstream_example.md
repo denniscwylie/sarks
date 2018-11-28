@@ -123,20 +123,21 @@ this set of kmers, let's save the zrank-ed output...
 python3 zrank_singly_smoothed_kmers.py\
  mo2015_upstream_w500-2500_l0-10_selection >\
  mo2015_upstream_w500-2500_l0-10_selection/zranked_singly_smoothed.tsv
- ```
+```
 
 ...so that we can use clusters\_seqs.R to cluster the k-mers:
 - cluster\_seqs.R can be applied to any tsv file with a column named 'kmer'
 
 ```bash
 Rscript cluster_seqs.R\
- mo2015_upstream_w500-2500_l0-10_selection/zranked_singly_smoothed.tsv\
- 6
- ```
+ mo2015_upstream_w500-2500_l0-10_selection/zranked_singly_smoothed.tsv
+```
 
 - first argument is tsv file containing a kmer column, such as peaks.tsv,
-- second argument is number of clusters to divide kmers into;
-- **NOTE:** some kmers will be reverse-complemented in order to align them!)
+- second argument would be number of clusters to divide kmers into,
+  though here we omit this argument and rely on average silhouette
+  method to estimate optimal number of clusters;
+- **NOTE:** some kmers will be reverse-complemented in order to align them!
 
 This should result similar output to that shown below; may be slightly
 different due to stochasticity in permutational determination of
@@ -174,9 +175,10 @@ CAGGAC
 
 - Each cluster is named after the k-mer whose average similarity to
   all of the other k-mers in the cluster is greatest.
-- Feel free to adjust the number of clusters (second argument to
-  cluster_seqs.R; I chose 6 above, but may get better results with
-  other choices depending on permutationally determined threshold).
+- Feel free to adjust the number of clusters (optional
+  second argument to cluster\_seqs.R; I omitted above thereby
+  allowing cluster\_seqs.R to estimate optimal value
+  using silhouette method).
 
 Because of the use of spatial smoothing, the z-ranked k-mers are
 only a small fraction of the total k-mer set detected in this
@@ -242,7 +244,8 @@ I chose the cluster size of 100 here to keep the average cluster size
 on the order of 10 for ease of viewing, as we currently use clustering
 mainly to help organize SArKS k-mer results for more efficient
 inspection. It may be useful to try a few different values for the
-number of clusters.
+number of clusters (or rely on average silhouette estimation
+by omitting number of clusters argument).
 
 This will take a few hours, but can once again test false positive rate:
 

@@ -195,9 +195,10 @@ stochastic.
 
 ## cluster_seqs.R
 
-**NOTE:** requires R installation including the two libraries:
+**NOTE:** requires R installation including the three libraries:
 - **philentropy** (https://cran.r-project.org/web/packages/philentropy/index.html)
 - **msa** (https://bioconductor.org/packages/release/bioc/html/msa.html)
+- **cluster** (https://bioconductor.org/packages/release/bioc/html/cluster.html)
 
 Takes two positional arguments:
 
