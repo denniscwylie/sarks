@@ -9,7 +9,7 @@
   [philentropy](https://cran.r-project.org/web/packages/philentropy/index.html),
   [msa](https://bioconductor.org/packages/release/bioc/html/msa.html),
   and
-  [cluster](https://bioconductor.org/packages/release/bioc/html/cluster.html)
+  [cluster](https://cran.r-project.org/web/packages/cluster/index.html)
   R libraries
 - SeqAn C++ library (https://www.seqan.de/) **version 1.3.x** or **1.4.x**
   - on Ubuntu 16.04 or 18.04, can be installed using
