@@ -170,7 +170,7 @@ python3 extract_kmers.py\
 # equivalent (and prints only the lexicographically lower value
 # of the identified k-mer and its reverse complement).
 # By passing the -d (directional) flag to extract_kmers.py, this
-# behavior can be surpressed.
+# behavior can be supressed.
 
 # Can cluster this whole merged k-mer set:
 Rscript cluster_seqs.R\
