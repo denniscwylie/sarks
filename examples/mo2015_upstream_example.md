@@ -202,7 +202,7 @@ I got 865, though this will vary somewhat from run to run.
   equivalent (and prints only the lexicographically lower value
   of the identified k-mer and its reverse complement).
   - By passing the **-d** (directional) flag to extract_kmers.py, this
-    behavior can be supressed.
+    behavior can be suppressed.
 
 Can cluster this whole merged k-mer set:
 
