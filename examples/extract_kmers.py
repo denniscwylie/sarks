@@ -24,7 +24,7 @@ def revComp(s):
 
 ## -----------------------------------------------------------------
 if parsed.input is not None:
-    tab = pd.read_table(parsed.input, header=0, index_col=None)
+    tab = pd.read_csv(parsed.input, sep='\t', header=0, index_col=None)
     kmers = tab['kmer'].unique()
     if not parsed.directional:
         kmers = np.unique([min(km, revComp(km)) for km in kmers])

@@ -20,10 +20,10 @@ if len(sarksDir) > 0 and os.path.exists(sarksDir):
     if os.path.exists(permFile+'.gz') and not os.path.exists(permFile):
         permFile += '.gz'
 
-peaks = pd.read_table(peaksFile, header=0, index_col=None)
+peaks = pd.read_csv(peaksFile, sep='\t', header=0, index_col=None)
 peaks = peaks.loc[peaks['spatialLength'] == 0]
 
-perms = pd.read_table(permFile, header=0, index_col=None)
+perms = pd.read_csv(permFile, sep='\t', header=0, index_col=None)
 perms = perms.loc[perms['spatialLength'] == 0]
 permMeans = perms[['halfWindow', 'minGini', '1.0']].groupby(['halfWindow', 'minGini'])\
                                                    .agg(np.mean).iloc[:, 0]

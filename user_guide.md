@@ -195,8 +195,7 @@ stochastic.
 
 ## cluster_seqs.R
 
-**NOTE:** requires R installation including the three libraries:
-- **philentropy** (https://cran.r-project.org/web/packages/philentropy/index.html)
+**NOTE:** requires R installation including the libraries:
 - **msa** (https://bioconductor.org/packages/release/bioc/html/msa.html)
 - **cluster** (https://cran.r-project.org/web/packages/cluster/index.html)
 
@@ -308,7 +307,7 @@ import pandas as pd
 from sarks import Sarks
 
 # load scores into pandas Series
-scores = pd.read_table('simulated_scores.tsv', header=0, index_col=0).iloc[:, 0]
+scores = pd.read_csv('simulated_scores.tsv', sep='\t', header=0, index_col=0).iloc[:, 0]
 # initialize Sarks object
 sarks = Sarks(
     inFasta = 'simulated_seqs.fa',          ## input sequences;

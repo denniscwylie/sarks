@@ -6,7 +6,7 @@ import pandas as pd
 from sarks import Sarks
 
 ## load scores into pandas Series
-scores = pd.read_table('simulated_scores.tsv', header=0, index_col=0).iloc[:, 0]
+scores = pd.read_csv('simulated_scores.tsv', sep='\t', header=0, index_col=0).iloc[:, 0]
 ## initialize Sarks object
 sarks = Sarks(
     inFasta = 'simulated_seqs.fa',          ## input sequences;

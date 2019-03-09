@@ -50,6 +50,7 @@ parser.add_argument('-n', action='store_true', dest='negate', default=False,
                     help='(optional flag) find motifs associated with' +
                          ' lowest/most negative scores' +
                          ' instead of highest/most positive scores')
+parser.add_argument('-u', action='store_true', dest='unsigned', default=False)
 parser.add_argument('-c', action='store', dest='catfasta', default=None,
                     help='(optional) path for concatenated fasta file')
 parser.add_argument('-e', action='store', dest='seed', default=None,
@@ -76,6 +77,9 @@ if theSeed is not None:
 ## -----------------------------------------------------------------
 scores = pd.read_csv(parsed.scores, sep='\t',
                      index_col=0, header=0).iloc[:, 0]
+if parsed.unsigned is not None and parsed.unsigned:
+    scores = np.abs(scores - scores.mean())
+
 if parsed.negate is not None and parsed.negate:
     scores = -scores
 
@@ -110,7 +114,7 @@ for pk in peaks:
     for duple in pk:
         peaks[pk][duple[0]] = duple[1]
 
-peaks = pd.concat(peaks, ignore_index=True)
+peaks = pd.concat(peaks, sort=True, ignore_index=True)
 peaks.to_csv(outdir + 'peaks.tsv', sep='\t', index=False, header=True)
 
 

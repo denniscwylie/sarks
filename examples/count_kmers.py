@@ -132,7 +132,7 @@ if parsed.clusters is not None:
         clusters = {parsed.clusters : np.unique(parsed.clusters.split(','))}
 else:
     if os.path.exists(parsed.kmers):
-        kmers = pd.read_table(parsed.kmers, header=0, index_col=None)
+        kmers = pd.read_csv(parsed.kmers, sep='\t', header=0, index_col=None)
         if not 'kmer' in kmers.columns:
             with open(parsed.kmers, 'r') as kmhandle:
                 kmers = np.unique([line.strip() for line in kmhandle])

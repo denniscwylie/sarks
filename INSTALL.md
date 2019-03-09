@@ -6,8 +6,7 @@
   - setup.py should install required python modules if necessary
     (biopython, editdistance, intervaltree, numpy, pandas, pyfaidx, scipy)
 - examples/cluster_seqs.R script uses
-  [philentropy](https://cran.r-project.org/web/packages/philentropy/index.html),
-  [msa](https://bioconductor.org/packages/release/bioc/html/msa.html),
+  [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
   and
   [cluster](https://cran.r-project.org/web/packages/cluster/index.html)
   R libraries

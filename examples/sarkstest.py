@@ -81,8 +81,8 @@ if theSeed is not None:
 
 ## -----------------------------------------------------------------
 if parsed.scores is not None and parsed.fasta is not None:
-    scores = pd.read_csv(parsed.scores, sep='\t',
-                         index_col=0, header=0).iloc[:, 0]
+    scores = pd.read_csv(parsed.scores,
+                         sep='\t', index_col=0, header=0).iloc[:, 0]
     if parsed.negate is not None and parsed.negate:
         scores = -scores
     
@@ -112,22 +112,24 @@ if parsed.scores is not None and parsed.fasta is not None:
                               sep='\t', index=False, header=True)
 elif os.path.exists(parsed.outdir):
     permDists = {}
-    permDists['windowed'] = pd.read_table(
-        outdir + 'permdists_windowed.tsv', index_col=None, header=0
+    permDists['windowed'] = pd.read_csv(
+        outdir + 'permdists_windowed.tsv',
+        sep='\t', index_col=None, header=0
     )
     permDists['windowed'][1.0] = permDists['windowed']['1.0']
-    permDists['spatial_windowed'] = pd.read_table(
-        outdir + 'permdists_spatial_windowed.tsv', index_col=None, header=0
+    permDists['spatial_windowed'] = pd.read_csv(
+        outdir + 'permdists_spatial_windowed.tsv',
+        sep='\t', index_col=None, header=0
     )
     permDists['spatial_windowed'][1.0] = permDists['spatial_windowed']['1.0']
 
     
 ## -----------------------------------------------------------------
 if indir is not None:
-    inPerm = pd.read_table(indir + 'permdists_windowed.tsv',
-                           index_col=None, header=0)
-    inSpat = pd.read_table(indir + 'permdists_spatial_windowed.tsv',
-                           index_col=None, header=0)
+    inPerm = pd.read_csv(indir + 'permdists_windowed.tsv',
+                         sep='\t', index_col=None, header=0)
+    inSpat = pd.read_csv(indir + 'permdists_spatial_windowed.tsv',
+                         sep='\t', index_col=None, header=0)
     
     def calcThresh(x):
         return np.mean(x) + parsed.nsigma * np.std(x, ddof=1)
