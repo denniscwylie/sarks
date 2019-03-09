@@ -27,8 +27,7 @@ usage at the command line:
   smoothing according to maximum z threshold at which they could be
   identified
 - [**cluster_seqs.R**](#cluster\_seqsr)  
-  assign k-mers to clusters; requires specification of number of
-  clusters to generate
+  assign k-mers to clusters
 - [**count_kmers.py**](#count\_kmerspy)  
   count (or locate) occurrences of k-mer motifs or of clusters of
   k-mers within sequences in a fasta file
@@ -206,7 +205,7 @@ Takes two positional arguments:
    name), such as the files peaks.tsv or merged_peaks.tsv (if spatial
    smoothing was employed) produced by sarkselect.py (in the resulting
    output directory).
-2. number of clusters desired.
+2. number of clusters desired (optional).
 
 Can add optional flag **--pfm** (no argument) to reformat cluster
 output as position frequency matrices (PFMs).
