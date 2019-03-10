@@ -150,7 +150,7 @@ class Sarks(object):
             out = np.zeros(len(self.sa))
             for b in range(len(self.bounds)-1):
                 out[int(self.bounds[b]):int(self.bounds[b+1])] = b+1
-            return pd.Series(out).loc[self.sa.values].values.astype(int)
+            return pd.Series(out).reindex(self.sa.values).values.astype(int)
 
     def sourceScore(self, s=None):
         """
@@ -453,8 +453,8 @@ class Sarks(object):
                           spatialLength=spatialLength, spatialTheta=spatialTheta,
                           nearbyPars=None,
                           k=k, prune=prune, deduplicate=deduplicate)
-        pos = pos.loc[(scoreDiffB.loc[pos] >= 0) &
-                      (scoreDiffF.loc[pos] <= 0)]
+        pos = pos.loc[(scoreDiffB.reindex(pos.values) >= 0) &
+                      (scoreDiffF.reindex(pos.values) <= 0)]
         return self.sa.loc[self.sa.isin(set(pos))]
 
     def filter(self, minGini=None, minSpatialGini=None, minK=None,
@@ -489,28 +489,28 @@ class Sarks(object):
             if minSpatialGini is not None:
                 if minSpatialGini >= 1:
                     minSpatialGini = 1 - (1 - self.windGini.median()) * minSpatialGini
-                pos = pos.loc[self.spatialGini()[pos] >= minSpatialGini]
+                pos = pos.loc[self.spatialGini().reindex(pos) >= minSpatialGini]
             if spatialTheta is not None:
-                pos = pos.loc[spat.loc[pos] >= spatialTheta]
+                pos = pos.loc[spat.reindex(pos.values) >= spatialTheta]
         if deduplicate:
             posSubK = self.quickSubtable(pos, k).copy()
             posSubK.sort_values('windowed', inplace=True)
             posSubK = posSubK.groupby('kmer').first()
-            pos = pos.loc[posSubK['s']]
+            pos = pos.reindex(posSubK['s'].values)
         if prune:
-            posSubtable = self.subtable(pos, k).loc[pos]
+            posSubtable = self.subtable(pos, k).reindex(pos.values)
             posIntervals = [(ess, ess+len(posSubtable.loc[ess, 'kmer']))
                             for ess in posSubtable.index]
             posIntervals = Sarks.pruneIntervals(posIntervals)
             pos = pos.loc[pos.isin([iv[0] for iv in posIntervals])]
-            posSubtable = posSubtable.loc[pos]
+            posSubtable = posSubtable.reindex(pos.values)
         if minK is not None:
             if posSubtable is None:
-                posSubtable = self.subtable(pos, k).loc[pos]
+                posSubtable = self.subtable(pos, k).reindex(pos.values)
             pos = pos.loc[posSubtable['khat'] >= minK]
         if nearbyPars is not None:
             if posSubtable is None:
-                posSubtable = self.subtable(pos, k).loc[pos]
+                posSubtable = self.subtable(pos, k).reindex(pos.values)
             pos = pd.Series([s for s in pos if self.rankNearbyKmers(
                 posSubtable.loc[s, 'kmer'],
                 **nearbyPars
@@ -630,9 +630,9 @@ class Sarks(object):
         srcScr = self.sourceScore(s)
         # eyes = [self.s2i(sel) for sel in s]
         eyes = self.sa.loc[self.sa.isin(s)].reset_index().set_index(0).iloc[:, 0].reindex(s)
-        kmers = self.kmers(s, k, sanitize=False).loc[s]
-        block = self.scores.iloc[srcScr.loc[s, 'block']].index
-        wi = s.values - self.bounds[srcScr.loc[s, 'block'].values]
+        kmers = self.kmers(s, k, sanitize=False).reindex(s.values)
+        block = self.scores.iloc[srcScr.reindex(s.values)['block']].index
+        wi = s.values - self.bounds[srcScr.reindex(s.values)['block'].values]
         wi = wi + np.array([len(self.seqs[t]) + 1 for t in block])
         out = pd.DataFrame({
             "i" : eyes.values,
@@ -648,9 +648,9 @@ class Sarks(object):
             #     ], k, 0, False)) for i, km in zip(eyes, kmers)],
             "block" : block,
             "wi" : wi,
-            "gini" : self.windGini.loc[s],
-            "score" : srcScr.loc[s, 'score'],
-            "windowed" : self.windowed.loc[s]
+            "gini" : self.windGini.reindex(s.values),
+            "score" : srcScr.reindex(s.values)['score'],
+            "windowed" : self.windowed.reindex(s.values)
         }, index=s)[['i', 's', 'kmer', 'khat', 'block',
                      'wi', 'gini', 'score', 'windowed']]
         if "spatialWindowed" in dir(self):
@@ -673,9 +673,9 @@ class Sarks(object):
         srcScr = self.sourceScore(s)
         # eyes = [self.s2i(sel) for sel in s]
         eyes = self.sa.loc[self.sa.isin(s)].reset_index().set_index(0).iloc[:, 0].reindex(s)
-        kmers = self.kmers(s, k, sanitize=False).loc[s]
-        block = self.scores.iloc[srcScr.loc[s, 'block']].index
-        wi = s.values - self.bounds[srcScr.loc[s, 'block'].values]
+        kmers = self.kmers(s, k, sanitize=False).reindex(s.values)
+        block = self.scores.iloc[srcScr.reindex(s.values)['block']].index
+        wi = s.values - self.bounds[srcScr.reindex(s.values)['block'].values]
         wi = wi + np.array([len(self.seqs[t]) + 1 for t in block])
         out = pd.DataFrame({
             'i' : eyes.values,
@@ -683,9 +683,9 @@ class Sarks(object):
             'kmer' : kmers,
             'block' : block,
             'wi' : wi,
-            'gini' : self.windGini.loc[s],
+            'gini' : self.windGini.reindex(s.values),
             'score' : srcScr.loc[s, 'score'],
-            'windowed' : self.windowed.loc[s]
+            'windowed' : self.windowed.reindex(s.values)
         }, index=s)[['i', 's', 'kmer', 'block',
                      'wi', 'gini', 'score', 'windowed']]
         return out
@@ -710,7 +710,7 @@ class Sarks(object):
         if not "__contains__" in dir(window):
             window = [len(seed), window + len(seed)]
         strings = self.kmers(s, k=window[1], k0=window[0],
-                             sanitize=False).loc[s]
+                             sanitize=False).reindex(s.values)
         strLens = strings.str.len()
         if includePosition:
             out = pd.concat([str(i) + ' ' +
@@ -794,8 +794,8 @@ class Sarks(object):
     def spatialSubPeaks(self, subtable, theta=None, minGini=None):
         peakScores = pd.concat([pd.DataFrame({
             'left' : s,
-            'windowed' : self.windowed[
-                    list(range(s, s + self.spatialLength))]
+            'windowed' : self.windowed.reindex(
+                    list(range(s, s + self.spatialLength)))
         })[['left', 'windowed']] for s in subtable['s']])
         peakScores['s'] = peakScores.index
         peakScores['offset'] = peakScores['s'] - peakScores['left']
@@ -807,7 +807,8 @@ class Sarks(object):
         peakScores = peakScores.sort_values('offset')\
                                .drop_duplicates(subset=['s'], keep='first')
         if theta is not None:
-            peakScores = peakScores.loc[self.windowed[peakScores['s']] >= theta]
+            peakScores = peakScores.loc[
+                    self.windowed.reindex(peakScores['s']) >= theta]
         if minGini is not None:
             if minGini >= 1:
                 minGini = 1 - (1 - self.windGini.median()) * minGini
@@ -824,6 +825,7 @@ class Sarks(object):
         :returns: subtable with merged kmer values in kmer column (pandas DataFrame)
         """
         worktable = subpeaks.copy()
+        worktable.index.name = None
         khat = worktable['khat'].round().astype(int)
         for kh in khat.unique():
             khinds = (khat == kh)
@@ -956,12 +958,12 @@ class Sarks(object):
                                  k = k,
                                  prune = False,
                                  deduplicate = False)
-            permResults.append({'windowed' : rsarks.windowed.loc[rpos]})
+            permResults.append({'windowed' : rsarks.windowed.reindex(rpos.values)})
             if spatialLength is None and self.spatialLength is not None:
                 spatialLength = self.spatialLength
             if spatialLength is not None and spatialLength > 0:
                 permResults[-1]['spatial_windowed'] = \
-                        rsarks.spatialWindow(spatialLength).loc[rpos].dropna()
+                        rsarks.spatialWindow(spatialLength).reindex(rpos.values).dropna()
             if quantiles is not None:
                 permResults[-1]['windowed'] = np.percentile(
                         permResults[-1]['windowed'], list(100*quantiles))
@@ -1008,7 +1010,7 @@ class Sarks(object):
                                      k = k,
                                      prune = False,
                                      deduplicate = False)
-                windQuants = np.percentile(rsarks.windowed.loc[rpos],
+                windQuants = np.percentile(rsarks.windowed.reindex(rpos.values),
                                            list(100 * quantiles))
                 windQuants = pd.DataFrame(
                     windQuants,
@@ -1024,7 +1026,7 @@ class Sarks(object):
                 if filt['spatialLength'] > 0:
                     spatQuants = np.percentile(
                         rsarks.spatialWindow(filt['spatialLength'])\
-                        .loc[rpos].dropna(),
+                        .reindex(rpos.values).dropna(),
                         list(100 * quantiles)
                     )
                     spatQuants = pd.DataFrame(
@@ -1201,8 +1203,8 @@ class Sarks(object):
                             .agg(lambda x: x.mean() + nsigma*x.std(ddof=1))
                 if spatTheta.shape[0] > 0:
                     spatTheta.columns = ['spatialTheta']
-                    theta['spatialTheta'] = spatTheta.loc[theta.index,
-                                                          'spatialTheta']
+                    theta['spatialTheta'] =\
+                            spatTheta.reindex(theta.index)['spatialTheta']
                     theta.loc[~theta['spatialTheta'].isnull(), 'theta'] = -np.inf
                 else:
                     theta['spatialTheta'] = -np.inf
