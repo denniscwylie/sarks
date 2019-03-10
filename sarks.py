@@ -723,7 +723,7 @@ class Sarks(object):
                 "k" : k,
                 "kmer" : out.index.str.replace(r'^\d+ ', ''),
                 "count" : out
-            }, index=out.index)
+            }, index=out.index)[['pos', 'k', 'kmer', 'count']]
             return out
         else:
             return pd.concat([strings.loc[strLens >= i+k].str[i:(i+k)]
@@ -796,7 +796,7 @@ class Sarks(object):
             'left' : s,
             'windowed' : self.windowed[
                     list(range(s, s + self.spatialLength))]
-        }) for s in subtable['s']])
+        })[['left', 'windowed']] for s in subtable['s']])
         peakScores['s'] = peakScores.index
         peakScores['offset'] = peakScores['s'] - peakScores['left']
         # peakScores['kmer'] = subtable.loc[peakScores['left'], 'kmer'].values

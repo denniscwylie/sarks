@@ -105,7 +105,7 @@ methods for interpretation of results are easier for lambda=0.
 For this parameter combination applied to the downstream sequences,
 all the k-mers look pretty similar. Can confirm this by aligning them
 into 1 cluster using included cluster\_seqs.R script (NOTE:
-cluster\_seqs.R requires R libraries *philentropy*, *msa*, and *cluster*):
+cluster\_seqs.R requires R libraries *msa* and *cluster*):
 
 ```bash
 Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\

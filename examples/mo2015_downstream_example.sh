@@ -89,8 +89,7 @@ python3 zrank_singly_smoothed_kmers.py mo2015_downstream_w250_l0_selection |\
 # For this parameter combination applied to the downstream sequences,
 # all the k-mers look pretty similar. Can confirm this by aligning them
 # into 1 cluster using included cluster_seqs.R script
-# (NOTE: cluster_seqs.R requires R libraries
-#        *philentropy*, *msa*, and *cluster*):
+# (NOTE: cluster_seqs.R requires R libraries *msa* and *cluster*):
 Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
                        1
 # (first argument is tsv file containing a kmer column, such as peaks.tsv,
