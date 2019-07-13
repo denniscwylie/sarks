@@ -73,8 +73,7 @@ def regexLocate(regex, seqs):
     seqs = '_' + seqs.copy()
     frags = seqs.str.upper()\
                 .str.replace('('+regex+')', r'_\1')\
-                .str.split('_')\
-                .apply(pd.Series)\
+                .str.split('_', expand=True)\
                 .stack()\
                 .reset_index()
     frags.columns = ['seqid', 'frag_id', 'frag_len']
