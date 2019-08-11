@@ -78,11 +78,14 @@ def regexLocate(regex, seqs):
                 .reset_index()
     frags.columns = ['seqid', 'frag_id', 'frag_len']
     frags['frag_len'] = frags['frag_len'].str.len()
-    frags['location'] = frags.sort_values(['seqid', 'frag_id'])['frag_len'].cumsum()
-    offset = frags[['seqid', 'location']].groupby('seqid').agg(np.min).iloc[:, 0] -\
-             frags[['seqid', 'frag_len']].groupby('seqid').agg(np.min).iloc[:, 0]
-    frags['location'] = frags['location'] -\
-                        offset.reindex(frags['seqid'].values).values
+    frags.sort_values(['seqid', 'frag_id'], inplace=True)
+    frags['location'] = frags[['seqid', 'frag_len']].groupby('seqid')\
+                                                    .cumsum()\
+                                                    .iloc[:, 0]
+    # offset = frags[['seqid', 'location']].groupby('seqid').agg(np.min).iloc[:, 0] -\
+    #          frags[['seqid', 'frag_len']].groupby('seqid').agg(np.min).iloc[:, 0]
+    # frags['location'] = frags['location'] -\
+    #                     offset.reindex(frags['seqid'].values).values
     frags = frags.loc[(frags['frag_id'] > 0) &
                       (frags['location'] <
                        inseqs.reindex(frags['seqid'].values).str.len().values)]
