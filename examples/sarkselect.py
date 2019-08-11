@@ -115,6 +115,9 @@ for pk in peaks:
         peaks[pk][duple[0]] = duple[1]
 
 peaks = pd.concat(peaks, sort=True, ignore_index=True)
+orderedCols = ['i', 's', 'kmer', 'khat', 'block',
+               'wi', 'gini', 'score', 'windowed']
+peaks = peaks[orderedCols + [c in peaks.columns if c not in orderedCols]]
 peaks.to_csv(outdir + 'peaks.tsv', sep='\t', index=False, header=True)
 
 
