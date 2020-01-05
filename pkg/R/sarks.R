@@ -60,8 +60,8 @@ Sarks = function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
     sarks = rJava::.jnew('dcw/sarks/Sarks', fasta, scores,
                          as.integer(halfWindow), as.integer(spatialLength),
                          as.integer(nThreads), TRUE)
-    if (exists('tmpfasta')) {file.remove(tmpfasta)}
-    if (exists('tmpscores')) {file.remove(tmpscores)}
+    if (exists('tmpfasta')) {suppressWarnings(file.remove(tmpfasta))}
+    if (exists('tmpscores')) {suppressWarnings(file.remove(tmpscores))}
     return(sarks)
 }
 
