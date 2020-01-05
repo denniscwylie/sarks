@@ -821,7 +821,7 @@ class Sarks(object):
         """
         Merges overlapping kmers in subpeaks resulting from spatially extended sarks run
 
-        :param subtable: result of calling subtable method on filtered peaks (pandas DataFrame)
+        :param subpeaks: result of calling subtable method on filtered peaks (pandas DataFrame)
         :returns: subtable with merged kmer values in kmer column (pandas DataFrame)
         """
         worktable = subpeaks.copy()
