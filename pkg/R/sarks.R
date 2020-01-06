@@ -953,8 +953,8 @@ clusterKmers = function(kmers, k=4, nClusters=NULL) {
         ctouts = data.frame(stats::cutree(hcout, k=2:(nrow(d)-1)), check.names=FALSE)
         nClusters = integralOptimize(
             f = function(nc) {
-                mean(cluster:::silhouette.default(ctouts[ , as.character(nc)],
-                                                  ddist)[ , 3])
+                mean(cluster::silhouette(ctouts[ , as.character(nc)],
+                                         ddist)[ , 3])
             },
             lower = 2,
             upper = nrow(d)-1
