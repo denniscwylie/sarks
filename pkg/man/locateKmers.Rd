@@ -9,10 +9,12 @@ locateKmers(kmers, seqs, directional = TRUE)
 \arguments{
 \item{kmers}{character vector of k-mers to search for}
 
-\item{seqs}{character vector of sequences in which to locate kmer}
+\item{seqs}{named character vector of sequences in which to locate
+kmer}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
-either kmers or their reverse-complements.}
+either kmers or their reverse-complements. Makes sense only if
+applying to DNA sequences!}
 }
 \value{
 data.frame with three columns: `seqid' containing the name
@@ -22,5 +24,9 @@ data.frame with three columns: `seqid' containing the name
 }
 \description{
 Find locations of matches of vector of k-mers in each element of a
-character vector.
+named character vector.
+}
+\examples{
+kmerLoci <- locateKmers(c('AAAAA', 'CATACTGAGA'), simulatedSeqs)
+
 }

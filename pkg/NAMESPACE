@@ -2,6 +2,7 @@
 
 export(Sarks)
 export(blockInfo)
+export(blockScores)
 export(clusterCounts)
 export(clusterKmers)
 export(dnaRevComp)
@@ -18,4 +19,4 @@ export(pruneIntervals)
 export(regexCounts)
 export(regexLocate)
 export(sarksFilters)
-export(slurpFasta)
+export(sourceBlock)

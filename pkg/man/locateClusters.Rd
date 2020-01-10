@@ -12,7 +12,8 @@ locateClusters(clusters, seqs, directional = TRUE)
 \item{seqs}{character vector of sequences in which to locate kmer}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
-either k-mers within each cluster or their reverse-complements.}
+either k-mers within each cluster or their reverse-complements.
+Makes sense only if applying to DNA sequences!}
 }
 \value{
 data.frame with three columns: `seqid' containing the name
@@ -23,5 +24,18 @@ data.frame with three columns: `seqid' containing the name
 }
 \description{
 Find locations of matches of list of character vectors of k-mers in
-each element of a character vector.
+each element of a named character vector.
+}
+\examples{
+seqs <- c(
+    line1 = "My mind's got a mind of its own",
+    line2 = "Takes me out to parties when I'd rather be alone",
+    line3 = "Takes me out a-walkin' when I'd rather be at home"
+)
+clusters <- list(
+    antisocial = c('alone', 'at home'),
+    mind = 'mind'
+)
+clusterLoci <- locateClusters(clusters, seqs)
+
 }

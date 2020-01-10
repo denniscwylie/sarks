@@ -1,0 +1,1297 @@
+% \VignetteIndexEntry{sarks-vignette}
+
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage[footnotesize,labelfont=bf]{caption}
+\usepackage[scaled=1.04]{couriers}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+%% \usepackage{IEEEtran}
+\usepackage{microtype}
+\usepackage{natbib}
+\usepackage{parskip}
+\usepackage{Sweave}
+\usepackage{url}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{xfrac}
+\usepackage{xr}
+
+\geometry{
+    top=1in,
+    inner=1.25in,
+    outer=1.25in,
+    bottom=1in,
+    headheight=3ex,
+    headsep=2ex,
+}
+
+\definecolor{darkgray}{gray}{0.3}
+
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{formatcom={\color{MidnightBlue}}}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{formatcom={\color{darkgray}}}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{formatcom={\color{midnightblue}}}
+\fvset{listparameters={\setlength{\topsep}{0pt}}}
+\renewenvironment{Schunk}{\vspace{\topsep}}{\vspace{\topsep}}
+
+\newcommand{\java}[1]{\texttt{\color{red}#1}}
+\newcommand{\R}[1]{\texttt{\color{MidnightBlue}#1}}
+
+\rhead{}
+
+\title{\textbf{S}uffix \textbf{Ar}ray \textbf{K}ernel \textbf{S}moothing for \emph{de novo} discovery of correlative sequence motifs and multi-motif domains: \\ the \R{sarks} package}
+\author{Dennis Wylie, Hans A. Hofmann, Boris V. Zemelman}
+
+\begin{document}
+
+\maketitle
+
+This vignette describes the R interface \R{sarks} to the java
+implementation of the \textbf{S}uffix \textbf{Ar}ray \textbf{K}ernel
+\textbf{S}moothing, or SArKS, algorithm for identification of
+correlative motifs and multi-motif domains (MMDs).
+
+\fbox{If you use \R{sarks} in your work, please cite
+\cite{wylie2019sarks} (see references).}
+
+\tableofcontents
+
+\section{How to use \R{sarks}}
+\label{sec:how-to-use}
+
+\subsection{Starting \R{sarks}}
+\label{sec:starting}
+
+Because \R{sarks} is implemented using \R{rJava}, and because the
+default setting for the java virtual machine (JVM) heap space with
+\R{rJava} is quite low, you should initialize java with increased heap
+size \emph{before loading} \R{sarks} (or any other \R{rJava}-dependent
+R packages):
+
+<<java-initialization, results=hide>>=
+options(java.parameters = '-Xmx8G')  ## sets to 8 gigabytes: modify as needed
+library(rJava)
+.jinit()
+## ---------------------------------------------------------------------
+## once you've set the java.parameters and then called .jinit from rJava
+## (making sure not to load any other rJava-dependent packages prior to
+##  initializing the JVM with jinit!),
+## you are now ready to load the sarks library:
+## ----------------------------------------------------------------------
+library(sarks)
+@ 
+
+\subsection{Input}
+\label{sec:input}
+
+Aside from the specification of a few analysis parameters to be
+discussed below, \R{sarks} requires two pieces of input data:
+\begin{description}
+\item[sequences] which may be specified as either a:
+    \begin{description}
+    \item[FASTA formatted text file] (may be gzipped) or,
+        equivalently, a
+    \item[named character vector]
+    \end{description}
+\item[scores] which may be specified as either a:
+    \begin{description}
+    \item[named numeric vector] (with names matching those of input
+        sequences) or a
+    \item[tsv] two-column tab-delimited file (containing header line),
+        with columns
+        \begin{enumerate}
+        \item containing names matching those of input sequences and
+        \item containing numeric scores assigned to those sequences
+        \end{enumerate}
+    \end{description}
+\end{description}
+
+For the purposes of this vignette, we'll take the sequences to be the
+named character vector \R{simulatedSeqs} included in the \R{sarks}
+package. \R{simulatedSeqs} is a character vector of length
+30---representing 30 different (fake) DNA sequences---each 250
+characters in length:
+<<check-length>>=
+length(simulatedSeqs)
+table(nchar(simulatedSeqs))
+@ 
+
+Take a look at the first few characters of each sequence:
+
+<<simseqs>>=
+vapply(simulatedSeqs, function(s) {paste0(substr(s, 1, 10), '...')}, '')
+@ 
+
+Notice that the names of the simulated sequences are just the (string
+representations of) the numbers \texttt{"0"} through \texttt{"29"}.
+
+Now let's look at the \R{simulatedScores}:
+
+<<check-scores>>=
+simulatedScores
+@ 
+
+Let's check that the names of the scores match those of the sequences:
+
+<<check-names>>=
+all(names(simulatedScores) == names(simulatedSeqs))
+@ 
+
+Looking back at the scores themselves, note that for this simple
+illustrative example the scores are just defined to be 0 for the first
+20 sequences (\texttt{"0"}--\texttt{"19"}) and 1 for the last 10
+sequences (\texttt{"20"}--\texttt{"29"}).
+
+\emph{Note regarding SArKS input}: the scores input to SArKS are not
+required to be positive, nor are they required to be
+integers. Similarly, the sequences input to SArKS do not have to use
+the DNA alphabet.
+
+\subsubsection{SArKS run parameters}
+\label{sec:par-advice}
+
+Aside from input of data in the form of sequences with matching
+scores, \R{sarks} also requires specification of run parameters
+\R{halfWindow}, \R{spatialLength}, and \R{minGini}.
+
+I would recommend that users try several (2-4) values of
+\R{halfWindow} and, if interested in spatial smoothing,
+\R{spatialLength}, using the method described in \ref{sec:pars}
+below. For \R{halfWindow}, you might start with \R{halfWindow} values
+on the order of
+\begin{equation}
+\label{eq:halfwindow-recommendation}
+\text{\R{halfWindow}} \in
+        \left\{\frac{n}{20}, \, \frac{n}{10}, \, \frac{n}{5}\right\}
+\end{equation}
+where $n$ is the number of input sequences.
+
+To get a sense of the intuition behind the values in
+\eqref{eq:halfwindow-recommendation}: If we take
+\R{halfWindow}=$\frac{n}{20}$, we get a full smoothing window of size
+2*\R{halfWindow}+1 $\approx \frac{n}{10}$, which amounts to looking
+for motifs which would be expected to occur about once in every 10
+input sequences.
+
+The user should of course feel free to vary these fractions in either
+direction based on his or her own data and goals! Especially if the
+number $n$ of input sequences is very high, so that $\frac{n}{20}$ is
+very large (say, in the thousands or more), these \R{halfWindow}
+values may be larger than optimal.
+
+Another consideration to keep in mind when choosing \R{halfWindow}
+values is that there is a link between $n$, the average sequence
+length $|w|$, \R{halfWindow}, the size (really entropy) of the
+sequence alphabet and the length $\hat{k}$ of the $k$-mer motif
+sequences \R{sarks} is likely to detect.  Assuming an approximately
+uniformly distributed alphabet (often \emph{not} a valid assumption in
+practice) of $a$ distinct characters:
+\begin{equation}
+\label{eq:rough-kmer-length}
+\hat{k} \approx \log_a \, \frac{n * |w|}{\text{\R{halfWindow}}}
+\end{equation}
+should give a very rough sense of what length the motifs returned are
+likely to have (though when employing spatial smoothing with merging
+of consecutive motifs, this will be less accurate). Equation
+\eqref{eq:rough-kmer-length} is mosly useful for understanding how
+changes to \R{halfWindow} are likely to impact output $k$-mer lengths,
+not truly predicting the exact lengths which will be seen.
+
+Aside from the trivial value of \R{spatialLength}=0 used to turn off
+spatial smoothing entirely, it is a bit more difficult to provide
+general guidelines for \R{spatialLength}. Small values (say, 3--10)
+can be useful to help detect individual motifs even when no larger
+spatial structure is really expected; in \cite{wylie2019sarks} we also
+tried \R{spatialLength=100} when studying regulation of gene
+expression as that is on the order of the low end of the length DNA
+enhancer regions. Users should feel free to experiment with
+\R{spatialLength} values that make sense in their own applications.
+
+Finally, for \R{minGini}, my current advice would be to start with the
+value \R{minGini=1.1} (or \R{minGini=0} to see what happens without
+this filter). Interested users should consult sections \ref{sec:gini}
+and \ref{sec:permutation-distribution} (especially \ref{sec:mingini})
+as well as \cite{wylie2019sarks} to get a better understanding of what
+this parameter does in order to get a sense of how they might choose
+better values for their own applications.
+
+
+\subsection{Output}
+\label{sec:output}
+
+\R{sarks} then aims to identify short sequence motifs, and potentially
+longer sequence domains enriched in such motifs (MMDs), where the
+occurrence of the identified motifs in the input sequences is
+correlated with the numeric scores assigned to the sequences.
+
+Let's consider a minimal \R{sarks} workflow (which we'll discuss in
+more detail below) to illustrate the way in which this output is
+constructed):
+
+<<minimal-1>>=
+sarks <- Sarks(simulatedSeqs, simulatedScores, halfWindow=4)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, reps=250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
+peaks <- kmerPeaks(sarks, filters, thresholds)
+peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+
+\subsubsection{$k$-mers}
+For now let's focus specifically on the column \R{peaks\$kmer}, which
+tells us that SArKS has identified
+
+<<unique-kmers>>=
+unique(peaks$kmer)
+@ 
+
+as $k$-mers whose occurrence in \R{simulatedSeq} is associated with
+higher values of \R{simulatedScores}. \R{sarks} provides a convenience
+function \R{kmerCounts}:
+
+<<kmer-counts>>=
+kmerCounts(unique(peaks$kmer), simulatedSeqs)
+@ 
+
+which shows us that each of the identified $k$-mers appears exactly
+once in each of the higher-scoring sequences
+(\texttt{"20"}-\texttt{"29"}) and never in any of the lower-scoring
+sequences. Looking a bit more closely at the specific $k$-mers
+identified here, you can see that they are all substrings of the
+longest one, the 10-mer \texttt{"CATACTGAGA"}, so that the perfect
+agreement between the columns of the \R{kmerCounts} output above are
+perhaps to be expected. \R{sarks} provides functionality to help to
+identify such situations and simplify the output, as discussed further
+in section \ref{sec:redundancy} below.
+
+First let's go back to the output \R{peaks} from the call to
+\R{kmerPeaks} (focusing on the $8^{\text{th}}$ row of \R{peaks}):
+<<peaks>>=
+peak8 = peaks[8, ]
+peak8[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+and consider the columns:
+\begin{description}
+\item[\R{i}] suffix array index
+\item[\R{s}] suffix array value $s_i$
+\item[\R{block}] the name of the input sequence from which the indicated
+    $k$-mer is derived
+\item[\R{wi}] the (0-based!) position $\omega_i$ of the $k$-mer within
+    the indicated block/sequence
+\end{description}
+Considering \R{block} and \R{wi} first, this tells us that, setting
+
+<<block-wi-interpretation>>=
+block <- simulatedSeqs[[peak8$block]]
+kmerStart <- peak8$wi + 1
+kmerEnd <- kmerStart + nchar(peak8$kmer) - 1
+@ 
+
+(noting the \R{+ 1} required to define \R{kmerStart} in 1-based R
+relative to 0-based \R{wi}) we should find that
+<<>>=
+substr(block, kmerStart, kmerEnd)
+@ 
+yields the same value as
+<<>>=
+peak8$kmer
+@ 
+
+\subsubsection{Reducing redundancy in \R{peaks}}
+\label{sec:redundancy}
+
+In cases such as \texttt{"CATACTGAGA"} in the simulated data set
+analyzed here, \R{sarks} can simplify $k$-mer output using a couple of
+auxiliary functions:
+
+<<merging-simplification>>=
+nonRedundantPeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
+nonRedundantPeaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+
+Here \R{mergedKmerSubPeaks} removes redundant $k$-mer output where
+multiple $k$-mer peaks are reported with successive spatial \R{s}
+coordinates (e.g., the reported peak \R{peaks[3, ]} from
+\R{block="22"} at \R{wi=195} and \R{kmer="ATACTGAGA"} immediately
+follows \R{peaks[8, ]} with \R{block="22"} and \R{wi=194} and
+\R{kmer="CATACTGAGA"}, and is thus merged with that peak).
+
+Further simplifiation is still possible in this case using:
+
+<<extending>>=
+extendedPeaks <- extendKmers(sarks, nonRedundantPeaks)
+extendedPeaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+
+which detects that even though the full occurrence of
+\texttt{"CATACTGAGA"} in input sequence \texttt{"24"} was not reported
+as a $k$-mer by SArKS, the $k$-mer \texttt{"ACACTGAG"} in
+\R{nonRedundantPeaks[1, ]} is flanked in sequence \texttt{"24"} by a
+\texttt{"C"} to the left and an \texttt{"A"} to the right and can
+hence be extended to math the full motif.
+
+\subsubsection{Suffix arrays}
+\label{sec:suffix array}
+
+How are we to interpret the columns \R{i} and \R{s} in \R{peaks}? This
+requires understanding a bit more about SArKS: Specifically, that the
+method begins by concatenating all of the input sequences into one big
+string (called \java{catSeq} in the underlying java object referenced
+by \R{sarks}):
+<<catseq>>=
+concatenated <- sarks$getCatSeq()
+nchar(concatenated)
+@ 
+
+\R{concatenated} is actually a bit longer than the sum of the lengths
+of the input sequences because it keeps track of where one sequence
+ends and another begins using a special (dollar-sign) character. In
+this way, \R{concatenated} is divided into separate ``blocks,'' each
+corresponding to one of the input sequences.
+
+The column \R{s} in \R{peaks} then gives us the (0-based!) position of
+the annotated $k$-mer in the concatenated sequence:
+<<>>=
+kmerCatStart <- peak8$s + 1
+kmerCatEnd <- kmerCatStart + nchar(peak8$kmer) - 1
+substr(concatenated, kmerCatStart, kmerCatEnd)
+@ 
+
+But what about \R{i}? As we will confirm, it is the (0-based) position
+of the suffix
+<<>>=
+theSuffix <- substr(concatenated, kmerCatStart, nchar(concatenated))
+@ 
+
+in the list of all suffixes \emph{after they have been
+lexicographically sorted}:
+<<>>=
+options(continue="  ")
+extractSuffix <- function(s) {
+    ## returns suffix of concatenated starting at position s (1-based)
+    substr(concatenated, s, nchar(concatenated))
+}
+allSuffixes <- vapply(1:nchar(concatenated), extractSuffix, '')
+sortedSuffixes <- sort(allSuffixes)
+@ 
+
+Sure enough,
+<<>>=
+i1based <- peak8$i + 1
+sortedSuffixes[i1based] == theSuffix
+@ 
+
+\subsubsection{Window averaging (kernel smoothing)}
+\label{sec:kern-smooth}
+
+Because the suffixes in \R{sortedSuffixes} are sorted, the suffixes in
+a window centered on \R{i1based} all start with the same few
+characters (a $k$-mer):
+<<>>=
+iCenteredWindow <- (i1based - 4):(i1based + 4)
+iCenteredWindowSuffixes <- sortedSuffixes[iCenteredWindow]
+all(substr(iCenteredWindowSuffixes, 1, 10) == 'CATACTGAGA')
+@ 
+
+For each suffix in \R{sortedSuffixes}, we can identify which input
+sequence contributed the block of \R{concatenated} where the suffix
+begins:
+<<source-block>>=
+iCenteredWindow0Based <- iCenteredWindow - 1
+sourceBlock(sarks, i=iCenteredWindow0Based)
+@ 
+
+Note that the 9 suffixes in \R{iCenteredWindowSuffixes} derive from
+come from 9 of the 10 higher-scoring sequences (all but
+\texttt{"23"}). This is not an accident: since the motif
+\texttt{"CATACTGAGA"} is only present in high-scoring sequences, the
+suffixes starting with \texttt{"CATACTGAGA"} must derive from blocks
+associated with high-scoring sequences. Thus the \emph{average} score
+of the sequences contributing the suffixes specified by
+\R{iCenteredWindowSuffixes} must be high (value of 1) as well.
+
+The SArKS algorithm turns this around to identify motifs by hunting
+for windows in the sorted suffix list where the average score of the
+corresponding \R{sourceBlock} sequences is high.
+
+The \R{windowed} column of the \R{peaks} output contains the average
+\R{sourceBlock} sequence scores for the windows centered around each
+sorted suffix position \R{i} and extending to both the left and right
+by \R{halfWindow=4} positions. These average values are also referred
+to as $\hat{y}_i$ in \cite{wylie2019sarks}; a vector containing all of
+these values can be obtained from the object \R{sarks}:
+
+<<yhat-plot, fig=TRUE, height=5, width=7>>=
+yhat <- sarks$getYhat()
+i0based <- seq(0, length(yhat)-1)
+plot(i0based, yhat, type='l', xlab='i')
+@ 
+
+From the plot of $\hat{y}_i$ against $i$, we can see three peaks at
+which $\hat{y}_i$ spikes up to 1, corresponding to the the ranges
+$i \in [1458,1463]$, $i \in [2256,2258]$, and $i \in [5862,5865]$ which
+make up the values in \R{peaks\$i}.
+
+\subsection{Permutations and thresholds}
+\label{sec:perm}
+
+How do we know that a given value of $\hat{y}_i$ (or, equivalently,
+\R{peaks\$windowed}) is high enough to include in the \R{peaks}
+output? In order to set such a threshold without having to make
+possibly unwarranted assumptions about the structure of the input
+sequences or the distribution of the scores, SArKS employs a
+permutational approach.
+
+To illustrate the idea here, let's randomly permute the scores---so
+that the permuted scores have no relationship with which sequences
+contain \texttt{"CATACTGAGA"}---and construct a new \R{Sarks} object
+using the permuted scores:
+<<perm-example>>=
+set.seed(12345)
+scoresPerm <- sample(simulatedScores)
+names(scoresPerm) <- names(simulatedScores)
+sarksPerm <- Sarks(simulatedSeqs, scoresPerm, halfWindow=4)
+@ 
+
+If we try using the same procedure we did before to look for $k$-mer
+peaks:
+<<perm-thresholds>>=
+permDistNull <- permutationDistribution(
+        sarksPerm, reps=250, filters, seed=123)
+thresholdsNull <- permutationThresholds(
+        filters, permDistNull, nSigma=2.0)
+peaksNull <- kmerPeaks(sarksPerm, filters, thresholdsNull)
+peaksNull[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+
+we find that SArKS does not detect anything worthy of reporting after
+we disrupt any association between input sequences and input scores by
+permuting the scores.
+
+This is to be expected given that the thresholds $\theta$ used by
+SArKS are defined by considering many (here, \R{reps=250}) such
+permutations and choosing $\theta$ such that only very few random
+permutations would produce smoothed $\hat{y}_i$ scores exceeding
+$\theta$. The adjustable parameter \R{nSigma} controls how stringent
+the thresholds are (higher \R{nSigma} values lead to higher
+thresholds, reducing sensitivity but also reducing the false positive
+rate).
+
+Once we've set thresholds using \R{permutationThresholds}, we can
+estimate the false positive rate (defined here as the frequency of
+seeing nonempty $k$-mer result sets when there is really no
+association between sequence and score):
+<<fpr-estimation>>=
+fpr = estimateFalsePositiveRate(
+        sarks, reps=250, filters, thresholds, seed=321)
+fpr$ci
+@ 
+
+indicating a point estimate of \Sexpr{signif(100*fpr$ci$mean, 2)}\%
+for the false positive rate, with a 95\% confidence interval of
+(\Sexpr{signif(100*fpr$ci$lower, 2)}\%,
+\Sexpr{signif(100*fpr$ci$upper, 2)}\%). This confidence interval can
+be made tighter by using a higher number for \R{reps} in the
+\R{estimateFalsePositiveRate} call.
+
+\emph{Note regarding random number generator seed for
+\R{estimateFalsePositiveRate}}: do not use the same seed for
+\R{estimateFalsePositiveRate} as was used in
+\R{permutationDistribution} call used to set thresholds. The false
+positive rate estimation procedure assumes that the random
+permutations used in \R{estimateFalsePositiveRate} are independent of
+those used to set thresholds.
+
+\subsubsection{Gini impurity filter}
+\label{sec:gini}
+When considering how to set SArKS thresholds in order to obtain a
+reasonable tradeoff between sensitivity and false positive rate, the
+mysterious \R{minGini} parameter should be factored in as well. This
+parameter is discussed in more detail in section \ref{sec:windgini},
+but the basic idea is to filter likely false positive suffix array
+index positions $i$ out of consideration regardless of their smoothed
+scores $\hat{y}_i$ (these likely false positive indices $i$ come from
+excessive repetition of the same input sequences contributing
+repeatedly to the smoothing windows centered on $i$).
+
+My recommendation is to set \R{minGini} to a value slightly greater
+than 1 (the value 1.1 seems empirically to work well in many
+situations). Note that for \R{minGini} > 1, this filter becomes more
+stringent the closer to 1 it is set; the opposite is true if you set
+\R{minGini} to a value less than 1, and you can turn the filter off
+entirely by setting it to 0. See section \ref{sec:mingini} and
+\cite{wylie2019sarks} for more details.
+
+Here we examine the effects of this parameter using the simulated
+data:
+<<gini-testing>>=
+estimateFalsePositiveRate(
+        sarks, reps=250, filters, thresholds, seed=321)$ci
+filtersNoGini <- sarksFilters(halfWindow=4, spatialLength=0, minGini=0)
+estimateFalsePositiveRate(
+        sarks, reps=250, filtersNoGini, thresholds, seed=321)$ci
+@ 
+
+Of course we could compute a new set of \R{thresholdsNoGini} using
+\R{filtersNoGini}, but the results of this on our ability to detect
+anything are worth considering:
+
+<<no-gini-thresholds>>=
+permDistNoGini <-
+        permutationDistribution(sarks, reps=250, filtersNoGini, seed=123)
+thresholdsNoGini <- 
+        permutationThresholds(filtersNoGini, permDistNoGini, nSigma=2.0)
+peaksNoGini <- kmerPeaks(sarks, filtersNoGini, thresholdsNoGini)
+peaksNoGini[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
+@ 
+
+\subsubsection{Multithreading \R{sarks} permutational analyses}
+\label{sec:multithreading}
+
+Setting thresholds and estimating false positive rates using
+permutation methods is usually the most time-consuming step in the
+SArKS workflow. To facilitate more rapid turnaround, the java back end
+of \R{sarks} supports multithreading for these processes. In order to
+take advantage of multithreading, you just need to specify how many
+threads you'd like to use when you invoke the \R{Sarks} constructor
+using the \R{nThreads} argument to that function; all permutation
+steps performed using the resulting \R{sarks} object will then use the
+specified number of threads.
+
+\emph{Note regarding \R{sarks} multithreading}: while the different
+threads performing the permutational analyses share as many data
+structures as possible to reduce the memory requirements of \R{sarks},
+each thread will need to keep track of its own permuted smoothed
+scores (and spatially smoothed scores if necessary). This can increase
+memory requirements quickly, so make sure you are running \R{sarks} on
+a machine with large RAM if you are planning to use many threads on a
+large data set.
+
+\subsection{Spatial smoothing}
+\label{sec:spatial}
+
+So far we have not taken advantage of the spatial smoothing features
+in SArKS. While one of the major uses of spatial smoothing is to
+detect multi-motif domains (MMDs), which are not present in the simple
+simulated data set included in the \R{sarks} package, spatial
+smoothing can also help sharpen the ability of SArKS to detect
+individual motifs:
+
+<<spatial>>=
+sarks <- Sarks(
+    simulatedSeqs, simulatedScores, halfWindow=4, spatialLength=3
+)
+filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
+permDist <- permutationDistribution(sarks, reps=250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=5.0)
+peaks <- kmerPeaks(sarks, filters, thresholds)
+peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'spatialWindowed')]
+@ 
+
+Note that here we use \R{nSigma=5.0}, a much more stringent setting
+than the \R{nSigma=2.0} value used when no spatial smoothing was
+employed; had we tried \R{nSigma=5.0} without spatial smoothing, SArKS
+would not have been able to detect the \R{"CATACTGAGA"} motif.
+
+The \R{peaks} object returned by \R{kmerPeaks} when spatial smoothing
+is employed contains the \R{i} and \R{s} coordinates for the left
+endpoints of spatial windows (windows in \R{s}-space, not \R{i}-space)
+enriched in high $\hat{y}$ scores. Especially when these windows have
+longer \R{spatialLength} values, it can also be useful to pick out
+individual motif ``suppeaks'' within these spatial windows:
+
+<<subpeaks>>=
+subpeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
+subpeaks[ , c('i', 's', 'block', 'wi', 'kmer')]
+@ 
+
+In this case, with \R{spatialLength=3}, this is not such an important
+step---although it does serve to accomplish some simplification of
+results as was described when \R{mergedKmerSubPeaks} was first
+introduced in section \ref{sec:redundancy}---but in general it is a
+critical piece of the SArKS methodology when spatial smoothing is in
+use.
+
+The \R{subpeaks} output of \R{mergedKmerSubPeaks} should generally be
+regarded as the main individual motif output for SArKS. Section
+\ref{sec:merged-kmer-subpeaks} provides more details.
+
+When employing spatial smoothing to identify MMDs, you may want to
+inspect individual input sequences of interest by visualizing the
+SArKS results:
+
+<<block-info, fig=TRUE, height=5, width=7>>=
+block22 <- blockInfo(sarks, block='22', filters, thresholds)
+library(ggplot2)
+ggo <- ggplot(block22, aes(x=wi+1))  ## +1 because R indexing is 1-based
+ggo <- ggo + geom_point(aes(y=windowed), alpha=0.6, size=1)
+ggo <- ggo + geom_line(aes(y=spatialWindowed), alpha=0.6)
+ggo <- ggo + geom_hline(aes(yintercept=spatialTheta), color='red')
+ggo <- ggo + ylab('yhat') + ggtitle('Input Sequence "22"')
+ggo <- ggo + theme_bw()
+print(ggo)
+@ 
+
+which here clearly shows the spike at the location \R{wi+1=195} of the
+\texttt{"CATACTGAGA"} motif in sequence \texttt{"22"}.
+
+The use of the more stringent \R{nSigma=5.0} setting reduces the false
+positive rate relative to the \R{nSigma=2.0} setting we used when not
+employing spatial smoothing:
+
+<<fpr-spatial>>=
+estimateFalsePositiveRate(
+        sarks, reps=250, filters, thresholds, seed=321)$ci
+@ 
+
+\subsection{Varying SArKS parameters}
+\label{sec:pars}
+
+You may be wondering what the point of the \R{filters} object created
+in the SArKS workflow is, as it seems to specify the \R{halfWindow} ad
+\R{spatialLength} parameters in a manner redundant to their
+specification in the \R{Sarks} constructor. Aside from the
+specification of the \R{minGini} parameter, the motivation for this
+step is that we usually don't know exactly what \R{halfWindow} or
+\R{spatialLength} values will yield the most useful output (and the
+answer to these questions will be different for different data sets
+and different questions).
+
+To address this, we can use \R{sarksFilters} to test a variety of
+combinations of \R{halfWindow} and \R{spatialLength} (and, if so
+desired, \R{minGini} as well) values like so:
+
+<<varying-parameters>>=
+filters <- sarksFilters(
+        halfWindow=c(4, 8), spatialLength=c(2, 3), minGini=1.1)
+permDist <- permutationDistribution(sarks, reps=250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=5.0)
+peaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
+peaks[ , c('halfWindow', 'spatialLength', 'i', 's', 'block', 'wi', 'kmer')]
+@ 
+
+Note that, as is generally true with SArKS, the results obtained using
+larger \R{halfWindow} values tend to have shorter identified $k$-mers.
+
+As always, testing multiple parameter sets can increase false positive
+rates:
+
+<<fpr-varying>>=
+estimateFalsePositiveRate(
+        sarks, reps=250, filters, thresholds, seed=321)$ci
+@ 
+
+As suggested in section \R{sec:spatial} above, this can be countered
+by using increased \R{nSigma} values when setting thresholds if we
+plan to test a wider range of possible SArKS parameters.
+
+\emph{Note regarding multiple hypothesis testing in SArKS}: The false
+positive rates estimated by SArKS test the rate of detecting any
+results using any of the specified parameter setttings, and are thus a
+type of family-wise error rate. As long as all parameter combinations
+tested are included in the \R{filters} employed in
+\R{estimateFalsePositiveRate}, no further adjustment for multiple
+testing should be applied to the estimated false positive rates.
+
+\section{How \R{sarks} works}
+\label{sec:how-it-works}
+
+\subsection{\R{Sarks} constructor}
+\label{sec:sarks-constructor}
+<<constructor>>=
+sarks = Sarks(
+    simulatedSeqs, simulatedScores, halfWindow=4, spatialLength=3, nThreads=4
+)
+@ 
+
+The object \R{sarks} created by the \R{Sarks} constructor is an R
+representation of a java object which contains several attributes
+worth noting: these are described in the next few subsections, the
+headings of which match the names of the corresponding java Sarks
+class attributes.
+
+\subsubsection{\java{catSeq}}
+\label{sec:catseq}
+The concatenated sequence $x = w_0 * w_1 * \cdots * w_{n-1}$, which
+may be extracted using the R code \R{sarks\$getCatSeq()}.
+
+\subsubsection{\java{sa}}
+The suffix array $s_i$ mapping sorted suffix index $i$ to spatial
+position $s_i$ in the concatenated sequence $x$. Calculated using the
+java code internally implemented in \java{SkewSuffixArray} class
+implementing the skew algorithm initially described in
+\cite{karkkainen2003simple}. The suffix array may be extracted via the
+R code \R{sarks\$getSuffixArray()}.
+
+\subsubsection{\java{saInv}}
+\label{sec:sainv}
+The inverted suffix array $i_s$ mapping spatial position $s$ of the
+suffix formed by deleting the first $s$ characters of the concatenated
+sequence $x$ to the position $i$ of this suffix in the sorted list of
+all suffixes of $x$. The inverted suffix array may be extracted via
+the R code \R{sarks\$getInvertedSuffixArray()}.
+
+\subsubsection{\java{scores}}
+The array of sequence (block) scores $y_b$. May be extracted via R code
+\R{blockScores(sarks)}.
+
+\subsubsection{\java{windowed}}
+The kernel- (or window-)smoothed scores $\hat{y}_i$ defined by
+\begin{equation}
+\label{eq:yhat}
+\hat{y}_i = \frac{1}{2 \kappa + 1} \sum_{j=i-\kappa}^{i+\kappa} y_{b_j}
+\end{equation}
+where:
+\begin{description}
+\item[$\kappa$] is the specified \R{halfWindow} value and
+\item[$b_j$] is the input sequence block in which
+    suffix with suffix array index $j$ begins.
+
+In R, the value of $b_j$ for any suffix array index $j$ can be
+assessed using the code \R{sourceBlock(sarks, i=j)}.
+\end{description}
+
+The array of kernel-smoothed scores $\hat{y}_i$ can be extracted using
+the R code \R{sarks\$getYhat()}.
+
+\subsubsection{\java{spatialWindowed}}
+The spatially-smoothed scores $\hat{\hat{y}}_i$ (here indexed by
+suffix array index $i$, not spatial position $s_i$) defined by
+\begin{equation}
+\label{eq:ydoublehat}
+\hat{\hat{y}}_i = \frac{1}{\lambda} \sum_{s=s_i}^{s_i+\lambda-1} \hat{y}_{i_s}
+\end{equation}
+where:
+\begin{description}
+\item[$\lambda$] is the specified \R{spatialLength} value and
+\item[$i_s$] is the sorted suffix index associated with the suffix
+    starting at spatial position $s$ (obtained from the inverted suffix
+    array described in section\ref{sec:sainv} above).
+\end{description}
+
+The array of spatially-smoothed scores $\hat{\hat{y}}_i$ can be
+extracted using the R code \R{sarks\$getYdoubleHat()}.
+
+\subsubsection{\java{windGini}}
+\label{sec:windgini}
+Array whose $i^{\text{th}}$ value is the Gini impurity value $g_i$ of
+smoothing window centered on suffix array index $i$, defined by
+\begin{equation}
+\label{eq:gini}
+g_i = \sum_b {f^{(i)}_b \left( 1 - f^{(i)}_b \right)}
+\end{equation}
+where:
+\begin{description}
+\item[$f^{(i)}_b = \frac{1}{2 \kappa +
+    1}{\sum\limits_{j=i-\kappa}^{j+\kappa} \delta_{b_j b}}$] is the
+    fraction of positions within the smoothing window associated with
+    sequence (or block) $b$.
+\end{description}
+
+Low values of the Gini impurity values $g_i$ are use by SArKS to
+filter out likely false positive suffix array positions $i$: First
+note that equation \eqref{eq:yhat} may be rewritten
+\begin{equation}
+\hat{y}_i = \frac{1}{2 \kappa + 1} \sum_b {f^{(i)}_b y_b}
+\end{equation}
+Now:
+\begin{itemize}
+\item shuffling the sequence/block scores $y_b$ by a random permutation $\Pi$,
+\item recomputing the resulting smoothed scores $\hat{y}^{(\Pi)}_i$,
+\item noting that by symmetry
+    $\mathbb{V}\left[y_{\Pi(b)}\right] =
+    \mathbb{V}\left[y_{\Pi(b')}\right]$ for all sequences $b, b'$ under
+    random permutation $\Pi$ and
+\item neglecting the small interdepence between $y_{\Pi(b)}$ and
+    $y_{\Pi(b')}$ for distinct sequences $b \text{ and } b'$,
+\end{itemize}
+we can approximate
+\begin{equation}
+\label{eq:var-rel-gini}
+\mathbb{V} \left[ \hat{y}^{(\Pi)}_i \right] \propto
+\left[ f^{(i)}_b \right]^2 = 1 - g_i
+\end{equation}
+Equation \eqref{eq:var-rel-gini} tells us that even under the null
+hypothesis of no association between sequence $w_b$ and sequence score
+$y_b$, positions $i$ for which the Gini impurity $g_i$ is particularly
+far below the maximum value of 1, the smoothed scores will tend to be
+more extreme (high or low) than for other positions. Hence a high
+score $\hat{y}_i$ for such a position is less informative than would
+be the same score at a different position $j$.
+
+The array of Gini impurity values $g_i$ can be extracted using the R
+code \R{sarks\$getGini()}.
+
+\subsubsection{\java{spatGini}}
+Array whose $i^{\text{th}}$ value is the spatially averaged Gini
+impurity value $\bar{g}_i$ of smoothing window centered on suffix
+array index $i$, defined by
+\begin{equation}
+\bar{g}_i = \frac{1}{\lambda} \sum_{s=s_i}^{s_i+\lambda-1} g_{i_s}
+\end{equation}
+
+The spatially averaged Gini impurities are again used to filter out
+likely false-positive positions $i$, this time when spatial smoothing
+is employed to calculate $\hat{\hat{y}}_i$ values. The idea behind
+this filter is that, now neglecting the interdependence between
+$\hat{y}^{(\Pi)}_i$ and $\hat{y}^{(\Pi)}_{j}$ for distinct suffix
+array indices $i$ and $j$, we can get a crude estimate of the variance
+\begin{equation}
+\label{eq:var-spat}
+\mathbb{V} \left[ \hat{\hat{y}}^{(\Pi)}_i \right] =
+\mathbb{V} \left[ \frac{1}{\lambda}
+    \sum_{s=s_i}^{s_i+\lambda-1} \hat{y}^{(\Pi)}_{i_s} \right]
+\end{equation}
+from
+\begin{equation}
+\label{eq:var-spat-approx}
+\frac{1}{\lambda^2}
+\sum_{s=s_i}^{s_i+\lambda-1} \mathbb{V} \left[ \hat{y}^{(\Pi)}_{i_s} \right]
+\propto 1 - \bar{g}_i
+\end{equation}
+The degree of approximation involved in the independence assumption
+required to pass from equation \eqref{eq:var-spat} to equation
+\eqref{eq:var-spat-approx} depends on how dissimilar the smoothing
+window compositions $f^{(i)}_b$ are for the various suffix array
+indices $i$ appearing in equation \eqref{eq:var-spat}. For the sake of
+simplicity and tractability, the approach taken in the current
+implementation of SArKS is to employ the spatial Gini filter as a
+heuristic parameter whose value is to be assessed empirically via
+permutation testing.
+
+\subsection{\R{permutationDistribution}}
+\label{sec:permutation-distribution}
+
+Once the object \R{sarks} has been constructed using the \R{Sarks}
+constructor function, we can select a range of \R{halfWindow},
+\R{spatialLength}, and \R{minGini} parameter values for motif and MMD
+selection. The R function \R{sarksFilters} puts all combinations of
+values of these values (specificied as numeric vectors in R) into a
+java object to pass along to downstream SArKS functions including
+\R{permutationDistribution}:
+
+<<permutation>>=
+filters <- sarksFilters(halfWindow=4, spatialLength=c(0, 3), minGini=1.1)
+permDist <- permutationDistribution(
+        sarks, reps=250, filters=filters, seed=123)
+@ 
+
+Let
+$\left(\kappa^{(\alpha)}, \lambda^{(\alpha)},
+    g^{(\alpha)}_{\text{min}}\right)$ be the resulting SArKS
+\R{halfWindow}, \R{spatialLength}, and \R{minGini} parameters, with
+$\alpha$ here indexing the set of desired combinations. The
+\R{permutationDistribution} call generates \R{reps=250} random
+permutations $\pi_r$:
+\begin{itemize}
+\item for each of these permutations $\pi_r$ and
+\item for each combination of parameters
+    $\left(\kappa^{(\alpha)}, \lambda^{(\alpha)},
+    g^{(\alpha)}_{\text{min}}\right)$,
+\end{itemize}
+it then computes
+\begin{itemize}
+\item the smoothed scores $\hat{y}^{(\alpha,\pi_r)}_i$ and,
+\item if applicable, the spatially-smoothed scores
+    $\hat{\hat{y}}^{(\alpha,\pi_r)}_i$.
+\end{itemize}
+
+The resulting \R{permDist} object is a named list in R. The first two
+elements, `windowed' and `spatial' are data.frames with \R{reps=250}
+rows per combination of parameters in \R{filters}. Both of these have
+a column named `max' containing either
+\begin{itemize}
+\item \R{permDists\$windowed\$max}:
+\begin{equation}
+\label{eq:yhat-max}
+\hat{y}^{(\alpha, \pi_r)}_{\text{max}} \,=\,
+\underset{\{i \;\mid\;
+g_i \,\geq\, g^{(\alpha)}_{\text{min}}\}}{\operatorname{max}}
+\hat{y}^{(\alpha,\pi_r)}_i
+\end{equation}
+\item \R{permDists\$spatial\$max}:
+\begin{equation}
+\label{eq:ydoublehat-max}
+\hat{\hat{y}}^{(\alpha, \pi_r)}_{\text{max}} \,=\,
+\underset{\{i \;\mid\;
+\bar{g}_i \,\geq\, g^{(\alpha)}_{\text{min}}\}}{\operatorname{max}}
+\hat{\hat{y}}^{(\alpha,\pi_r)}_i
+\end{equation}
+\end{itemize}
+
+\subsubsection{Specification of $g^{(\alpha)}_{\text{min}}$ in \R{sarks}}
+\label{sec:mingini}
+
+SArKS currently allows the user to directly set
+$g^{(\alpha)}_{\text{min}} < 1$ excluding suffix array index values
+$i$ with $g^{(\alpha)}_i < g^{(\alpha)}_{\text{min}}$ from either
+permutational analysis or $\hat{y}_i$ peak calling if so
+desired. Given the interpretation afforded by equation
+\eqref{eq:var-rel-gini}, however, it can be more convenient to
+indirectly specify $g^{(\alpha)}_{\text{min}}$ by choosing $\gamma$ in
+the following:
+\begin{equation}
+\label{eq:gmin-selection}
+1 - g^{(\alpha)}_{\text{min}} =
+(1+\gamma) \left(1 - \underset{i}{\operatorname{median}} \,
+    g^{(\alpha)}_i\right)
+\end{equation}
+Together equations \eqref{eq:var-rel-gini} and
+\eqref{eq:gmin-selection} imply that fixing $\gamma$ restricts
+analysis to suffix indices $i$ for which the variance of the permuted
+smoothed scores is at most $(1+\gamma)$ times the median such
+variance.
+
+If \R{minGini} is set to a value $\geq 1$, each of the
+$g^{(\alpha)}_{\text{min}}$ values will be set using equation
+\eqref{eq:gmin-selection} with $\gamma = $ \R{minGini} $\!- 1$.
+
+
+\subsection{\R{permutationThresholds}}
+
+<<thresholds>>=
+thresholds = permutationThresholds(
+        filters=filters, permDist=permDist, nSigma=5.0)
+@ 
+
+SArKS uses a simple method for setting thresholds $\theta^{(\alpha)}$
+or $\theta^{(\alpha)}_{\text{spatial}}$ based on the set of randomly
+generated permutations $\left\{\pi_r\right\}$:
+
+\begin{align}
+\label{eq:theta}
+\theta^{(\alpha)} &=
+\underset{r}{\operatorname{mean}}\left\{
+    \hat{y}^{(\alpha, \pi_r)}_{\text{max}} \right\} +
+z \; \underset{r}{\operatorname{stdev}}\left\{
+    \hat{y}^{(\alpha, \pi_r)}_{\text{max}} \right\} \\
+\label{eq:theta-spatial}
+\theta^{(\alpha)}_{\text{spatial}} &=
+\underset{r}{\operatorname{mean}}\left\{
+    \hat{\hat{y}}^{(\alpha, \pi_r)}_{\text{max}} \right\} +
+z \; \underset{r}{\operatorname{stdev}}\left\{
+    \hat{\hat{y}}^{(\alpha, \pi_r)}_{\text{max}} \right\}
+\end{align}
+
+The quantity $z$ appearing in equations
+\eqref{eq:theta}-\eqref{eq:theta-spatial} is specified by the
+\R{nSigma} argument to \R{permutationThresholds}. Higher values of $z$
+trade reduced sensitivity for lower false positive rates.
+
+As currently implemented, equation \eqref{eq:theta} is only applied
+for parameter sets $\alpha$ for which no spatial smoothing is done
+(encoded as \R{spatialLength} or $\lambda^{(\alpha)}=0$). For those
+parameter sets $\alpha$ such that $\lambda^{(\alpha)} > 1$, equation
+\eqref{eq:theta-spatial} is instead applied to obtain
+$\theta^{(\alpha)}_{\text{spatial}}$, with
+$\theta^{(\alpha)} = -\infty$.
+
+\subsection{\R{kmerPeaks}}
+
+<<kmerpeaks>>=
+peaks = kmerPeaks(sarks, filters=filters, thresholds=thresholds)
+@ 
+
+If the option \R{peakify} is turned on (set to \R{TRUE}, as it is by
+default), the set of suffix array indices $I^{(\alpha)}$ or
+$J^{(\alpha)}_{\text{spatial}}$---depending on whether spatial
+smoothing is employed or not---defining the SArKS peak set for
+parameter combination $\alpha$ is determined by:
+\begin{align}
+\label{eq:I}
+I^{(\alpha)} &=
+\left\{i \; \middle| \;
+\left( \hat{y}^{(\alpha)}_i \geq \theta^{(\alpha)} \right) \, \land \,
+\left( \hat{y}^{(\alpha)}_{\eta(i)} \leq
+\hat{y}^{(\alpha)}_i \geq \hat{y}^{(\alpha)}_{\rho(i)} \right) \, \land \,
+\left( g^{(\alpha)}_i \geq g^{(\alpha)}_{\text{min}} \right) \right\} \\
+\label{eq:J}
+J^{(\alpha)}_{\text{spatial}} &=
+\left\{i \; \middle| \;
+\left( \hat{\hat{y}}^{(\alpha)}_i \geq
+    \theta^{(\alpha)}_{\text{spatial}} \right) \, \land \,
+\left( \hat{\hat{y}}^{(\alpha)}_{\eta(i)} \leq
+    \hat{\hat{y}}^{(\alpha)}_i \geq
+    \hat{\hat{y}}^{(\alpha)}_{\rho(i)} \right) \, \land \,
+\left( \bar{g}^{(\alpha)}_i \geq g^{(\alpha)}_{\text{min}} \right) \right\}
+\end{align}
+where:
+\begin{description}
+\item[$\eta(i)$] is the negative spatial shift operator defined by
+    $\eta(i)=i_{s_i-1}$, and
+\item[$\rho(i)$] is the positive spatial shift operator defined by
+    $\rho(i)=i_{s_i+1}$.
+\end{description}
+The condition that
+$\hat{y}^{(\alpha)}_{\eta(i)} \leq \hat{y}^{(\alpha)}_i \geq
+\hat{y}^{(\alpha)}_{\rho(i)}$ (or similar for
+$\hat{\hat{y}}^{(\alpha)}_{\eta(i)}$) restricts the peak set to only
+those suffix array indices $i$ for which there is not a higher
+smoothed score immediately spatially adjacent in either direction.
+
+If \R{peakify} is disabled, this condition is not required, so that instead
+\begin{align}
+\label{eq:I-no-peakify}
+I^{(\alpha)} &= \left\{i \; \middle| \;
+\left( \hat{y}^{(\alpha)}_i \geq \theta^{(\alpha)} \right) \,  \land \,
+\left( g^{(\alpha)}_i \geq g^{(\alpha)}_{\text{min}} \right) \right\} \\
+\label{eq:J-no-peakify}
+J^{(\alpha)}_{\text{spatial}} &= \left\{i \; \middle| \;
+\left( \hat{\hat{y}}^{(\alpha)}_i \geq
+    \theta^{(\alpha)}_{\text{spatial}} \right)
+\, \land \, \left( \bar{g}^{(\alpha)}_i \geq
+    g^{(\alpha)}_{\text{min}} \right) \right\}
+\end{align}
+is used to define $I^{(\alpha)}$ or $J^{(\alpha)}_{\text{spatial}}$.
+
+If no spatial smoothing is employed, we can use $\hat{k}^{(\alpha)}_i$
+defined by
+\begin{equation}
+\label{eq:khat}
+\hat{k}^{(\alpha)}_i = \frac{1}{2 \kappa^{(\alpha)}}
+\sum\limits_{j=i-\kappa^{(\alpha)}}^{i+\kappa^{(\alpha)}} \,
+\left(1 - \delta_{ij}\right) \, \text{max} \;
+\{k \leq k_{\text{max}} \mid x[s_j, s_{j}+k) = x[s_i, s_{i}+k)\}
+\end{equation}
+to estimate the characteristic length
+$\lfloor \hat{k}^{(\alpha)}_i \rceil$ (where $\lfloor \cdots \rceil$
+indicates nearest integer) of the $k$-mer
+$x[s_i, s_i+\lfloor \hat{k}^{(\alpha)}_i \rceil)$ associated with the
+smoothing window centered on the suffix with sorted index $i$. We can
+then identify the set of $k$-mers reported by SArKS using parameter
+set $\alpha$ when not using spatial smoothing (i.e., when
+\R{spatialLength} $\!= \lambda^{(\alpha)} = 0$) by:
+\begin{equation}
+\label{eq:M}
+M^{(\alpha)} =
+\left\{x[s_i, s_i+\lfloor \hat{k}^{(\alpha)}_i \rceil) \mid
+    i \in I^{(\alpha)} \right\}
+\end{equation}
+
+\subsection{\R{mergedKmerSubPeaks}}
+\label{sec:merged-kmer-subpeaks}
+
+<<merging>>=
+mergedPeaks = mergedKmerSubPeaks(sarks, filters, thresholds)
+@ 
+
+\begin{equation}
+\label{eq:I-spatial}
+I^{(\alpha)}_{\text{spatial}} =
+\left\{i \; \middle| \; \left(\delta^{(\alpha)}_i < \lambda^{(\alpha)} \right)
+\, \land \,
+\left( \hat{y}^{(\alpha)}_i \geq \theta^{(\alpha)}_{\text{spatial}}  \right)
+\, \land \,
+\left[ \, \left( \delta^{(\alpha)}_{\eta(i)} \geq \lambda^{(\alpha)} \right)
+\lor
+\left( \hat{y}^{(\alpha)}_{\eta(i)} <
+    \theta^{(\alpha)}_{\text{spatial}} \right) \, \right] \right\}
+% check < instead of \leq above...
+\end{equation}
+where
+\begin{equation}
+\delta^{(\alpha)}_j =
+\underset{i}{\text{min}} \left\{ s_j - s_i \; \middle| \;
+    \left( i \in J^{(\alpha)}_{\text{spatial}} \right) \,\land\,
+    \left( s_i \leq s_j\right) \right\}
+\end{equation}
+is the distance from spatial position $s_j$ to the nearest element of
+$J^{(\alpha)}_{\text{spatial}}$ spatially left of $s_j$, and
+\begin{description}
+\item[$\delta^{(\alpha)}_i < \lambda^{(\alpha)}$]: requires the suffix
+    $i$ to be spatially located within one of the identified MMDs,
+\item[$\hat{y}^{(\alpha)}_i \geq \theta^{(\alpha)}_{\text{spatial}}$]:
+    requires the singly-smoothed score $\hat{y}^{(\alpha)}_i$ to be
+    above the threshold $\theta^{(\alpha)}_{\text{spatial}}$
+\end{description}
+and finally, we require either that:
+\begin{description}
+\item[$\delta^{(\alpha)}_{\eta(i)} \geq \lambda^{(\alpha)}$]: $s_i$ is
+    at the beginning of MMD, or
+\item[$\hat{y}^{(\alpha)}_{\eta(i)} <
+    \theta^{(\alpha)}_{\text{spatial}}$]: score of suffix immediately
+    spatially prior to $s_i$ is below threshold
+    $\theta^{(\alpha)}_{\text{spatial}}$---idea here is that if this
+    condition is not met we want to merge suffix at $s_i$ into suffix
+    initiated spatially to left.
+\end{description}
+
+Once we have defined $I^{(\alpha)}_{\text{spatial}}$, SArKS estimates
+the associated $k$-mer lengths for merged spatially smoothed suffix
+array index peaks $i \in I^{(\alpha)}_{\text{spatial}}$ by
+\begin{equation}
+\label{eq:spatial-merged-k}
+\hat{\hat{k}}^{(\alpha)}_i =
+\underset{j}{\operatorname{max}}\left\{
+    \hat{k}^{(\alpha)}_j + s_j - s_i \; \middle| \;
+s \in [s_i, s_j] \implies \hat{y}^{(\alpha)}_{i_s} \ge
+    \theta^{(\alpha)}_{\text{spatial}} \right\}
+\end{equation}
+where $\hat{k}^{(\alpha)}_j$ is defined by equation \eqref{eq:khat}
+and the condition
+$s \in [s_i, s_j] \implies \hat{y}^{(\alpha)}_{i_s} \ge
+\theta^{(\alpha)}_{\text{spatial}}$ requires that all spatial
+positions $s$ between $s_i$ and $s_j$ (including both $s_i$ and $s_j$)
+have smoothed scores $\hat{y}_{i_s}$ exceeding
+$\theta^{(\alpha)}_{\text{spatial}}$ (and should hence be merged
+together). The resulting motif set is then defined by:
+
+\begin{equation}
+\label{eq:m-spatial}
+M^{(\alpha)}_{\text{spatial}} =
+\left\{x\!\!\left[s_i, \,
+    s_i+\left\lfloor \hat{\hat{k}}^{(\alpha)}_i \right\rceil\right)
+    \; \middle| \; i \in I^{(\alpha)}_{\text{spatial}} \right\}
+\end{equation}
+
+
+\subsection{\R{estimateFalsePositiveRate}}
+
+<<fpr>>=
+fpr = estimateFalsePositiveRate(sarks, reps=250,
+                                filters=filters, thresholds=thresholds,
+                                seed=123456)
+@ 
+
+The false positive rate associated with a given set of parameters
+$\left\{ \left(\kappa^{(\alpha)}, \lambda^{(\alpha)},
+    g^{(\alpha)}_{\text{min}}\right) \right\}$ and thresholds
+$\left\{ \left( \theta^{(\alpha)}, \theta^{(\alpha)}_{\text{spatial}}
+    \right) \right\}$ is estimated by
+\begin{itemize}
+\item generating a second (independent) permutation set $\{\pi'_r\}$,
+\item for each combination of parameters $\alpha$, use equation
+    \eqref{eq:yhat-max} replacing $\pi_r$ with $\pi'_r$ to calculate
+    $\hat{y}\,'^{(\alpha)}_{\text{max}}$ and equation
+    \eqref{eq:ydoublehat-max} similarly to calculate
+    $\hat{\hat{y}}\,'^{(\alpha)}_{\text{max}}$ (if
+    $\lambda^{(\alpha)} > 1$; otherwise, take
+    $\hat{\hat{y}}\,'^{(\alpha)}_{\text{max}} = \infty$).
+\end{itemize}
+The set of reps yielding false positive hits is calculated according to:
+\begin{equation}
+\label{eq:fpr-binomial}
+\text{false positives} =
+\left\{ \, r \; \middle| \;
+\bigvee_\alpha \left[ \, \left( \hat{y}\,'^{(\alpha)}_{\text{max}} \geq
+    \theta^{(\alpha)} \right) \,\land\,
+\left( \hat{\hat{y}}\,'^{(\alpha)}_{\text{max}} \geq
+    \theta^{(\alpha)}_{\text{spatial}} \right) \, \right] \right\}
+\end{equation}
+where we again take either $\theta^{(\alpha)}=-\infty$ when
+$\lambda^{(\alpha)}=0$ or $\theta^{(\alpha)}_{\text{spatial}}=-\infty$
+when $\lambda^{(\alpha)}>1$, so that, depending on the value of
+$\lambda^{(\alpha)}$, one or the other of the two logical expressions
+inside the square brackets in equation \eqref{eq:fpr-binomial} is
+trivially true for each $\alpha$.
+
+The false positive rate can then be estimated by comparing the number
+of false positive results with the number \R{reps} of permutations
+$\pi'_r$ generated. SArKS uses \R{binom::binom.exact} to estimate
+confidence intervals for the false positive rate according to the
+Pearson-Klopper method.
+
+\emph{Note regarding random number generator seeds}: In order that the
+permutation set $\{\pi'_r\}$ be independent of the initial permutation
+set $\{\pi_r\}$ used to select thresholds
+$\left\{ \left( \theta^{(\alpha)}, \theta^{(\alpha)}_{\text{spatial}}
+    \right) \right\}$, you should make sure that you do not repeat the
+same seed for the random number generator in the calls to
+\R{permutationDistribution} and \R{estimateFalsePositiveRate}.
+
+\section{Notation glossary}
+\label{sec:equation-glossary}
+\small
+\begin{tabular}[H!]{rp{113.5mm}}
+$\lfloor r \rceil$ & nearest integer to real number $r$ \\  
+\hline
+$u * v$ & concatenation of strings $u$ and $v$ \\
+$|u|$ & length of string $u$ \\
+$u[i, j)$ & substring of $u$ starting at $i^{\text{th}}$ character (inclusive)
+    and continuing up until $j^{\text{th}}$ character (exclusive)
+    using 0-based indexing \\
+$u[i, j]$ & substring of $u$ starting at $i^{\text{th}}$ character (inclusive)
+    and continuing through the $j^{\text{th}}$ character (inclusive)
+    using 0-based indexing \\
+\hline
+$\{a \, | \, C(a)\}$ & set containing all elements $a$
+    satisfying condition $C(a)$ \\
+$\{a \, | \, C_1(a) \, \land \, C_2(a) \}$ & set containing all elements $a$
+    satisfying conditions $C_1(a)$ and $C_2(a)$ \\
+$\{a \, | \, C_1(a) \, \lor \, C_2(a) \}$ & set containing all elements $a$
+    satisfying conditions $C_1(a)$ or $C_2(a)$ \\
+\hline
+$\mathbb{E}[A]$ & expectation value of random variable $A$ \\
+$\mathbb{V}[A]$ & variance of random variable $A$ \\
+\hline
+$i$ & suffix array index:
+    0-based position of suffix in lexicographically sorted list
+    of all suffixes of string $x$ \\
+$s_i$ & suffix array value:
+    0-based spatial position of suffix with
+    suffix array index $i$ within string $x$ \\
+$i_s$ & suffix array index $i$ associated with spatial position $s$ \\
+$b_i$ & block array value: 0-based position of block/word
+    in which suffix with suffix array index $i$ begins \\
+$\omega_i$ & 0-based position of suffix with suffix array index $i$
+    within block $b_i$ \\
+\hline
+$\hat{y}_i$ & kernel smoothed score associated with suffix array index $i$ \\
+$\kappa$ & half-width of kernel applied to generate $\hat{y}_i$ \\
+$\hat{k}_i$ & estimate of smoothed $k$-mer length at suffix array index $i$ \\
+$\eta(i)$ & negative spatial shift operator defined by $\eta(i)=i_{s_i-1}$ \\
+$\rho(i)$ & positive spatial shift operator defined by $\rho(i)=i_{s_i+1}$ \\
+$\theta$ & threshold value for $\hat{y}_i$ for
+    sequence-smoothed peak calling \\
+$I$ & set of suffix array indices identified as peaks by SArKS \\
+$M$ & set of $k$-mer motifs derived from suffix array peak set \\
+\hline
+$f^{(i)}_b$ & weighted frequency of block/word $b$ within smoothing window
+    centered on suffix array index $i$ \\
+$g_i$ & Gini impurity of smoothing window centered on suffix array index $i$ \\
+$g_{\text{min}}$ & minimum value of smoothing window Gini impurity
+    for inclusion in peak set $I$ \\
+$\bar{g}_i$ & spatially-averaged Gini impurity over spatial window
+    starting at position $s_i$ \\
+$\bar{g}_{\text{min}}$ & minimum value of spatially-averaged Gini impurity
+    for inclusion in peak set $J_{\text{spatial}}$ \\
+\hline
+$\hat{\hat{y}}_i$ & spatially smoothed score associated
+    with suffix array index $i$ \\
+$\lambda$ & length of spatial kernel applied to generate
+    spatially smoothed scores $\hat{\hat{y}}_i$ \\
+$\hat{\hat{k}}_i$ & estimate of merged $k$-mer length at
+    suffix array index $i$ \\
+$\theta_{\text{spatial}}$ & threshold value for $\hat{\hat{y}}_i$ 
+    to call significant spatial windows \\
+$J_{\text{spatial}}$ & set of suffix array indices identified as
+    spatial window starting positions \\
+$I_{\text{spatial}}$ & set of suffix array indices identified as $k$-mer
+    starting positions using spatial smoothing \\
+$M_{\text{spatial}}$ & set of $k$-mer motifs derived from
+    suffix array index set $I_{\text{spatial}}$ using spatial smoothing \\
+\hline
+$\pi$ & permutation of $n$ blocks/words \\
+$\Pi$ & random variable representing randomly generated permutation \\
+$\hat{y}^{(\pi)}_i$ & sequence smoothed scores
+    calculated with word scores permuted by $\pi$ \\
+$\hat{\hat{y}}^{(\pi)}_i$ & spatially smoothed scores
+    calculated with word scores permuted by $\pi$
+\end{tabular}
+
+\pagebreak
+
+\small
+\bibliographystyle{abbrvnat}
+\bibliography{sarks}
+
+\vspace{10cm}
+
+\addcontentsline{toc}{section}{References}
+
+\end{document}

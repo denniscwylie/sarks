@@ -10,9 +10,13 @@ dnaRevComp(s)
 \item{s}{character vector DNA sequence(s)}
 }
 \value{
-character vector containing reverse-complement of s
+character vector containing reverse-complement(s) of s
 }
 \description{
 Takes character vector input representing DNA sequence and returns
 reverse-complement as character vector.
+}
+\examples{
+dnaRevComp(c('TGACCTT', 'CATACTGAGA'))
+
 }

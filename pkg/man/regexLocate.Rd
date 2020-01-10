@@ -9,7 +9,8 @@ regexLocate(regex, seqs)
 \arguments{
 \item{regex}{character vector of regular expressions to search for}
 
-\item{seqs}{character vector of sequences in which to locate regex}
+\item{seqs}{named character vector of sequences in which to locate
+regex}
 }
 \value{
 If only a single regex is searched for: data.frame with two
@@ -21,5 +22,10 @@ If only a single regex is searched for: data.frame with two
 }
 \description{
 Find locations of matches of a regular expression (or vector of
-regular expressions) in each element of a character vector.
+regular expressions) in each element of a named character
+vector. Not case sensitive.
+}
+\examples{
+reLoci <- regexLocate('AAAAA|TTTTT', simulatedSeqs)
+
 }

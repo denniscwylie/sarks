@@ -22,7 +22,8 @@ should have numeric scores) or may be a named numeric vector.}
 \item{spatialLength}{full length of spatial smoothing window
 (integer); use 0 to disable spatial smoothing.}
 
-\item{nThreads}{number of threads to use for computing permutation distributions.}
+\item{nThreads}{number of threads to use for computing permutation
+distributions.}
 }
 \value{
 R representation of java Sarks object.
@@ -32,7 +33,7 @@ Sarks class implements suffix array kernel smoothing for de novo
 correlative motif discovery.
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 
 }
 \references{

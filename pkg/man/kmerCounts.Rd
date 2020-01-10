@@ -13,7 +13,8 @@ kmerCounts(kmer, seqs, directional = TRUE, overlap = FALSE)
 and count occurrences of kmer.}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
-either kmer or its reverse-complement.}
+either kmer or its reverse-complement. Makes sense only if
+applying to DNA sequences!}
 
 \item{overlap}{logical value: should overlapping occurrences of
 kmer be counted as multiple hits?}
@@ -27,4 +28,13 @@ if length(kmer) is one, returns integer vector of counts;
 \description{
 Counts how often a k-mer (or vector of k-mers) occurs in each
 element of a character vector.
+}
+\examples{
+motifCounts <- kmerCounts('CATACTGAGA', simulatedSeqs)
+otherCounts <- kmerCounts(
+    c('AAAAA', 'CG'),
+    simulatedSeqs,
+    directional = FALSE
+)
+
 }

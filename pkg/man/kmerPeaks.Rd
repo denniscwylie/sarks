@@ -34,11 +34,11 @@ identified as ``peaks'' where kernel-smoothed scores exceed
 specified thresholds (generally set by permutation method).
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=2.0)
-peaks = kmerPeaks(sarks, filters, thresholds)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
+peaks <- kmerPeaks(sarks, filters, thresholds)
 
 }
 \references{

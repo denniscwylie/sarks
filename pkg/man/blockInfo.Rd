@@ -34,11 +34,11 @@ sarks parameters for one or more specified input sequences
 (blocks).
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=2.0)
-bi24 = blockInfo(sarks, '24', filters, thresholds)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
+bi24 <- blockInfo(sarks, '24', filters, thresholds)
 
 }
 \references{

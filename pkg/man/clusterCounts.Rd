@@ -15,7 +15,8 @@ multiple clusters.}
 and count occurrences of kmers.}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
-either cluster(s) of k-mers or their reverse-complements.}
+either cluster(s) of k-mers or their reverse-complements. Makes
+sense only if applying to DNA sequences!}
 
 \item{overlap}{logical value: should overlapping occurrences of
 k-mers be counted as multiple hits?}
@@ -29,4 +30,17 @@ if cluster is a single character vector (of any length),
 \description{
 Counts how often any k-mer from a cluster of k-mers (or list of
 clusters of k-mers) occurs in each element of a character vector.
+}
+\examples{
+seqs <- c(
+    line1 = "My mind's got a mind of its own",
+    line2 = "Takes me out to parties when I'd rather be alone",
+    line3 = "Takes me out a-walkin' when I'd rather be at home"
+)
+clusters <- list(
+    antisocial = c('alone', 'at home'),
+    mind = 'mind'
+)
+clCounts <- clusterCounts(clusters, seqs)
+
 }

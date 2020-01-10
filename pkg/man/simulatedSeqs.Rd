@@ -12,6 +12,8 @@
 simulatedSeqs
 }
 \description{
-Simulated DNA sequences used to illustrate suffix array kernel smoothing method in \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}.
+Simulated DNA sequences used to illustrate suffix array kernel
+smoothing method in
+\url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}.
 }
 \keyword{datasets}

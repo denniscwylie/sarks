@@ -25,3 +25,8 @@ if length(regex) is one, returns integer vector of counts;
 Counts how often a regular expression (or vector of regular
 expressions) occurs in each element of a character vector.
 }
+\examples{
+reCounts1 <- regexCounts('AAAAA|TTTTT', simulatedSeqs)
+reCounts2 <- regexCounts(c('AAAAA|TTTTT', 'CG'), simulatedSeqs)
+
+}

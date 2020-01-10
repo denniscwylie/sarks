@@ -22,13 +22,13 @@ input sequence from which they are derived would result in another
 reported l-mer string (l > k).
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=2.0)
-peaks = kmerPeaks(sarks, filters, thresholds)
-prunedPeaks = pruneIntervals(peaks)
-extendedPeaks = extendKmers(sarks, prunedPeaks)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
+peaks <- kmerPeaks(sarks, filters, thresholds)
+prunedPeaks <- pruneIntervals(peaks)
+extendedPeaks <- extendKmers(sarks, prunedPeaks)
 
 }
 \references{

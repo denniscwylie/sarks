@@ -37,11 +37,11 @@ threshold used for MMD calling and merges such k-mers when their
 spatial positions overlap.
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 3, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=4.0)
-mergedSubPeaks = mergedKmerSubPeaks(sarks, filters, thresholds)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 3, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=4.0)
+mergedSubPeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
 
 }
 \references{

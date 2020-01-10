@@ -1,6 +1,6 @@
 Package: sarks
 Title: Suffix Array Kernel Smoothing
-Version: 0.0.0.9000
+Version: 0.99.0
 Author: Dennis Wylie
 Maintainer: Dennis Wylie <denniscwylie@gmail.com>
 Authors@R: 
@@ -10,9 +10,10 @@ Authors@R:
            email = "denniscwylie@gmail.com",
            comment = c(ORCID = "0000-0003-0380-3549"))
 Description: Suffix Array Kernel Smoothing (see https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797).
-Depends: R (>= 3.3.0)
+Depends: R (>= 3.6.0)
 Imports: rJava, IRanges, utils, cluster, binom
-biocViews: 
+Suggests: RUnit, BiocGenerics, ggplot2
+biocViews: MotifDiscovery, GeneRegulation, GeneExpression, Transcriptomics, RNASeq, FeatureExtraction
 SystemRequirements: Java (>= 1.8)
 License: BSD_3_clause + file LICENSE
 Encoding: UTF-8

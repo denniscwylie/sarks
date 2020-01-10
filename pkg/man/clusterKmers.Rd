@@ -17,6 +17,11 @@ to NULL (default value), selects number of clusters to maximize
 the average silhouette score
 (\url{https://en.wikipedia.org/wiki/Silhouette_(clustering)}).}
 }
+\value{
+list of character vectors partitioning kmers into clusters:
+    the character vector at the i-th element of the output list
+    contains the elements from kmers assigned to cluster i.
+}
 \description{
 Takes a set of k-mer sequences and returns a list of partitioning
 the input k-mers into clusters of more similar k-mers. Hierarchical
@@ -25,4 +30,13 @@ coefficient distance metric applied treating each k-mer as the set
 of all tetramers which can be found as substrings within it.
 Tetramers which are reverse-complements of each other are treated
 as equivalent.
+}
+\examples{
+kmers <- c(
+    'CAGCCTGG', 'CCTGGAA', 'CAGCCTG', 'CCTGGAAC', 'CTGGAACT',
+    'ACCTGC', 'CACCTGC', 'TGGCCTG', 'CACCTG', 'TCCAGC',
+    'CTGGAAC', 'CACCTGG', 'CTGGTCTA', 'GTCCTG', 'CTGGAAG', 'TTCCAGC'
+)
+clusterKmers(kmers)
+
 }

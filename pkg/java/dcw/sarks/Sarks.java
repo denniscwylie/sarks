@@ -589,7 +589,7 @@ public class Sarks {
                                                 Float[][] thresholds) {
         return this.filter(filters, thresholds, null);
     }
-    public ArrayList<ArrayList<Integer>> filters(ArrayList<HashMap> filters,
+    public ArrayList<ArrayList<Integer>> filter(ArrayList<HashMap> filters,
                                                  Boolean peakify) {
         return this.filter(filters, null, peakify);
     }
@@ -890,6 +890,11 @@ public class Sarks {
     public ArrayList<Integer> spatialSubPeaks(ArrayList<Integer> iFilt,
                                               Float theta,
                                               Double minGini) {
+        if (this.spatialLength <= 1) {
+            ArrayList<Integer> out = new ArrayList<Integer>();
+            for (int i : iFilt) {out.add(this.sa[i]);}
+            return out;
+        }
         TreeSet<Integer> subPeaks = new TreeSet<Integer>();
         for (int i : iFilt) {
             int sLeft = this.sa[i];
@@ -990,7 +995,8 @@ public class Sarks {
                                       ArrayList<ArrayList<int[]>> mergedKmerIntervals,
                                       String fileRoot,
                                       int kmax) throws Exception {
-        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tscore\twindowed\tkmax\t" +
+        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tscore\t" +
+                        "windowed\tspatialWindowed\tkmax\t" +
                         "halfWindow\tminGini\ttheta\t" +
                         "spatialLength\tminSpatialGini\tspatialTheta\n";
         BufferedWriter peakWriter = null;
@@ -1023,10 +1029,12 @@ public class Sarks {
                 int wi = sInterval[0] - this.bounds[blockIndex];
                 float gini = this.windGini[i];
                 float score = (float)this.scores[blockIndex];
+                Float sw = (this.spatialWindowed == null ? null : this.spatialWindowed[i]);
                 String line = i + "\t" + sInterval[0] + "\t" +
                               km + "\t" + khat + "\t" +
                               block + "\t" + wi + "\t" + gini + "\t" +
-                              score + "\t" + this.windowed[i] + "\t" + suffix;
+                              score + "\t" + this.windowed[i] + "\t" +
+                              sw + "\t" + suffix;
                 if (fileRoot != null) {
                     peakWriter.write(line);
                 } else {
@@ -1042,9 +1050,9 @@ public class Sarks {
         return null;
     }
     public String printMergedSubPeaks(ArrayList<HashMap> filters,
-                                       Float[][] thresholds,
-                                       ArrayList<ArrayList<int[]>> mergedKmerIntervals,
-                                       int kmax) throws Exception {
+                                      Float[][] thresholds,
+                                      ArrayList<ArrayList<int[]>> mergedKmerIntervals,
+                                      int kmax) throws Exception {
         return this.printMergedSubPeaks(
                 filters, thresholds, mergedKmerIntervals, null, kmax);
     }

@@ -33,12 +33,12 @@ function removes such nested intervals from the reported collection
 of peaks.
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=2.0)
-peaks = kmerPeaks(sarks, filters, thresholds)
-prunedPeaks = pruneIntervals(peaks)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
+peaks <- kmerPeaks(sarks, filters, thresholds)
+prunedPeaks <- pruneIntervals(peaks)
 }
 \references{
 Wylie, D.C., Hofmann, H.A., and Zemelman, B.V. (2019)

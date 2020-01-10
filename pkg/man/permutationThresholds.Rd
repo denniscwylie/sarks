@@ -27,10 +27,10 @@ named list with two elements: `theta' containing a
 Calculate thresholds for SArKS k-mer calling from permutation distribution.
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
-permDist = permutationDistribution(sarks, 250, filters, seed=123)
-thresholds = permutationThresholds(filters, permDist, nSigma=2.0)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
+permDist <- permutationDistribution(sarks, 250, filters, seed=123)
+thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
 
 }
 \references{

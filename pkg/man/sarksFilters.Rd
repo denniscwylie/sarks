@@ -30,8 +30,8 @@ combinations of desired halfWindow, spatialLength, and minGini
 values.
 }
 \examples{
-sarks = Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-filters = sarksFilters(halfWindow=c(4, 8), spatialLength=c(0, 5), minGini=1.1)
+sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
+filters <- sarksFilters(halfWindow=c(4, 8), spatialLength=c(0, 5), minGini=1.1)
 
 }
 \references{

@@ -12,6 +12,10 @@
 simulatedScores
 }
 \description{
-Scores associated with simulated DNA sequences used to illustrate suffix array kernel smoothing method in \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797} (first 20 sequences assigned score of 0.0, last 10 assigned score of 1.0).
+Scores associated with simulated DNA sequences used to illustrate
+suffix array kernel smoothing method in
+\url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
+(first 20 sequences assigned score of 0.0, last 10 assigned score
+of 1.0).
 }
 \keyword{datasets}
