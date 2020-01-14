@@ -603,7 +603,7 @@ is employed contains the \R{i} and \R{s} coordinates for the left
 endpoints of spatial windows (windows in \R{s}-space, not \R{i}-space)
 enriched in high $\hat{y}$ scores. Especially when these windows have
 longer \R{spatialLength} values, it can also be useful to pick out
-individual motif ``suppeaks'' within these spatial windows:
+individual motif ``subpeaks'' within these spatial windows:
 
 <<subpeaks>>=
 subpeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)

@@ -1,4 +1,4 @@
-.onLoad = function(libname, pkgname) {
+.onLoad <- function(libname, pkgname) {
     options(java.parameters = "-Xmx8G")
     rJava::.jpackage(pkgname, lib.loc=libname)
 }
@@ -692,7 +692,7 @@ dnaRevComp <- function(s) {
     if (length(s) > 1) {return(vapply(s, dnaRevComp, ''))}
     comp <- c(
         a='t', A='T', c='g', C='G', g='c', G='C',
-        n='N', N='N', t='a', T='A', `[`=']', `]`='[', `-`='-'
+        n='n', N='N', t='a', T='A', `[`=']', `]`='[', `-`='-'
     )
     return(paste(
         rev(comp[ strsplit(s, split='')[[1]] ]),
