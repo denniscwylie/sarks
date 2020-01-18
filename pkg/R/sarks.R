@@ -1032,6 +1032,10 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #'     the average silhouette score
 #'     (\url{https://en.wikipedia.org/wiki/Silhouette_(clustering)}).
 #'
+#' @param directional logical value: if FALSE, counts occurrences of
+#'     either kmer or its reverse-complement. Makes sense only if
+#'     applying to DNA sequences!
+#'
 #' @return list of character vectors partitioning kmers into clusters:
 #'     the character vector at the i-th element of the output list
 #'     contains the elements from kmers assigned to cluster i.
@@ -1042,33 +1046,27 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #'     'ACCTGC', 'CACCTGC', 'TGGCCTG', 'CACCTG', 'TCCAGC',
 #'     'CTGGAAC', 'CACCTGG', 'CTGGTCTA', 'GTCCTG', 'CTGGAAG', 'TTCCAGC'
 #' )
-#' clusterKmers(kmers)
+#' clusterKmers(kmers, directional=FALSE)
 #'
 #' @export
-clusterKmers <- function(kmers, k=4, nClusters=NULL) {
+clusterKmers <- function(kmers, k=4, nClusters=NULL, directional=TRUE) {
     kmers <- unique(kmers)
     if (length(kmers) <= 3 && (length(nClusters) == 0 || nClusters > 3)) {
         stop('Must specify nClusters <= 3 for length(kmers) <= 3.')
     }
-    tetraCounts <- kmerCounts(k, kmers, overlap=TRUE)
-    unorientedTetramers <- sort(unique(vapply(
-            colnames(tetraCounts), function(km) {min(km, dnaRevComp(km))}, '')))
-    tetraCountsUnorient <- list()
-    for (col in unorientedTetramers) {
-        if (col == dnaRevComp(col)) {
-            tetraCountsUnorient[[col]] <- tetraCounts[ , col]
-        } else {
-            tetraCountsUnorient[[col]] <-
-                    tetraCounts[ , col] + tetraCounts[ , dnaRevComp(col)]
-        }
+    tetraCounts <- kmerCounts(k, kmers, directional=directional, overlap=TRUE)
+    tetraCounts <- data.frame(tetraCounts, row.names=kmers)
+    if (!directional) {
+        unorientedTetramers <- sort(unique(vapply(
+            colnames(tetraCounts), function(km) {min(km, dnaRevComp(km))}, ''
+        )))
+        tetraCounts <- tetraCounts[ , unorientedTetramers]
     }
-    tetraCountsUnorient <- data.frame(tetraCountsUnorient, row.names=kmers)
-    tetraCountsUnorient <-
-            tetraCountsUnorient[ , colSums(tetraCountsUnorient) > 0]
-    pq <- as.matrix(tetraCountsUnorient) %*% t(as.matrix(tetraCountsUnorient))
-    p2 <- rowSums(tetraCountsUnorient^2)
+    tetraCounts <- tetraCounts[ , colSums(tetraCounts) > 0]
+    pq <- as.matrix(tetraCounts) %*% t(as.matrix(tetraCounts))
+    p2 <- rowSums(tetraCounts^2)
     d <- 1 - pq / (outer(p2, p2, `+`) - pq)
-    rownames(d) <- colnames(d) <- rownames(tetraCountsUnorient)
+    rownames(d) <- colnames(d) <- rownames(tetraCounts)
     diag(d) <- Inf
     d[d == 0] <- min(d[d > 0]) / 2
     diag(d) <- 0

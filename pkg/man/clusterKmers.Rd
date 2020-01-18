@@ -4,7 +4,7 @@
 \alias{clusterKmers}
 \title{Cluster k-mers}
 \usage{
-clusterKmers(kmers, k = 4, nClusters = NULL)
+clusterKmers(kmers, k = 4, nClusters = NULL, directional = TRUE)
 }
 \arguments{
 \item{kmers}{character vector of k-mers to partition into clusters}
@@ -16,6 +16,10 @@ which to calculate Jaccard distances for clustering}
 to NULL (default value), selects number of clusters to maximize
 the average silhouette score
 (\url{https://en.wikipedia.org/wiki/Silhouette_(clustering)}).}
+
+\item{directional}{logical value: if FALSE, counts occurrences of
+either kmer or its reverse-complement. Makes sense only if
+applying to DNA sequences!}
 }
 \value{
 list of character vectors partitioning kmers into clusters:
@@ -37,6 +41,6 @@ kmers <- c(
     'ACCTGC', 'CACCTGC', 'TGGCCTG', 'CACCTG', 'TCCAGC',
     'CTGGAAC', 'CACCTGG', 'CTGGTCTA', 'GTCCTG', 'CTGGAAG', 'TTCCAGC'
 )
-clusterKmers(kmers)
+clusterKmers(kmers, directional=FALSE)
 
 }
