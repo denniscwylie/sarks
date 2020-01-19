@@ -823,15 +823,22 @@ public class Sarks {
             sb = new StringBuilder();
             sb.append(header);
         }
+        int hw0 = this.halfWindow;
+        int sl0 = this.spatialLength;
         for (int f=0; f<thresholds.length; f++) {
             HashMap filt = filters.get(f);
-            String hw = "" + (Integer)filt.get("halfWindow");
+            Integer hw = (Integer)filt.get("halfWindow");
             String ming = "" + (Double)filt.get("minGini");
-            String sl = "" + (Integer)filt.get("spatialLength");
+            Integer sl = (Integer)filt.get("spatialLength");
             String minsg = "" + (Double)filt.get("minSpatialGini");
             String suffix = kmax + "\t" +
                             hw + "\t" + ming + "\t" + thresholds[f][0] + "\t" +
                             sl + "\t" + minsg + "\t" + thresholds[f][1] + "\n";
+            if (hw != null && hw != this.halfWindow) {
+                this.reset(hw, sl, true);
+            } else if (sl != null && sl != this.spatialLength) {
+                this.resetSpatial(sl, true);
+            }
             for (int p=0; p<iFilt.get(f).size(); p++) {
                 int i = iFilt.get(f).get(p);
                 int s = this.sa[i];
@@ -855,6 +862,7 @@ public class Sarks {
                 }
             }
         }
+        this.reset(hw0, sl0, true);
         if (fileRoot != null) {
             peakWriter.close();
         } else {
@@ -1010,15 +1018,22 @@ public class Sarks {
             sb = new StringBuilder();
             sb.append(header);
         }
+        int hw0 = this.halfWindow;
+        int sl0 = this.spatialLength;
         for (int f=0; f<thresholds.length; f++) {
             HashMap filt = filters.get(f);
-            String hw = "" + (Integer)filt.get("halfWindow");
+            Integer hw = (Integer)filt.get("halfWindow");
             String ming = "" + (Double)filt.get("minGini");
-            String sl = "" + (Integer)filt.get("spatialLength");
+            Integer sl = (Integer)filt.get("spatialLength");
             String minsg = "" + (Double)filt.get("minSpatialGini");
             String suffix = kmax + "\t" +
                             hw + "\t" + ming + "\t" + thresholds[f][0] + "\t" +
                             sl + "\t" + minsg + "\t" + thresholds[f][1] + "\n";
+            if (hw != null && hw != this.halfWindow) {
+                this.reset(hw, sl, true);
+            } else if (sl != null && sl != this.spatialLength) {
+                this.resetSpatial(sl, true);
+            }
             for (int p=0; p<mergedKmerIntervals.get(f).size(); p++) {
                 int[] sInterval = mergedKmerIntervals.get(f).get(p);
                 int i = this.saInv[sInterval[0]];
@@ -1042,6 +1057,7 @@ public class Sarks {
                 }
             }
         }
+        this.reset(hw0, sl0, true);
         if (fileRoot != null) {
             peakWriter.close();
         } else {
