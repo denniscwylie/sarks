@@ -39,9 +39,8 @@ test_clusterKmers <- function() {
         'ACCTGC', 'CACCTGC', 'TGGCCTG', 'CACCTG', 'TCCAGC',
         'CTGGAAC', 'CACCTGG', 'CTGGTCTA', 'GTCCTG', 'CTGGAAG', 'TTCCAGC'
     )
-    kmcl <- clusterKmers(kmers)
+    kmcl <- clusterKmers(kmers, directional=FALSE)
     clLens <- vapply(kmcl, length, 0)
     checkEquals(length(kmcl), 6)
     checkEquals(max(clLens), 7)
 }
-
