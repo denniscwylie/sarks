@@ -6,7 +6,7 @@ suppressMessages(library(msa))
 ## -----------------------------------------------------------------
 args = commandArgs(TRUE)
 if (all(args %in% c('-h', '--help'))) {
-    cat('Usage: cluster_seqs.R <tsv with kmer column> <number of clusters>\n')
+    cat('Usage: cluster_seqs.R [options] <tsv with kmer column> <number of clusters>\nOptions:\n  -d      directional mode\n  -k INT  sub-k-mer length to use in clustering [4]\n')
 } else {
 
 if ('-k' %in% args) {
@@ -15,6 +15,11 @@ if ('-k' %in% args) {
     args = args[c(-(kargindex-1), -kargindex)]
 } else {
     k = 4
+}
+directional = FALSE
+if ('-d' %in% args) {
+    directional = TRUE
+    args = setdiff(args, '-d')
 }
 dopfm = FALSE
 if ('--pfm' %in% args) {
@@ -55,6 +60,7 @@ kmerCounts = function(seq, k, overlap=TRUE) {
 }
 
 orientSeqs = function(seqs, representative, k=4) {
+    if (length(seqs) == 1) {return(seqs)}
     names(seqs) = seqs
     seqKmers = kmerCounts(seqs, k, overlap=TRUE)
     revComps = sapply(seqs, dnaRevComp)
@@ -69,6 +75,7 @@ orientSeqs = function(seqs, representative, k=4) {
     }
     return(ifelse(reverse, revComps, seqs))
 }
+if (directional) {orientSeqs = function(seqs, ...) {seqs}}
 
 ## -----------------------------------------------------------------
 if (peaksFile != '-') {
@@ -85,35 +92,40 @@ if (peaksFile != '-') {
 }
 
 kmers = unique(peaks$kmer)
-kmers = unique(sapply(kmers, function(km) {min(km, dnaRevComp(km))}))
+if (!directional) {
+    kmers = unique(sapply(kmers, function(km) {min(km, dnaRevComp(km))}))
+}
 names(kmers) = kmers
 kmers = kmers[nchar(kmers) >= k]
 
 ## -----------------------------------------------------------------
 tetraCounts = kmerCounts(kmers, k, overlap=TRUE)
-unorientedTetramers = sort(unique(sapply(
-    colnames(tetraCounts),
-    function(km) {min(km, dnaRevComp(km))}
-)))
+if (!directional) {
+    unorientedTetramers = sort(unique(sapply(
+        colnames(tetraCounts),
+        function(km) {min(km, dnaRevComp(km))}
+    )))
 
-tetraCountsUnorient = list()
-for (col in unorientedTetramers) {
-    if (col == dnaRevComp(col)) {
-        tetraCountsUnorient[[col]] = tetraCounts[[col]]
-    } else {
-        tetraCountsUnorient[[col]] = tetraCounts[[col]] +
-                                     tetraCounts[[dnaRevComp(col)]]
+    tetraCountsUnorient = list()
+    for (col in unorientedTetramers) {
+        if (col == dnaRevComp(col)) {
+            tetraCountsUnorient[[col]] = tetraCounts[[col]]
+        } else {
+            tetraCountsUnorient[[col]] = tetraCounts[[col]] +
+                                         tetraCounts[[dnaRevComp(col)]]
+        }
     }
+    tetraCounts = tetraCountsUnorient
 }
-tetraCountsUnorient = data.frame(tetraCountsUnorient, row.names=kmers)
-tetraCountsUnorient = tetraCountsUnorient[ , colSums(tetraCountsUnorient) > 0]
+tetraCounts = data.frame(tetraCounts, row.names=kmers)
+tetraCounts = tetraCounts[ , colSums(tetraCounts) > 0]
 
 ## -----------------------------------------------------------------
-## d = suppressMessages(philentropy::distance(tetraCountsUnorient, method='jaccard'))
-pq = as.matrix(tetraCountsUnorient) %*%t(as.matrix(tetraCountsUnorient))
-p2 = rowSums(tetraCountsUnorient^2)
+## d = suppressMessages(philentropy::distance(tetraCounts, method='jaccard'))
+pq = as.matrix(tetraCounts) %*%t(as.matrix(tetraCounts))
+p2 = rowSums(tetraCounts^2)
 d = 1 - pq / (outer(p2, p2, `+`) - pq)
-rownames(d) = colnames(d) = rownames(tetraCountsUnorient)
+rownames(d) = colnames(d) = rownames(tetraCounts)
 diag(d) = Inf
 d[d == 0] = min(d[d > 0]) / 2
 diag(d) = 0

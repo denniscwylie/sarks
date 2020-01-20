@@ -1,5 +1,4 @@
 .onLoad <- function(libname, pkgname) {
-    options(java.parameters = "-Xmx8G")
     rJava::.jpackage(pkgname, lib.loc=libname)
 }
 
@@ -936,7 +935,7 @@ locateKmers <- function(kmers, seqs, directional=TRUE) {
         )
     }
     locations <- lapply(patterns, regexLocate, seqs=seqs)
-    for (kmer in kmers) {locations[[kmer]]$kmer <- kmer}
+    for (kmer in kmers) {locations[[kmer]]$kmer <- rep(kmer, nrow(locations))}
     out <- do.call(rbind, locations)[ , c('seqid', 'kmer', 'location')]
     rownames(out) <- NULL
     return(out)
@@ -984,7 +983,7 @@ locateClusters <- function(clusters, seqs, directional=TRUE) {
         }
         pattern <- paste(kmers, collapse='|')
         locations <- regexLocate(pattern, seqs)
-        locations$cluster <- cn
+        locations$cluster <- rep(cn, nrow(locations))
         out[[cn]] <- locations
     }
     out <- do.call(rbind, out)[ , c('seqid', 'cluster', 'location')]

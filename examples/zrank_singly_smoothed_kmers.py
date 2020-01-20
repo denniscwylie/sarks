@@ -25,10 +25,15 @@ peaks = peaks.loc[peaks['spatialLength'] == 0]
 
 perms = pd.read_csv(permFile, sep='\t', header=0, index_col=None)
 perms = perms.loc[perms['spatialLength'] == 0]
-permMeans = perms[['halfWindow', 'minGini', '1.0']].groupby(['halfWindow', 'minGini'])\
-                                                   .agg(np.mean).iloc[:, 0]
-permSds = perms[['halfWindow', 'minGini', '1.0']].groupby(['halfWindow', 'minGini'])\
-                                                 .agg(np.std).iloc[:, 0]
+
+maxCol = 'max' if 'max' in perms.columns else '1.0'
+
+permMeans = perms[['halfWindow', 'minGini', maxCol]]\
+            .groupby(['halfWindow', 'minGini'])\
+            .agg(np.mean).iloc[:, 0]
+permSds = perms[['halfWindow', 'minGini', maxCol]]\
+          .groupby(['halfWindow', 'minGini'])\
+          .agg(np.std).iloc[:, 0]
 
 peaks['zmax'] = (peaks['windowed'] -
                  permMeans.loc[list(zip(peaks['halfWindow'], peaks['minGini']))].values) /\
