@@ -4,13 +4,17 @@
 \alias{regexLocate}
 \title{Locate occurrences of regular expression}
 \usage{
-regexLocate(regex, seqs)
+regexLocate(regex, seqs, showMatch = FALSE)
 }
 \arguments{
 \item{regex}{character vector of regular expressions to search for}
 
 \item{seqs}{named character vector of sequences in which to locate
 regex}
+
+\item{showMatch}{logical value; if true add additional column to
+output indicating what the exact regex match for each
+occurrence}
 }
 \value{
 If only a single regex is searched for: data.frame with two

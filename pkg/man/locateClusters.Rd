@@ -4,7 +4,7 @@
 \alias{locateClusters}
 \title{Locate occurrences of specified clusters of k-mers}
 \usage{
-locateClusters(clusters, seqs, directional = TRUE)
+locateClusters(clusters, seqs, directional = TRUE, showMatch = FALSE)
 }
 \arguments{
 \item{clusters}{list of character vectors of k-mers to search for}
@@ -14,6 +14,10 @@ locateClusters(clusters, seqs, directional = TRUE)
 \item{directional}{logical value: if FALSE, counts occurrences of
 either k-mers within each cluster or their reverse-complements.
 Makes sense only if applying to DNA sequences!}
+
+\item{showMatch}{logical value; if true add additional column to
+output indicating what the exact regex match for each
+occurrence}
 }
 \value{
 data.frame with three columns: `seqid' containing the name

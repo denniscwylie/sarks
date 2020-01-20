@@ -4,7 +4,7 @@
 \alias{locateKmers}
 \title{Locate occurrences of specified k-mers}
 \usage{
-locateKmers(kmers, seqs, directional = TRUE)
+locateKmers(kmers, seqs, directional = TRUE, showMatch = FALSE)
 }
 \arguments{
 \item{kmers}{character vector of k-mers to search for}
@@ -15,6 +15,10 @@ kmer}
 \item{directional}{logical value: if FALSE, counts occurrences of
 either kmers or their reverse-complements. Makes sense only if
 applying to DNA sequences!}
+
+\item{showMatch}{logical value; if true add additional column to
+output indicating what the exact regex match for each
+occurrence}
 }
 \value{
 data.frame with three columns: `seqid' containing the name

@@ -698,6 +698,83 @@ tested are included in the \R{filters} employed in
 \R{estimateFalsePositiveRate}, no further adjustment for multiple
 testing should be applied to the estimated false positive rates.
 
+\subsection{Clustering similar $k$-mers into broader motifs}
+\label{sec:kmer-clustering}
+
+While there is essentially one unambiguous $k$-mer
+\texttt{"CATACTGAGA"} of note in the
+\R{simulatedSeqs}-\R{simulatedScores} example, real data sets will
+generally have more complex sequence motifs allowing for some
+variation both in length and composition of correlative sequence
+patterns. When applying SArKS methodology to real data, many similar
+$k$-mers representing the same basic motif may result: \R{sarks}
+provides functions for clustering these $k$-mers into broader motif patterns.
+
+For example, let's say we had obtained the following $k$-mers using
+\R{sarks}:
+<<kmers-for-clustering>>=
+kmers <- c(
+    'CAGCCTGG', 'CCTGGAA', 'CAGCCTG', 'CCTGGAAC', 'CTGGAACT',
+    'ACCTGC', 'CACCTGC', 'TGGCCTG', 'CACCTG', 'TCCAGC',
+    'CTGGAAC', 'CACCTGG', 'CTGGTCTA', 'GTCCTG', 'CTGGAAG', 'TTCCAGC'
+)
+@ 
+We could cluster these like so:
+<<kmer-clustering>>=
+kmClust <- clusterKmers(kmers, directional=FALSE)
+## directional=FALSE indicates that we want to treat each kmer
+##                   as equivalent to its reverse-complement
+kmClust
+@ 
+
+The resulting object \R{kmClust} is a named list: each element of this
+list is a character vector listing the elements of the vector
+\R{kmers} composing the corresponding cluster, while the name of the
+cluster is a $k$-mer from \R{kmers} found to be particularly
+representative of the cluster.
+
+\R{sarks} then allows us to count how many times each motif (=cluster
+of $k$-mers) occurs in each sequence:
+
+<<cluster-counting>>=
+clCounts <- clusterCounts(kmClust, simulatedSeqs, directional=FALSE)
+## directional=FALSE to count hits of either a kmer from the cluster
+##                   or the reverse-complement of such a kmer
+## clCounts is a matrix with:
+## - one row for each sequence in simulatedSeqs
+## - one column for each *cluster* in kmClust
+head(clCounts)
+@ 
+
+Can also get specific information about the location of these matches:
+<<cluster-locating>>=
+clLoci <- locateClusters(
+    kmClust, simulatedSeqs, directional=FALSE, showMatch=TRUE
+)
+## showMatch=TRUE includes column specifying exactly what subsequence of
+##                of simulatedSeqs registered as a hit;
+##                this can be very slow, so default is showMatch=FALSE
+clLoci
+@ 
+
+This shows us that, for example, there is one match for the cluster
+\texttt{"CAGCCTGG"} spanning sequence characters 143-150 of sequence
+\texttt{"25"}, and that this is an exact match of the $k$-mer
+\texttt{"CAGCCTGG"} in its forward orientation.
+
+These results also tells us that there are three matches of $k$-mers
+from the cluster \texttt{"CTGGAAC"}, in sequences \texttt{"6"},
+\texttt{"16"}, and \texttt{"28"}. The specific $k$-mers found are
+different in each case:
+\begin{itemize}
+\item sequence \texttt{"6"} has a hit for the
+the reverse-complement of $k$-mer \texttt{"TTCCAGC"}, while
+\item sequence \texttt{"16"} has a hit for 
+$k$-mer \texttt{"CTGGAACT"} in reverse-complement orientation and
+\item sequence \texttt{"28"} has a hit for
+\texttt{"CTGGAAC"} also in reverse-complement orientation.
+\end{itemize}
+
 \section{How \R{sarks} works}
 \label{sec:how-it-works}
 

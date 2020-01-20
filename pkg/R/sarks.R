@@ -859,6 +859,10 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
 #' @param seqs named character vector of sequences in which to locate
 #'     regex
 #'
+#' @param showMatch logical value; if true add additional column to
+#'     output indicating what the exact regex match for each
+#'     occurrence (can be slow)
+#'
 #' @return If only a single regex is searched for: data.frame with two
 #'     columns: `seqid' containing the name of the sequence from seqs
 #'     in which the regex was found and `location' giving the 1-based
@@ -870,13 +874,17 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
 #' reLoci <- regexLocate('AAAAA|TTTTT', simulatedSeqs)
 #'
 #' @export
-regexLocate <- function(regex, seqs) {
+regexLocate <- function(regex, seqs, showMatch=FALSE) {
     if (length(names(seqs)) == 0) {stop("seqs must be named vector.")}
     if (length(names(regex)) == 0) {names(regex) = regex}
     if (length(regex) > 1) {
-        out <- lapply(regex, regexLocate, seqs=seqs)
-        for (rn in names(regex)) {out[[rn]]$regex <- rn}
-        return(do.call(rbind, out)[ , c('seqid', 'regex', 'location')])
+        out <- lapply(regex, regexLocate, seqs=seqs, showMatch=showMatch)
+        for (rn in names(regex)) {out[[rn]]$regex <- rep(rn, nrow(out[[rn]]))}
+        outCols <- c('seqid', 'regex', 'location')
+        if (showMatch) {outCols <- c(outCols, 'match')}
+        out <- do.call(rbind, out)[ , outCols]
+        rownames(out) = NULL
+        return(out)
     }
     inseqs <- seqs
     frags <- strsplit(
@@ -895,18 +903,26 @@ regexLocate <- function(regex, seqs) {
             return(integer(0))
         }
     }))
-    return(data.frame(
+    out <- data.frame(
         seqid = names(fragLocs),
         location = fragLocs,
         stringsAsFactors = FALSE
-    ))
+    )
+    if (showMatch) {
+        out$match <- mapply(out$seqid, out$location, FUN=function(s, i) {
+            sub(paste0('^(', toupper(regex), ').*'),
+                '\\1',
+                toupper(substr(seqs[[s]], i, nchar(seqs[[s]]))))
+        })
+    }
+    return(out)
 }
 
 
 #' Locate occurrences of specified k-mers
 #'
 #' Find locations of matches of vector of k-mers in each element of a
-#' named character vector.
+#' named character vector. Not case sensitive.
 #'
 #' @param kmers character vector of k-mers to search for
 #'
@@ -917,6 +933,10 @@ regexLocate <- function(regex, seqs) {
 #'     either kmers or their reverse-complements. Makes sense only if
 #'     applying to DNA sequences!
 #'
+#' @param showMatch logical value; if true add additional column to
+#'     output indicating what the exact regex match for each
+#'     occurrence (can be slow)
+#'
 #' @return data.frame with three columns: `seqid' containing the name
 #'     of the sequence from seqs in which the k-mer was found; `kmer'
 #'     indicating the k-mer located; and `location' giving the 1-based
@@ -926,7 +946,7 @@ regexLocate <- function(regex, seqs) {
 #' kmerLoci <- locateKmers(c('AAAAA', 'CATACTGAGA'), simulatedSeqs)
 #'
 #' @export
-locateKmers <- function(kmers, seqs, directional=TRUE) {
+locateKmers <- function(kmers, seqs, directional=TRUE, showMatch=FALSE) {
     patterns <- structure(kmers, names=kmers)
     if (!directional) {
         patterns <- structure(
@@ -934,9 +954,13 @@ locateKmers <- function(kmers, seqs, directional=TRUE) {
             names=kmers
         )
     }
-    locations <- lapply(patterns, regexLocate, seqs=seqs)
-    for (kmer in kmers) {locations[[kmer]]$kmer <- rep(kmer, nrow(locations))}
-    out <- do.call(rbind, locations)[ , c('seqid', 'kmer', 'location')]
+    locations <- lapply(patterns, regexLocate, seqs=seqs, showMatch=showMatch)
+    for (kmer in kmers) {
+        locations[[kmer]]$kmer <- rep(kmer, nrow(locations[[kmer]]))
+    }
+    outCols <- c('seqid', 'kmer', 'location')
+    if (showMatch) {outCols <- c(outCols, 'match')}
+    out <- do.call(rbind, locations)[ , outCols]
     rownames(out) <- NULL
     return(out)
 }
@@ -945,7 +969,7 @@ locateKmers <- function(kmers, seqs, directional=TRUE) {
 #' Locate occurrences of specified clusters of k-mers
 #'
 #' Find locations of matches of list of character vectors of k-mers in
-#' each element of a named character vector.
+#' each element of a named character vector. Not case sensitive.
 #'
 #' @param clusters list of character vectors of k-mers to search for
 #'
@@ -954,6 +978,10 @@ locateKmers <- function(kmers, seqs, directional=TRUE) {
 #' @param directional logical value: if FALSE, counts occurrences of
 #'     either k-mers within each cluster or their reverse-complements.
 #'     Makes sense only if applying to DNA sequences!
+#'
+#' @param showMatch logical value; if true add additional column to
+#'     output indicating what the exact regex match for each
+#'     occurrence (can be slow)
 #'
 #' @return data.frame with three columns: `seqid' containing the name
 #'     of the sequence from seqs in which the match was found;
@@ -974,7 +1002,7 @@ locateKmers <- function(kmers, seqs, directional=TRUE) {
 #' clusterLoci <- locateClusters(clusters, seqs)
 #'
 #' @export
-locateClusters <- function(clusters, seqs, directional=TRUE) {
+locateClusters <- function(clusters, seqs, directional=TRUE, showMatch=FALSE) {
     out <- list()
     for (cn in names(clusters)) {
         kmers <- clusters[[cn]]
@@ -982,11 +1010,13 @@ locateClusters <- function(clusters, seqs, directional=TRUE) {
             kmers <- sort(unique(c(kmers, dnaRevComp(kmers))))
         }
         pattern <- paste(kmers, collapse='|')
-        locations <- regexLocate(pattern, seqs)
+        locations <- regexLocate(pattern, seqs, showMatch=showMatch)
         locations$cluster <- rep(cn, nrow(locations))
         out[[cn]] <- locations
     }
-    out <- do.call(rbind, out)[ , c('seqid', 'cluster', 'location')]
+    outCols <- c('seqid', 'cluster', 'location')
+    if (showMatch) {outCols <- c(outCols, 'match')}
+    out <- do.call(rbind, out)[ , outCols]
     rownames(out) <- NULL
     return(out)
 }
