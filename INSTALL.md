@@ -1,7 +1,7 @@
 # sarks installation
 
 ## Requirements
----------------
+
 - for R version: Java >= 1.8, R >= 3.3.0 with rJava successfully installed
   - relies on CRAN package
     [**remotes**](https://cran.r-project.org/web/packages/remotes/index.html)
@@ -33,7 +33,6 @@
    while installing, or the [abridged markdown vignette](sarks_vignette.md)).
 
 ## Installation: Java
----------------
 
 1. Copy sarks.jar from pkg/inst/java/ subdirectory of this repository
    to convenient location
