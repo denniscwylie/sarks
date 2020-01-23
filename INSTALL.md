@@ -29,7 +29,8 @@
    ```
 
 2. Test the installation by going through the simulated data example
-   as described in [README.md](README.md).
+   as described in the vignette (either the pdf version, if you built it
+   while installing, or the [abridged markdown vignette](sarks_vignette.md)).
 
 ## Installation: Java
 ---------------
