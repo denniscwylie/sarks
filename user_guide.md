@@ -98,10 +98,10 @@ containing the scores for those sequences.
 
 Additional optional flags/arguments:
 
-- **-e**__
+- **-e**  
   fixes random number generator seed to generate reproducible output  
   default: no seed
-- **-t**__
+- **-t**  
   number of threads to use during permutational analyses
 
 ## java -jar sarks.jar test
@@ -122,11 +122,11 @@ values. Additional required arguments:
   
 Additional optional flags/arguments:
 
-- **-e**__
+- **-e**  
   fixes random number generator seed to generate reproducible output,
   should take a different value from the seed used in **select** step.__
   default: no seed
-- **-t**__
+- **-t**  
   number of threads to use during permutational analyses
 
 Aside from the output saved to the specified output directory,
