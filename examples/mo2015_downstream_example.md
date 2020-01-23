@@ -60,7 +60,7 @@ The arguments here are:
   output directory to be created/overwritten
 - **-t**  
   number of threads to use for permutational analyses
-- **-e**__
+- **-e**  
   random number generator seed for reproducibility
 
 - **NOTE:**  

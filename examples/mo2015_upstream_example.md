@@ -64,7 +64,7 @@ The arguments here are:
   output directory to be created/overwritten
 - **-t**  
   number of threads to use for permutational analyses
-- **-e**__
+- **-e**  
   random number generator seed for reproducibility
 
 only used -r 50 permutations for setting threshold for speed here.
