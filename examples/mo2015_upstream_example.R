@@ -21,8 +21,8 @@ library(rJava)
 .jinit()
 
 library(sarks)
-nThreads = 4  ## set based on how many processors you have available
-              ## and would like to devote to running this script
+nThreads <- 4  ## set based on how many processors you have available
+               ## and would like to devote to running this script
 
 ## initialize sarks object using Sarks constructor:
 sarks <- Sarks(
@@ -151,7 +151,7 @@ fpr$ci
 
 
 ## =============================================================================
-bi = blockInfo(sarks, 'ENSMUST00000024702', filters, thresholds)
+bi <- blockInfo(sarks, 'ENSMUST00000024702', filters, thresholds)
 
 library(ggplot2)
 ggo <- ggplot(bi, aes(x=wi+1))  ## +1 because R indexing is 1-based

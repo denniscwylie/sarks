@@ -21,8 +21,8 @@ library(rJava)
 .jinit()
 
 library(sarks)
-nThreads = 4  ## set based on how many processors you have available
-              ## and would like to devote to running this script
+nThreads <- 4  ## set based on how many processors you have available
+               ## and would like to devote to running this script
 
 ## initialize sarks object using Sarks constructor:
 sarks <- Sarks(
