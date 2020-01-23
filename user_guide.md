@@ -24,9 +24,9 @@ you can take a look at the [abridged markdown vignette](sarks_vignette.md).
 Included in the sarks project examples/ folder are several scripts for
 usage at the command line:
 
-- [java -jar sarks.jar **select**](#java-jar-sarksjar-select)__
+- [java -jar sarks.jar **select**](#java--jar-sarksjar-select)__
   main step for motif discovery
-- [java -jar sarks.jar **test**](#java-jar-sarksjar-test)__
+- [java -jar sarks.jar **test**](#java--jar-sarksjar-test)__
   estimate false positive rate associated with motif set determined
   by **select** command above
 - [**extract_kmers.py**](#extract\_kmerspy)  
