@@ -221,7 +221,7 @@ permutationDistribution <- function(sarks, reps, filters, seed=NULL) {
 #' thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
 #'
 #' @export
-permutationThresholds <- function(filters, permDist, nSigma) {
+permutationThresholds <- function(filters, permDist, nSigma=4.0) {
     obj <- rJava::J('dcw/sarks/SarksUtilities')$thresholdsFromPermutations(
             permDist$.java, nSigma)
     jThresh <- rJava::J('dcw/sarks/Sarks')$printThresholds(filters, obj, NULL)

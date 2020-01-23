@@ -2,119 +2,41 @@
 
 ## Requirements
 ---------------
-- python3.4 or later
-  - setup.py should install required python modules if necessary
-    (biopython, editdistance, intervaltree, numpy, pandas, pyfaidx, scipy)
-- examples/cluster_seqs.R script uses
-  [msa](https://bioconductor.org/packages/release/bioc/html/msa.html)
-  and
-  [cluster](https://cran.r-project.org/web/packages/cluster/index.html)
-  R libraries
-- SeqAn C++ library (https://www.seqan.de/) **version 1.3.x** or **1.4.x**
-  - on Ubuntu 16.04 or 18.04, can be installed using
+- for R version: Java >= 1.8, R >= 3.3.0 with rJava successfully installed
+  - relies on CRAN package
+    [**remotes**](https://cran.r-project.org/web/packages/remotes/index.html)
+    for installation
+  - depends on CRAN packages
+    [**rJava**](https://cran.r-project.org/web/packages/rJava/index.html),
+    [**utils**](https://www.rdocumentation.org/packages/utils/versions/3.6.2),
+    [**cluster**](https://cran.r-project.org/web/packages/cluster/index.html),
+    [**binom**](https://cran.r-project.org/web/packages/binom/index.html)
+  - and Bioconductor package
+    [**IRanges**](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
+- for Java version: Java >= 1.8
 
-    ```bash
-	apt-get install seqan-dev
-	```
-	
-  - If apt-cache is available on your system, can check what version
-    of seqan (if any) is installed using
+## Installation: R
 
-    ```bash
-    apt-cache policy seqan-dev
-    ```
+1. Run the following R code within an R session:
+   ```R
+   ## if you don't already have remotes installed, uncomment and run:
+   # install.packages('remotes')
+   library(remotes)
+   install_github('denniscwylie/sarks/pkg')
+   ## alternatively, to build vignette as well, try uncommenting and running:
+   # install_github('denniscwylie/sarks/pkg', build_vignettes=TRUE)
+   
+   ```
 
-    Alternatively, on systems with dpkg, may be able to check seqan version using
+2. Test the installation by going through the simulated data example
+   as described in [README.md](README.md).
 
-    ```bash
-	dpkg -p seqan-dev
-	```
-
-  - <a name="seqan-download"></a>
-    If the correct seqan version is not available for your system via
-    a package manager, you can download
-    [packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2](http://packages.seqan.de/seqan-library/seqan-library-1.4.2.tar.bz2)
-    - sarks only needs to be able to access the include directory, so
-      after downloading, just uncompress and untar the file in
-      whatever location you prefer to keep it:
-
-      ```bash
-	  bunzip2 seqan-library-1.4.2.tar.bz2
-	  tar -xf seqan-library-1.4.2.tar
-	  ```
-
-    - if installed in a local directory, may need to edit the sarks
-      setup.py script to indicate the location of the seqan include
-      directory (see [Installation step 3](#install-step-3) below)
-- GNU make and g++ for compiling suffix-array.cpp and windginiimp.cpp utilities
-- installation has been tested on unix systems, may need to be modified for others
-
-## Installation
+## Installation: Java
 ---------------
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/denniscwylie/sarks.git
-   ```
-
-2. Move to source directory:
-
-   ```bash
-   cd sarks
-   ```
-
-3. <a name="install-step-3"></a>
-   *If* SeqAn C++ library (v1.3.x or v1.4.x) is locally installed
-   (e.g., if you downloaded and extracted it as described in
-   [Requirements above](#seqan-download)):
-
-   Open setup.py and edit the line
-
-   ```python
-   incdir = ''
-   ```
-
-   replacing the empty string '' with the correct location on your system:
-
-   ```python
-   incdir = '-I/path/to/seqan-library-1.4.2/include'
-   ```
-
-   (replacing /path/to/ with the appropriate location in which you
-   have the seqan library downloaded; a commented-out example of how
-   to do so is shown in setup.py).
-
-4. Install using pip3 to run setup.py; recommend building local and editable version
-
-   ```bash
-   pip3 install --user -e .
-   ```
-
-   If all goes well this should both set up the python module sarks and
-   run make to build the utilities suffix-array and windginiimp.
+1. Copy sarks.jar from pkg/inst/java/ subdirectory of this repository
+   to convenient location
    
-   These two executables should have shown up in the directory to which the Python code
-
-   (*run code below in Python interpreter*)
-
-   ```python
-   import site
-   site.USER_BASE + '/bin'
-   ```
-
-   evaluates (likely `$HOME/.local/bin`).
-
-5. Make sure that the path for the directory indicated by the Python code
-
-   (*run code below in Python interpreter*)
-
-   ```python
-   import site
-   site.USER_BASE + '/bin'
-   ```
-   is in your PATH. This is necessary so that the suffix-array and windginiimp
-   utilities can be run by sarks.
-
-6. Test the installation by going through the simulated data example
-   as described in [README.md](README.md).
+2. Test the installation by going through the simulated data example
+   as describedin [README.md](README.md)
+   

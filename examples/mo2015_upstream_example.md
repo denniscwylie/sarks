@@ -14,9 +14,7 @@ Here we take as an example the upstream mo2015 sequences:
   the upstream sequences are three times larger than the downstream
   sequences; also we will be using spatial smoothing for this
   example. For these reasons, this SArKS example will take both **more
-  run-time (hours)** and **more memory** than the downstream example: I
-  would recommend using a machine with **at least 48 gigabytes of RAM**
-  available.
+  run-time (minutes)** and **more memory** than the downstream example.
 
 This time let's try a few parameter combinations:
 - use half-widths kappa=500,2500 from paper (**-w 500,2500**),
@@ -24,21 +22,26 @@ This time let's try a few parameter combinations:
 - select Gini impurity filter using gamma=1.1 (**-g 1.1**)
 
 ```bash
-python3 sarkselect.py -f mo2015_upstream_seqs.fa\
-                      -s mo2015_scores.tsv\
-                      -w 500,2500\
-                      -l 0,10\
-                      -g 1.1\
-                      -r 50\
-                      -z 4\
-                      -o mo2015_upstream_w500-2500_l0-10_selection
+java -Xmx8G -jar sarks.jar\
+     select\
+     -f mo2015_upstream_seqs.fa.gz\
+     -s mo2015_scores.tsv\
+     -w 500,2500\
+     -l 0,10\
+     -g 1.1\
+     -r 50\
+     -z 4\
+     -o mo2015_upstream_w500-2500_l0-10_selection\
+     -t 4\
+     -e 123
 ```
 
 The arguments here are:
 - **-f**  
   fasta file containing sequences to analyze
 - **-s**  
-  scores tsv file, col 1: sequence identifiers matching the fasta file,
+  scores tsv file,
+  col 1: sequence identifiers matching the fasta file,
   col 2: numeric scores
 - **-w**  
   half window width for first kernel smoothing pass (kappa in paper),
@@ -59,43 +62,48 @@ The arguments here are:
   supplementary Section S2.6, Eq (S24-S25) of paper
 - **-o**  
   output directory to be created/overwritten
+- **-t**  
+  number of threads to use for permutational analyses
+- **-e**__
+  random number generator seed for reproducibility
 
-only used -r 50 permutations for setting threshold for speed here;
-will still take a while (a couple of hours depending on machine used).
+only used -r 50 permutations for setting threshold for speed here.
 
 - **NOTE:**  
   generally recommend using more permutations (100+) for more stable
   threshold estimation, though smaller numbers can be useful as
-  'quick-and-dirty' first look.  Because of the less precise threshold
+  'quick-and-dirty' first look. Because of the less precise threshold
   estimation, lower permutation numbers can sometimes result in larger
-  false positive rates when tested with sarkstest.py below
+  false positive rates when tested with sarks.jar test command below.
 
-use zrank\_singly\_smoothed_kmers.py to rank un-spatially-smoothed k-mers;
-takes one argument: output directory from sarkselect.py:
+use zrank\_singly\_smoothed_kmers.py to rank un-spatially-smoothed
+k-mers; takes one argument: output directory from sarks.jar select
+command:
 
 ```bash
 python3 zrank_singly_smoothed_kmers.py mo2015_upstream_w500-2500_l0-10_selection |\
  column -t
 ```
 
-| kmer     | halfWindow | minGini |               zmax |
-|----------|------------|---------|--------------------|
-| CAGCCTGG |       2500 |     1.1 |  5.494459377263551 |
-| CCTGGAA  |       2500 |     1.1 |  5.294138133161724 |
-| CAGCCTG  |       2500 |     1.1 |  5.216757343625498 |
-| CCTGGAAC |       2500 |     1.1 |   5.11431098357672 |
-| CTGGAACT |       2500 |     1.1 |  5.058898492086731 |
-| ACCTGC   |       2500 |     1.1 | 4.4586489509093585 |
-| CACCTGC  |       2500 |     1.1 |  4.440212654765286 |
-| TGGCCTG  |       2500 |     1.1 |  4.397117363293189 |
-| CACCTG   |       2500 |     1.1 |  4.366021342281862 |
-| TCCAGC   |       2500 |     1.1 |  4.225106667938478 |
-| CTGGAAC  |       2500 |     1.1 |  4.202105388841035 |
-| CACCTGG  |       2500 |     1.1 |  4.160753168863357 |
-| CTGGTCTA |       2500 |     1.1 |  4.123361839483047 |
-| GTCCTG   |       2500 |     1.1 |  4.097998587735451 |
-| CTGGAAG  |       2500 |     1.1 |  4.085612733875691 |
-| TTCCAGC  |       2500 |     1.1 |  4.049845865130561 |
+| kmer     | halfWindow | minGini |              zmax |
+|----------+------------+---------+-------------------|
+| CAGCCTGG |       2500 |     1.1 | 5.441745218958897 |
+| CCTGGAA  |       2500 |     1.1 | 5.252588923599599 |
+| CAGCCTG  |       2500 |     1.1 | 5.179519880370132 |
+| CCTGGAAC |       2500 |     1.1 | 5.082784566055976 |
+| CTGGAACT |       2500 |     1.1 | 5.030460072171956 |
+| ACCTGC   |       2500 |     1.1 | 4.463664742078993 |
+| CACCTGC  |       2500 |     1.1 | 4.446257097956867 |
+| TGGCCTG  |       2500 |     1.1 | 4.405563429072066 |
+| CACCTG   |       2500 |     1.1 | 4.376200775586434 |
+| TCCAGC   |       2500 |     1.1 |   4.2431397501378 |
+| CTGGAAC  |       2500 |     1.1 | 4.221419397730943 |
+| CACCTGG  |       2500 |     1.1 | 4.182371837923922 |
+| CTGGTCTA |       2500 |     1.1 | 4.147064991934326 |
+| GTCCTG   |       2500 |     1.1 | 4.123114348600267 |
+| CTGGAAG  |       2500 |     1.1 | 4.111419336721907 |
+| TTCCAGC  |       2500 |     1.1 |  4.07764566340248 |
+| CCACCTGC |        500 |     1.1 | 4.023236346571467 |
 
 As in the downstream example, This shows each unique k-mer for which a
 peak was found without spatial smoothing (hence 'singly_smoothed' in
@@ -105,9 +113,9 @@ suffix scores obtained after randomly permuting scores assigned to
 sequences) for which the peak would have been called.
 
 - **NOTE:**  
+  if seed is not set or is changed,
   zmax values will vary somewhat b/c permutations are stochastic;
   possible that lowest k-mer may fall below 4 and thus not show up
-
 
 When spatial smoothing is employed, the process for merging adjacent
 peaks makes disrupts this method of motif ranking. I recommend always
@@ -141,13 +149,13 @@ Rscript cluster_seqs.R\
 
 This should result similar output to that shown below; may be slightly
 different due to stochasticity in permutational determination of
-significance threshold.
+significance threshold if seed is not set or is changed.
 
 ```
 Cluster 1: CAGCCTGG
 CAGCCTGG
 CAGCCTG-
-
+#
 Cluster 2: CTGGAAC
 CCTGGAA--
 CCTGGAAC-
@@ -156,19 +164,19 @@ CCTGGAAC-
 -CTGGAAG-
 GCTGGA---
 GCTGGAA--
-
+#
 Cluster 3: CACCTGC
 CACCTG-
 CACCTGG
 -ACCTGC
 CACCTGC
-
+#
 Cluster 4: CAGGCCA
 CAGGCCA
-
+#
 Cluster 5: CTGGTCTA
 CTGGTCTA
-
+#
 Cluster 6: CAGGAC
 CAGGAC
 ```
@@ -197,7 +205,8 @@ python3 extract_kmers.py\
  wc -l
 ```
 
-I got 865, though this will vary somewhat from run to run.
+I got 1237, though this will vary somewhat you use a different seed
+(or do not set the seed parameter).
 - By default, extract_kmers.py considers reverse complements to be
   equivalent (and prints only the lexicographically lower value
   of the identified k-mer and its reverse complement).
@@ -208,81 +217,63 @@ Can cluster this whole merged k-mer set:
 
 ```bash
 Rscript cluster_seqs.R\
- mo2015_upstream_w500-2500_l0-10_selection/merged_peaks.tsv\
- 100 >\
- mo2015_upstream_w500-2500_l0-10_selection/merged_kmer_clusters_100.txt
+ mo2015_upstream_w500-2500_l0-10_selection/merged_peaks.tsv >\
+ mo2015_upstream_w500-2500_l0-10_selection/merged_kmer_clusters.txt
 ```
 
 this may take a minute.
 
-You can take a look at the resulting merged_kmer_clusters_100.txt file
+You can take a look at the resulting merged_kmer_clusters.txt file
 to get a better sense of the output; I would suggest starting by
 finding the top few z-ranked k-mers---keep in mind they may be
 reverse-complemented!---among the clusters. For instance, I obtained
 the cluster
 
 ```
-Cluster 20: CAGGTGG
---CAGGTGGT
---CAGGTGG-
---CAGGTG--
--CCAGGTG--
--GCAGGTG--
-GGCAGGTG--
---CAGGTGC-
--GCAGGTGC-
--GCAGGTGG-
---GAGGTGG-
---GAGGTGGA
----AGGTGGA
---CAGGTGGA
+Cluster 1: GCAGGTGGA
+--GCAGGTGGA
+-CGCAGGTGGA
+GTGCAGGTGGA
+-TGCAGGTGGA
+--GCAGGTGG-
+--GCAGGTGGT
 ```
 
 containing the reverse complement GCAGGTGG of CCACCTGC.
 
-I chose the cluster size of 100 here to keep the average cluster size
-on the order of 10 for ease of viewing, as we currently use clustering
-mainly to help organize SArKS k-mer results for more efficient
-inspection. It may be useful to try a few different values for the
-number of clusters (or rely on average silhouette estimation
-by omitting number of clusters argument).
-
-This will take a few hours, but can once again test false positive rate:
+This will take a few minutes, but can once again test false positive
+rate:
 
 ```bash
-python3 sarkstest.py -f mo2015_upstream_seqs.fa\
-                     -s mo2015_scores.tsv\
-                     -w 500,2500\
-                     -l 0,10\
-                     -g 1.1\
-                     -r 250\
-                     -z 4\
-                     -i mo2015_upstream_w500-2500_l0-10_selection\
-                     -o mo2015_upstream_w500-2500_l0-10_testing
+java -jar sarks.jar\
+     test\
+     -f mo2015_upstream_seqs.fa.gz\
+     -s mo2015_scores.tsv\
+     -r 250\
+     -i mo2015_upstream_w500-2500_l0-10_selection\
+     -t 4\
+     -e 321
 ```
 
-After you've run this once, you can quickly extract results again via
-
-```bash
-python3 sarkstest.py -z 4\
-                     -i mo2015_upstream_w500-2500_l0-10_selection\
-                     -o mo2015_upstream_w500-2500_l0-10_testing
-```
-
-Resulting estimate of false positive rate should be similar to:
+Resulting estimate of number of false positives should be similar to:
 
 ```
-5 / 250
-point estimate: 2.0%
-95% CI: (0.653%, 4.605%)
+5
 ```
 
-Again, the exact numbers obtained may vary a bit.
-- Increasing the number of permutations used in sarkselect.py above
-  will result in more tightly controlled (not necessarily lower!)
-  false positive rates,
-- while increasing the number of permutations used in sarkstest.py
-  will result in more precise (tighter CI) estimates of false positive
-  rate.
-- Higher values of the -z parameter in sarkselect.py/sarkstest.py will
-  lead to lower false positive rates.
+This gives a point estimate of false positive rate (FPR) of 5 / 250
+or 2%.
+
+Using the Clopper-Pearson method for estimating a binomial
+confidence interval with sample size 250 and 5 positives, obtain
+(0.65%, 4.6%)
+
+Again, if you change (or don't set) the random number generator seed
+(-e), the exact numbers obtained may vary a bit.
+- Increasing the number of permutations used in the select command
+  above will result in more tightly controlled (not necessarily
+  lower!) FPRs,
+- while increasing the number of permutations used in the test command
+  will result in more precise (tighter CI) estimates of FPR.
+- Higher values of the -z parameter in select command will lead to
+  lower FPRs.

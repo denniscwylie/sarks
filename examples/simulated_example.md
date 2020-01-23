@@ -50,19 +50,21 @@ to confirm that the 10-mer CATACTGAGA correlates perfectly with y
 | 28    | 1          |
 | 29    | 1          |
 
-Now let's see if SArKS can find this motif using sarkselect.py,
+Now let's see if SArKS can find this motif using select command,
 dumping output (-o) to a new directory named sarks\_simulated\_selection
 
 ```bash
-python3 sarkselect.py -f simulated_seqs.fa\
-                      -s simulated_scores.tsv\
-                      -w 4\
-                      -l 0\
-                      -g 1.1\
-                      -p\
-                      -r 100\
-                      -z 2\
-                      -o sarks_simulated_selection
+java -jar sarks.jar\
+     select\
+     -f simulated_seqs.fa\
+     -s simulated_scores.tsv\
+     -w 4\
+     -l 0\
+     -g 1.1\
+     -r 100\
+     -z 2\
+     -e 123\
+     -o sarks_simulated_selection
 ```
 
 The arguments here are:
@@ -81,10 +83,6 @@ The arguments here are:
 - **-g**  
   parameter for calculation of Gini impurity filter (gamma in paper),
   can supply multiple values using commas (no spaces)
-- **-p**  
-  takes no argument; a logical flag indicating to remove redundant kmer output,
-  as described in supplementary Section S2.3 of the paper.
-  Most useful with small data sets like this example.
 - **-r**  
   number R of permutations to use in setting significance thresholds
   for peak-calling
@@ -93,6 +91,8 @@ The arguments here are:
   scores obtained after randomly permuting scores assigned to sequences)
   defining threshold as described in
   supplementary Section S2.6, Eq (S24-S25) of paper
+- **-e**  
+  random number generator seed for reproducibility
 - **-o**  
   output directory to be created/overwritten
 
@@ -104,6 +104,7 @@ ls sarks_simulated_selection
 
 should see:
 
+- merged\_peaks.tsv
 - peaks.tsv
 - permdists\_spatial\_windowed.tsv
 - permdists\_theta.tsv
@@ -122,7 +123,7 @@ consider only two:
 
 The other two files (..._windowed.tsv) contain summary statistics for
 the distribution of smoothed scores in each null permutation, and will
-be used by the sarkstest.py script below.
+be used by the sarks.jar test command below.
 
 Let's look at the peaks.tsv file (cutting off last few columns):
 
@@ -132,18 +133,22 @@ cut -f 1-9 sarks_simulated_selection/peaks.tsv |\
  column -t
 ```
 
-|    i |    s | kmer       | khat  | block |  wi | gini               | score | windowed |
-|------|------|------------|-------|-------|-----|--------------------|-------|----------|
-| 2255 | 4441 | CATACTGAGA | -     |    24 | 174 | -                  |     1 |          |
-| 2259 | 3455 | CATACTGAGA | -     |    20 | 192 | -                  |     1 |          |
-| 2260 | 5594 | CATACTGAGA | -     |    29 |  72 | -                  |     1 |          |
-| 2256 | 3544 | CATACTGAGA | 9.625 |    21 |  30 | 0.8641975309000001 |     1 |      1.0 |
-| 2257 | 3959 | CATACTGAGA | 10.25 |    22 | 194 | 0.8888888889       |     1 |      1.0 |
-| 2258 | 4518 | CATACTGAGA | 10.25 |    25 |   0 | 0.8888888889       |     1 |      1.0 |
+|    i |    s | kmer       |  khat | block |  wi |       gini | score | windowed |
+|------+------+------------+-------+-------+-----+------------+-------+----------|
+| 1458 | 4442 | ATACTGAG   |  8.25 |    24 | 175 | 0.86419755 |   1.0 |      1.0 |
+| 1459 | 3545 | ATACTGAGA  |  8.75 |    21 |  31 |  0.8888889 |   1.0 |      1.0 |
+| 1460 | 3960 | ATACTGAGA  |  9.25 |    22 | 195 |  0.8888889 |   1.0 |      1.0 |
+| 1461 | 4519 | ATACTGAGA  |  9.25 |    25 |   1 |  0.8888889 |   1.0 |      1.0 |
+| 1462 | 3456 | ATACTGAGA  |   8.5 |    20 | 193 | 0.86419755 |   1.0 |      1.0 |
+| 1463 | 5595 | ATACTGAG   | 7.875 |    29 |  73 | 0.86419755 |   1.0 |      1.0 |
+| 2256 | 3544 | CATACTGAGA | 9.625 |    21 |  30 | 0.86419755 |   1.0 |      1.0 |
+| 2257 | 3959 | CATACTGAGA | 10.25 |    22 | 194 |  0.8888889 |   1.0 |      1.0 |
+| 2258 | 4518 | CATACTGAGA | 10.25 |    25 |   0 |  0.8888889 |   1.0 |      1.0 |
+| 5862 | 4443 | TACTGAG    |  7.25 |    24 | 176 | 0.86419755 |   1.0 |      1.0 |
+| 5863 | 3546 | TACTGAGA   |  7.75 |    21 |  32 |  0.8888889 |   1.0 |      1.0 |
+| 5864 | 3961 | TACTGAGA   |  8.25 |    22 | 196 |  0.8888889 |   1.0 |      1.0 |
+| 5865 | 4520 | TACTGAGA   |  8.25 |    25 |   2 |  0.8888889 |   1.0 |      1.0 |
 
-The khat and gini values for the first three peaks shown are
-missing because these peaks have been modified by the extendKmers
-method (supplementary Section S2.3.2 of paper).
 Some of the columns truncated by cut above include information on
 which combination of parameters led to each peak; since we
 used only one combination for this demonstration
@@ -160,20 +165,16 @@ smoothed scores exceed the thresholds we determined with
 our original permutation set:
 
 ```bash
-python3 sarkstest.py -f simulated_seqs.fa\
-                     -s simulated_scores.tsv\
-                     -w 4\
-                     -l 0\
-                     -g 1.1\
-                     -p\
-                     -r 1000\
-                     -z 2\
-                     -i sarks_simulated_selection\
-                     -o sarks_simulated_testing
+java -jar sarks.jar\
+     test\
+     -f simulated_seqs.fa\
+     -s simulated_scores.tsv\
+     -r 1000\
+     -i sarks_simulated_selection\
+     -e 321
 ```
-
-The arguments above are identical as for the original selection
-step, except for:
+The -f (fasta) and -s (scores) arguments above are identical as for
+the original selection step. Additional arguments:
 
 - **-r**  
   number R_2 of permutations used for testing,
@@ -181,35 +182,30 @@ step, except for:
 - **-i**  
   input directory for testing is output directory from selection step;
   needed to determine selection thresholds for testing
-- **-o**  
-  output directory for testing; will be created/overwritten
+- **-e**  
+  optional random number generator seed for reproducibility;
+  *should NOT be same number as used for seed in select step!*
 
-The script sarkstest.py also emits a bit of text on stdout,
-should be something like:
+The sarks.jar test also emits a number to stdout, such as:
 
 ```
-27 / 1000
-point estimate: 2.7%
-95% CI: (1.787%, 3.904%)
+16
 ```
 
-This tells us that 27 out of 1000 permutations generated nonempty
-motif sets using the thresholds we calculated using sarkselect.py,
-yielding an estimated false positive rate of 2.7% with the
-indicated confidence interval, calculated using the Clopper-Pearson
-method:
+This tells us that 16 / 1000 permutations generated nonempty motif
+sets using the thresholds we calculated using sarks.jar select
+command, yielding an estimated false positive rate (FPR) of 1.6%.
+
+Recommend calculating a 95% confidence interval (CI) for the FPR using
+a method such as:
 
 https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Clopper%E2%80%93Pearson_interval
 
-As the permutation testing can take a while (especially for more
-realistically sized data sets), can also re-run sarkstest.py just
-to get these false positive rate estimates without recomputing
-permutations once they've been generated:
+Many implementations of this method are available, including
+https://epitools.ausvet.com.au/ciproportion
 
-```bash
-python3 sarkstest.py -z 2\
-                     -i sarks_simulated_selection\
-                     -o sarks_simulated_testing
-```
-
-which should give same estimates as you obtained above.
+using which I obtained a 95% CI of (0.92%, 2.59%) using
+- Sample size: 1000 (number R_2 of permutations used in test step)
+- Number positive: 16 (output from java -jar sarks.jar test ...)
+- Confidence interval: 0.95
+- CI method: Clopper-Pearson exact

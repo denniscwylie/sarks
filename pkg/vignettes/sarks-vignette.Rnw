@@ -80,7 +80,7 @@ library(rJava)
 ## ---------------------------------------------------------------------
 ## once you've set the java.parameters and then called .jinit from rJava
 ## (making sure not to load any other rJava-dependent packages prior to
-##  initializing the JVM with jinit!),
+##  initializing the JVM with .jinit!),
 ## you are now ready to load the sarks library:
 ## ----------------------------------------------------------------------
 library(sarks)
@@ -370,8 +370,11 @@ theSuffix <- substr(concatenated, kmerCatStart, nchar(concatenated))
 
 in the list of all suffixes \emph{after they have been
 lexicographically sorted}:
-<<>>=
+<<echo=FALSE, results=hide>>=
 options(continue="  ")
+@ 
+
+<<>>=
 extractSuffix <- function(s) {
     ## returns suffix of concatenated starting at position s (1-based)
     substr(concatenated, s, nchar(concatenated))
@@ -433,9 +436,9 @@ plot(i0based, yhat, type='l', xlab='i')
 @ 
 
 From the plot of $\hat{y}_i$ against $i$, we can see three peaks at
-which $\hat{y}_i$ spikes up to 1, corresponding to the the ranges
-$i \in [1458,1463]$, $i \in [2256,2258]$, and $i \in [5862,5865]$ which
-make up the values in \R{peaks\$i}.
+which $\hat{y}_i$ spikes up to 1, corresponding to the ranges
+$i \in [1458,1463]$, $i \in [2256,2258]$, and $i \in [5862,5865]$
+which make up the values in \R{peaks\$i}.
 
 \subsection{Permutations and thresholds}
 \label{sec:perm}
@@ -478,14 +481,14 @@ SArKS are defined by considering many (here, \R{reps=250}) such
 permutations and choosing $\theta$ such that only very few random
 permutations would produce smoothed $\hat{y}_i$ scores exceeding
 $\theta$. The adjustable parameter \R{nSigma} controls how stringent
-the thresholds are (higher \R{nSigma} values lead to higher
+the thresholds are: higher \R{nSigma} values lead to higher
 thresholds, reducing sensitivity but also reducing the false positive
-rate).
+rate.
 
 Once we've set thresholds using \R{permutationThresholds}, we can
-estimate the false positive rate (defined here as the frequency of
+estimate the false positive rate, defined here as the frequency of
 seeing nonempty $k$-mer result sets when there is really no
-association between sequence and score):
+association between sequence and score:
 <<fpr-estimation>>=
 fpr = estimateFalsePositiveRate(
         sarks, reps=250, filters, thresholds, seed=321)
@@ -512,16 +515,17 @@ those used to set thresholds.
 When considering how to set SArKS thresholds in order to obtain a
 reasonable tradeoff between sensitivity and false positive rate, the
 mysterious \R{minGini} parameter should be factored in as well. This
-parameter is discussed in more detail in section \ref{sec:windgini},
-but the basic idea is to filter likely false positive suffix array
-index positions $i$ out of consideration regardless of their smoothed
-scores $\hat{y}_i$ (these likely false positive indices $i$ come from
-excessive repetition of the same input sequences contributing
-repeatedly to the smoothing windows centered on $i$).
+parameter is discussed in more detail in sections \ref{sec:windgini}
+and \ref{sec:mingini}, but the basic idea is to filter likely false
+positive suffix array index positions $i$ out of consideration
+regardless of their smoothed scores $\hat{y}_i$. These likely false
+positive indices $i$ come from excessive repetition of the same input
+sequences contributing repeatedly to the smoothing windows centered on
+$i$.
 
 My recommendation is to set \R{minGini} to a value slightly greater
-than 1 (the value 1.1 seems empirically to work well in many
-situations). Note that for \R{minGini} > 1, this filter becomes more
+than 1: the value 1.1 seems empirically to work well in many
+situations. Note that for \R{minGini} > 1, this filter becomes more
 stringent the closer to 1 it is set; the opposite is true if you set
 \R{minGini} to a value less than 1, and you can turn the filter off
 entirely by setting it to 0. See section \ref{sec:mingini} and
@@ -589,6 +593,7 @@ sarks <- Sarks(
 filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
 permDist <- permutationDistribution(sarks, reps=250, filters, seed=123)
 thresholds <- permutationThresholds(filters, permDist, nSigma=5.0)
+## note setting of nSigma to higher value of 5.0 here!
 peaks <- kmerPeaks(sarks, filters, thresholds)
 peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'spatialWindowed')]
 @ 
@@ -596,7 +601,7 @@ peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'spatialWindowed')]
 Note that here we use \R{nSigma=5.0}, a much more stringent setting
 than the \R{nSigma=2.0} value used when no spatial smoothing was
 employed; had we tried \R{nSigma=5.0} without spatial smoothing, SArKS
-would not have been able to detect the \R{"CATACTGAGA"} motif.
+would not have been able to detect the \texttt{"CATACTGAGA"} motif.
 
 The \R{peaks} object returned by \R{kmerPeaks} when spatial smoothing
 is employed contains the \R{i} and \R{s} coordinates for the left
@@ -686,13 +691,13 @@ estimateFalsePositiveRate(
         sarks, reps=250, filters, thresholds, seed=321)$ci
 @ 
 
-As suggested in section \R{sec:spatial} above, this can be countered
+As suggested in section \ref{sec:spatial} above, this can be countered
 by using increased \R{nSigma} values when setting thresholds if we
 plan to test a wider range of possible SArKS parameters.
 
 \emph{Note regarding multiple hypothesis testing in SArKS}: The false
 positive rates estimated by SArKS test the rate of detecting any
-results using any of the specified parameter setttings, and are thus a
+results using any of the specified parameter settings, and are thus a
 type of family-wise error rate. As long as all parameter combinations
 tested are included in the \R{filters} employed in
 \R{estimateFalsePositiveRate}, no further adjustment for multiple
@@ -705,7 +710,7 @@ While there is essentially one unambiguous $k$-mer
 \texttt{"CATACTGAGA"} of note in the
 \R{simulatedSeqs}-\R{simulatedScores} example, real data sets will
 generally have more complex sequence motifs allowing for some
-variation both in length and composition of correlative sequence
+variation both in length and composition of the
 patterns. When applying SArKS methodology to real data, many similar
 $k$-mers representing the same basic motif may result: \R{sarks}
 provides functions for clustering these $k$-mers into broader motif patterns.
@@ -751,8 +756,8 @@ Can also get specific information about the location of these matches:
 clLoci <- locateClusters(
     kmClust, simulatedSeqs, directional=FALSE, showMatch=TRUE
 )
-## showMatch=TRUE includes column specifying exactly what subsequence of
-##                of simulatedSeqs registered as a hit;
+## showMatch=TRUE includes column specifying exactly what k-mer
+##                registered as a hit;
 ##                this can be very slow, so default is showMatch=FALSE
 clLoci
 @ 
@@ -768,9 +773,9 @@ from the cluster \texttt{"CTGGAAC"}, in sequences \texttt{"6"},
 different in each case:
 \begin{itemize}
 \item sequence \texttt{"6"} has a hit for the
-the reverse-complement of $k$-mer \texttt{"TTCCAGC"}, while
+    reverse-complement of $k$-mer \texttt{"TTCCAGC"}, while
 \item sequence \texttt{"16"} has a hit for 
-$k$-mer \texttt{"CTGGAACT"} in reverse-complement orientation and
+    $k$-mer \texttt{"CTGGAACT"} in reverse-complement orientation and
 \item sequence \texttt{"28"} has a hit for
 \texttt{"CTGGAAC"} also in reverse-complement orientation.
 \end{itemize}
@@ -848,7 +853,7 @@ where:
 \item[$\lambda$] is the specified \R{spatialLength} value and
 \item[$i_s$] is the sorted suffix index associated with the suffix
     starting at spatial position $s$ (obtained from the inverted suffix
-    array described in section\ref{sec:sainv} above).
+    array described in section \ref{sec:sainv} above).
 \end{description}
 
 The array of spatially-smoothed scores $\hat{\hat{y}}_i$ can be
@@ -867,19 +872,22 @@ where:
 \item[$f^{(i)}_b = \frac{1}{2 \kappa +
     1}{\sum\limits_{j=i-\kappa}^{j+\kappa} \delta_{b_j b}}$] is the
     fraction of positions within the smoothing window associated with
-    sequence (or block) $b$.
+    sequence (or block) $b$ (note $\delta_{b_j b}$ is Kronecker delta
+    taking value 1 if $b_j=b$ and 0 otherwise).
 \end{description}
 
-Low values of the Gini impurity values $g_i$ are use by SArKS to
+Low values of the Gini impurity values $g_i$ are used by SArKS to
 filter out likely false positive suffix array positions $i$: First
 note that equation \eqref{eq:yhat} may be rewritten
 \begin{equation}
+\label{eq:yhat-alt}
 \hat{y}_i = \frac{1}{2 \kappa + 1} \sum_b {f^{(i)}_b y_b}
 \end{equation}
 Now:
 \begin{itemize}
 \item shuffling the sequence/block scores $y_b$ by a random permutation $\Pi$,
-\item recomputing the resulting smoothed scores $\hat{y}^{(\Pi)}_i$,
+\item recomputing the resulting smoothed scores $\hat{y}^{(\Pi)}_i$
+    using equation \eqref{eq:yhat-alt},
 \item noting that by symmetry
     $\mathbb{V}\left[y_{\Pi(b)}\right] =
     \mathbb{V}\left[y_{\Pi(b')}\right]$ for all sequences $b, b'$ under
@@ -893,11 +901,11 @@ we can approximate
 \mathbb{V} \left[ \hat{y}^{(\Pi)}_i \right] \propto
 \left[ f^{(i)}_b \right]^2 = 1 - g_i
 \end{equation}
-Equation \eqref{eq:var-rel-gini} tells us that even under the null
+Equation \eqref{eq:var-rel-gini} tells us that, even under the null
 hypothesis of no association between sequence $w_b$ and sequence score
-$y_b$, positions $i$ for which the Gini impurity $g_i$ is particularly
+$y_b$, at positions $i$ for which the Gini impurity $g_i$ is particularly
 far below the maximum value of 1, the smoothed scores will tend to be
-more extreme (high or low) than for other positions. Hence a high
+more extreme (high or low) than at other positions. Hence a high
 score $\hat{y}_i$ for such a position is less informative than would
 be the same score at a different position $j$.
 
@@ -938,7 +946,7 @@ window compositions $f^{(i)}_b$ are for the various suffix array
 indices $i$ appearing in equation \eqref{eq:var-spat}. For the sake of
 simplicity and tractability, the approach taken in the current
 implementation of SArKS is to employ the spatial Gini filter as a
-heuristic parameter whose value is to be assessed empirically via
+heuristic parameter whose utility is to be assessed empirically via
 permutation testing.
 
 \subsection{\R{permutationDistribution}}
@@ -1006,8 +1014,8 @@ g_i \,\geq\, g^{(\alpha)}_{\text{min}}\}}{\operatorname{max}}
 
 SArKS currently allows the user to directly set
 $g^{(\alpha)}_{\text{min}} < 1$ excluding suffix array index values
-$i$ with $g^{(\alpha)}_i < g^{(\alpha)}_{\text{min}}$ from either
-permutational analysis or $\hat{y}_i$ peak calling if so
+$i$ with $g^{(\alpha)}_i < g^{(\alpha)}_{\text{min}}$ from
+permutational analysis and $\hat{y}_i$ peak calling if so
 desired. Given the interpretation afforded by equation
 \eqref{eq:var-rel-gini}, however, it can be more convenient to
 indirectly specify $g^{(\alpha)}_{\text{min}}$ by choosing $\gamma$ in
@@ -1156,6 +1164,9 @@ M^{(\alpha)} =
 <<merging>>=
 mergedPeaks = mergedKmerSubPeaks(sarks, filters, thresholds)
 @ 
+
+The set of suffix array indices marking the left ends of merged
+$k$-mer subpeaks when spatial smoothing is employed is given by:
 
 \begin{equation}
 \label{eq:I-spatial}

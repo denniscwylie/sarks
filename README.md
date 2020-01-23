@@ -2,8 +2,12 @@
 
 __SArKS__ (Suffix Array Kernel Smoothing) is an algorithm for
 identifying sequence motifs correlated with numeric scores (such as
-differential expression statistics from RNA-seq experiments). A
-preprint describing the algorithm may be found at:
+differential expression statistics from RNA-seq experiments). The
+paper describing the algorithm may be found at:
+
+https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797
+
+A preprint of the article is also available on biorxiv at:
 
 https://www.biorxiv.org/content/early/2018/10/25/133934
 
@@ -14,20 +18,34 @@ See [INSTALL.md](INSTALL.md).
 
 ## Using sarks
 
-This project implements the SArKS algorithm in the python module
-sarks. To facilitate usage we have also provided several utility
-shell scripts making use of this python module, including:
+This project implements the SArKS algorithm in the java package
+contained in sarks.jar, which can also be run as part of the R package
+sarks.
 
-- examples/sarkselect.py for identifying k-mer motifs using SArKS
-- examples/sarkstest.py for estimating false positive rates
-- examples/extract_kmers.py for quickly pulling list of sarks k-mers
-  from sarkselect.py output files
-- examples/cluster_seqs.R for (optionally) clustering sarks k-mers
-- examples/count_kmers.py for counting or locating sarks k-mers
-  (or clusters of k-mers) in sequences contained in a fasta file
+### Using the R package sarks
 
-For detailed information on the usage of these scripts, consult
-[user_guide.md](user_guide.md).
+For most users, we would recommend trying out the R package, which
+can be installed in an active R session via:
+```R
+## if you don't already have remotes installed, uncomment and run:
+# install.packages('remotes')
+library(remotes)
+install_github('denniscwylie/sarks/pkg')
+## alternatively, to build vignette as well, try uncommenting and running:
+# install_github('denniscwylie/sarks/pkg', build_vignettes=TRUE)
+```
+
+The sarks vignette is the best place to start to learn how to use the
+R version of sarks.
+
+The full vignette is available as a pdf if you use the
+`"build_vignettes=TRUE"` option when installing sarks in R; otherwise,
+you can take a look at the [abridged markdown vignette](sarks_vignette.md).
+
+### Direct command-line usage of jar file
+
+For detailed information on command-line usage of sarks.jar and
+associated scripts, consult [user_guide.md](user_guide.md).
 
 The best way to learn how to use sarks is to read through the example
 scripts
@@ -86,31 +104,9 @@ After going through the simulated example, try sarks out on the Mo
 [examples/mo2015\_downstream\_example.md](examples/mo2015_downstream_example.md)
 
 file; again I would recommend reading through the example and running
-the commands line-by-line as you get to them. You will have to gunzip
-the fasta file first in order for sarks to access it properly:
-
-```
-gunzip mo2015_downstream_seqs.fa.gz
-```
-
-- **NOTE:** as this is a much larger data set than the simulated set,
-  running this example will take a bit longer. Only one smoothing
-  window (and no spatial smoothing) is applied in this analysis so
-  that motif discovery can be run in a minute or two. The number of
-  permutations used in initial permutational threshold setting has
-  also been reduced in the interest of speed, so results will vary a
-  bit more from run to run.
-
-The sarkstest.py step applied to estimate false positive rates is
-still set to use 250 permutations and will thus likely take > 10
-minutes to complete depending on hardware.
-
+the commands line-by-line as you get to them.
 
 ### Mo 2015 upstream example
-
-- **NOTE:** UPSTREAM EXAMPLE REQUIRES > 32 GIGABYTES AVAILABLE RAM
-
-(recommend *at least 48G available* to run comfortably)
 
 The [Mo 2015 upstream example](examples/mo2015_upstream_example.md) is
 similar to the downstream example but
