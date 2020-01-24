@@ -7,7 +7,7 @@ those sequences (contained with a two column tab-separated-values
 file, or tsv).
 
 Here we take as an example the downstream mo2015 sequences:
-- mo2015\_downstream\_seqs.fa
+- mo2015\_downstream\_seqs.fa.gz
 - mo2015_scores.tsv
 
 Let's try a single parameter set first:
@@ -207,7 +207,7 @@ the selected k-mers or clusters using count_kmers.py:
 
 ```bash
 python3 count_kmers.py -k mo2015_downstream_w250_l0_selection/peaks.tsv\
-                       -f mo2015_downstream_seqs.fa >\
+                       -f mo2015_downstream_seqs.fa.gz >\
                        mo2015_downstream_w250_l0_selection/kmer_counts.tsv
 ```
 ...for clusters:
@@ -223,7 +223,7 @@ python3 count_kmers.py -k mo2015_downstream_w250_l0_selection/peaks.tsv\
 - ...and now count: use -c to specify clusters file, -f for fasta
   ```bash
   python3 count_kmers.py -c mo2015_downstream_w250_l0_selection/clusters_2.txt\
-                         -f mo2015_downstream_seqs.fa >\
+                         -f mo2015_downstream_seqs.fa.gz >\
                          mo2015_downstream_w250_l0_selection/cluster_counts.tsv
   ```
 

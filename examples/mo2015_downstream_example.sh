@@ -9,7 +9,7 @@
 # file, or tsv).
 
 # Here we take as an example the downstream mo2015 sequences:
-#  mo2015_downstream_seqs.fa
+#  mo2015_downstream_seqs.fa.gz
 #  mo2015_scores.tsv
 
 # Let's try a single parameter set first:
@@ -168,7 +168,7 @@ Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
 # the selected k-mers or clusters using count_kmers.py:
 # ...for kmers: use -k to specify file with kmer column, -f for fasta
 python3 count_kmers.py -k mo2015_downstream_w250_l0_selection/peaks.tsv\
-                       -f mo2015_downstream_seqs.fa >\
+                       -f mo2015_downstream_seqs.fa.gz >\
                        mo2015_downstream_w250_l0_selection/kmer_counts.tsv
 # ...for clusters:
 #    first save clusters to file:
@@ -177,7 +177,7 @@ Rscript cluster_seqs.R mo2015_downstream_w250_l0_selection/peaks.tsv\
                        mo2015_downstream_w250_l0_selection/clusters_2.txt
 #    ...and now count: use -c to specify clusters file, -f for fasta
 python3 count_kmers.py -c mo2015_downstream_w250_l0_selection/clusters_2.txt\
-                       -f mo2015_downstream_seqs.fa >\
+                       -f mo2015_downstream_seqs.fa.gz >\
                        mo2015_downstream_w250_l0_selection/cluster_counts.tsv
 ## NOTE: count_kmers.py:
 ##       - by default counts both forward and reverse strand matches

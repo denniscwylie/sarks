@@ -7,7 +7,7 @@
 # file, or tsv).
 
 # Here we take as an example the upstream mo2015 sequences:
-#  mo2015_upstream_seqs.fa
+#  mo2015_upstream_seqs.fa.gz
 #  mo2015_scores.tsv
 
 # NOTE: the upstream sequences are three times larger than the

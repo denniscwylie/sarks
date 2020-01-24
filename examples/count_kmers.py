@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import gzip
 from collections import OrderedDict
 import numpy as np
 import os
 import pandas as pd
-import pyfaidx
+# import pyfaidx
 import re
 import sys
 
@@ -39,12 +40,28 @@ def revComp(s):
     if isinstance(s, pd.Series):
         return pd.Series([revComp(sel) for sel in s], index=s.index)
     comp = {'A' : 'T', 'C' : 'G', 'G' : 'C', 'N' : 'N', 'T' : 'A',
+            'a' : 't', 'c' : 'g', 'g' : 'c', 'n' : 'n', 't' : 'a',
             '[' : ']', ']' : '[', '-' : '-'}
     return ''.join([comp[s[i]] for i in range((len(s)-1), -1, -1)])
 
 def fastaToSeries(infasta):
-    infasta = pyfaidx.Fasta(infasta)
-    return pd.Series({i : str(infasta[i]) for i in infasta.keys()})
+    # infasta = pyfaidx.Fasta(infasta)
+    # return pd.Series({i : str(infasta[i]) for i in infasta.keys()})
+    lines = None
+    if re.match(r'.*\.[gG][zZ]$', infasta):
+        with gzip.open(infasta, 'r') as inf:
+            lines = [line.decode('utf-8').strip() for line in inf]
+    else:
+        with open(infasta, 'r') as inf:
+            lines = [line.strip() for line in inf]
+    lines = pd.Series(lines).str.replace(r'^>(.*)$', r'>>>\1>>>')
+    slurped = ''.join(lines.values)
+    slurped = re.sub(r'^>>>', '', slurped)
+    lines = pd.Series(slurped.split('>>>'))
+    return pd.Series(
+        lines.iloc[range(1, len(lines), 2)].values,
+        index = lines.iloc[range(0, len(lines), 2)].values
+    )
 
 def regexCounts(regex, seqs, overlap=False):
     if overlap:

@@ -7,7 +7,7 @@ those sequences (contained with a two column tab-separated-values
 file, or tsv).
 
 Here we take as an example the upstream mo2015 sequences:
-- mo2015\_upstream\_seqs.fa
+- mo2015\_upstream\_seqs.fa.gz
 - mo2015_scores.tsv
 
 - **NOTE:**  
