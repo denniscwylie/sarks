@@ -256,7 +256,7 @@ public class Sarks {
         double total2 = (double)(total * total);
         int dGini = 0;
         int oldb, newb;
-        for (int i=(this.halfWindow+1); i<(this.sa.length-1-this.halfWindow); i++) {
+        for (int i=(this.halfWindow+1); i<(this.sa.length-this.halfWindow); i++) {
             oldb = block[i-1-this.halfWindow];
             newb = block[i+this.halfWindow];
             dGini = -bCounts[oldb] * (total - bCounts[oldb]);
@@ -288,12 +288,12 @@ public class Sarks {
         }
         runningMean /= windSize;
         this.spatGini[0] = (float)runningMean;
-        for (int s=1; s<(this.sa.length-1-this.spatialLength); s++) {
+        for (int s=1; s<(this.sa.length-this.spatialLength); s++) {
             runningMean -= (this.windGini[ this.saInv[s-1] ] / windSize);
             runningMean += (this.windGini[ this.saInv[s+this.spatialLength] ] / windSize);
             this.spatGini[ this.saInv[s] ] = (float)runningMean;
         }
-        for (int s=(this.saInv.length-1-this.spatialLength); s<this.sa.length; s++) {
+        for (int s=(this.saInv.length-this.spatialLength); s<this.sa.length; s++) {
             this.spatGini[s] = (float)runningMean;
         }
     }
@@ -310,7 +310,7 @@ public class Sarks {
         }
         runningMean /= windSize;
         this.windowed[this.halfWindow] = (float)runningMean;
-        for (int i=(this.halfWindow+1); i<(this.sa.length-1-this.halfWindow); i++) {
+        for (int i=(this.halfWindow+1); i<(this.sa.length-this.halfWindow); i++) {
             runningMean -= (saScores[i-1-this.halfWindow] / windSize);
             runningMean += (saScores[i+this.halfWindow] / windSize);
             this.windowed[i] = (float)runningMean;
@@ -330,12 +330,12 @@ public class Sarks {
         }
         runningMean /= windSize;
         this.spatialWindowed[0] = (float)runningMean;
-        for (int s=1; s<(this.sa.length-1-this.spatialLength); s++) {
+        for (int s=1; s<(this.sa.length-this.spatialLength); s++) {
             runningMean -= (this.windowed[ this.saInv[s-1] ] / windSize);
             runningMean += (this.windowed[ this.saInv[s+this.spatialLength-1] ] / windSize);
             this.spatialWindowed[ this.saInv[s] ] = (float)runningMean;
         }
-        for (int s=(this.sa.length-1-this.spatialLength); s<this.sa.length; s++) {
+        for (int s=(this.sa.length-this.spatialLength); s<this.sa.length; s++) {
             this.spatialWindowed[ this.saInv[s] ] = (float)runningMean;
         }
     }
