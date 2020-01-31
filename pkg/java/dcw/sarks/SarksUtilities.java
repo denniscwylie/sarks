@@ -32,24 +32,25 @@ public class SarksUtilities {
     public static Float mean(Float[] arr) {
         if ((arr == null) || (arr.length == 0)) {return null;}
         if (arr[0] == null) {return null;}
-        float out = 0;
+        double out = 0;
         for (int i=0; i<arr.length; i++) {out += arr[i];}
-        return out / (float)arr.length;
+        return (float)out / (float)arr.length;
     }
 
     public static Float sd(Float[] arr) {
         if ((arr == null) || (arr.length == 0)) {return null;}
         if (arr[0] == null) {return null;}        
-        float sum = 0;
-        float sumsq = 0;
+        double sum = 0;
+        double sumsq = 0;
         for (int i=0; i<arr.length; i++) {
             sum += arr[i];
             sumsq += (arr[i] * arr[i]);
         }
-        float mean = sum / (float)arr.length;
-        float meansq = sumsq / (float)arr.length;
+        double mean = sum / (double)arr.length;
+        double meansq = sumsq / (double)arr.length;
         return (float)java.lang.Math.sqrt(
-            ((float)(arr.length) / (float)(arr.length-1)) * (meansq - (mean*mean))
+            ((double)(arr.length) / (double)(arr.length-1)) *
+            (meansq - (mean*mean))
         );
     }
         
