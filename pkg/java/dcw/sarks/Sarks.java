@@ -445,9 +445,9 @@ public class Sarks {
         int catSeqMaxPos = this.catSeq.length() - 1;
         int s1 = s + k0; int s2 = s + k;
         if (s1 < 0) {s1 = 0;}
-        if (s1 > catSeqMaxPos-1) {s1 = catSeqMaxPos-1;}
+        if (s1 > catSeqMaxPos) {s1 = catSeqMaxPos;}
         if (s2 < 0) {s2 = 0;}
-        if (s2 > catSeqMaxPos) {s2 = catSeqMaxPos;}
+        if (s2 > (catSeqMaxPos+1)) {s2 = catSeqMaxPos+1;}
         return this.catSeq.substring(s1, s2);
     }
     public String kmer(int s, int k) {return this.kmer(s, k, 0);}
@@ -458,10 +458,10 @@ public class Sarks {
         for (int sindex=0; sindex<s.length; sindex++) {
             int s1 = s[sindex] + k0;
             if (s1 < 0) {s1 = 0;}
-            if (s1 > catSeqMaxPos-1) {s1 = catSeqMaxPos-1;}
+            if (s1 > catSeqMaxPos) {s1 = catSeqMaxPos;}
             int s2 = s[sindex] + k;
             if (s2 < 0) {s2 = 0;}
-            if (s2 > catSeqMaxPos) {s2 = catSeqMaxPos;}
+            if (s2 > (catSeqMaxPos+1)) {s2 = catSeqMaxPos+1;}
             out[sindex] = this.catSeq.substring(s1, s2);
         }
         return out;
@@ -475,6 +475,7 @@ public class Sarks {
         int wend = i + this.halfWindow + 1;
         int kstart = i;
         int kend = i+1;
+        if (kmax > kmer.length()) {kmax = kmer.length();}
         for (int k=kmax; k>0; k--) {
             int[] kwin = this.findKmer(kmer.substring(0, k));
             if (kwin[0] < wstart) {kwin[0] = wstart;}
@@ -1078,6 +1079,7 @@ public class Sarks {
     public int getHalfWindow() {return this.halfWindow;}
     public int getSpatialLength() {return this.spatialLength;}
     public String getCatSeq() {return this.catSeq;}
+    public int[] getBounds() {return this.bounds;}
     public double[] getScores() {return this.scores;}
     public String[] getTranscripts() {return this.transcripts;}
     public HashMap<String,Integer> getTranscriptPosition() {return this.transcriptPosition;}
