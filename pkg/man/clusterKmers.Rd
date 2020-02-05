@@ -4,7 +4,8 @@
 \alias{clusterKmers}
 \title{Cluster k-mers}
 \usage{
-clusterKmers(kmers, k = 4, nClusters = NULL, directional = TRUE)
+clusterKmers(kmers, k = 4, nClusters = NULL, maxClusters = NULL,
+  directional = TRUE)
 }
 \arguments{
 \item{kmers}{character vector of k-mers to partition into clusters}
@@ -17,8 +18,12 @@ to NULL (default value), selects number of clusters to maximize
 the average silhouette score
 (\url{https://en.wikipedia.org/wiki/Silhouette_(clustering)}).}
 
-\item{directional}{logical value: if FALSE, counts occurrences of
-either kmer or its reverse-complement. Makes sense only if
+\item{maxClusters}{if nClusters not specified, can optionally set
+maximum number of clusters allowed in silhouette score
+optimization.}
+
+\item{directional}{logical value: if FALSE, considers each kmer as
+equivalent to its reverse-complement. Makes sense only if
 applying to DNA sequences!}
 }
 \value{
@@ -32,8 +37,6 @@ the input k-mers into clusters of more similar k-mers. Hierarchical
 clustering (average linkage) is performed based on Jaccard
 coefficient distance metric applied treating each k-mer as the set
 of all tetramers which can be found as substrings within it.
-Tetramers which are reverse-complements of each other are treated
-as equivalent.
 }
 \examples{
 kmers <- c(

@@ -14,7 +14,7 @@ regex}
 
 \item{showMatch}{logical value; if true add additional column to
 output indicating what the exact regex match for each
-occurrence}
+occurrence (can be slow)}
 }
 \value{
 If only a single regex is searched for: data.frame with two

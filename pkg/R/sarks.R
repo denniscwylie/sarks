@@ -1048,8 +1048,6 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #' clustering (average linkage) is performed based on Jaccard
 #' coefficient distance metric applied treating each k-mer as the set
 #' of all tetramers which can be found as substrings within it.
-#' Tetramers which are reverse-complements of each other are treated
-#' as equivalent.
 #'
 #' @param kmers character vector of k-mers to partition into clusters
 #'
@@ -1061,8 +1059,12 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #'     the average silhouette score
 #'     (\url{https://en.wikipedia.org/wiki/Silhouette_(clustering)}).
 #'
-#' @param directional logical value: if FALSE, counts occurrences of
-#'     either kmer or its reverse-complement. Makes sense only if
+#' @param maxClusters if nClusters not specified, can optionally set
+#'     maximum number of clusters allowed in silhouette score
+#'     optimization.
+#'
+#' @param directional logical value: if FALSE, considers each kmer as
+#'     equivalent to its reverse-complement. Makes sense only if
 #'     applying to DNA sequences!
 #'
 #' @return list of character vectors partitioning kmers into clusters:
@@ -1078,7 +1080,8 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #' clusterKmers(kmers, directional=FALSE)
 #'
 #' @export
-clusterKmers <- function(kmers, k=4, nClusters=NULL, directional=TRUE) {
+clusterKmers <- function(
+            kmers, k=4, nClusters=NULL, maxClusters=NULL, directional=TRUE) {
     kmers <- unique(kmers)
     if (length(kmers) <= 3 && (length(nClusters) == 0 || nClusters > 3)) {
         stop('Must specify nClusters <= 3 for length(kmers) <= 3.')
@@ -1102,13 +1105,14 @@ clusterKmers <- function(kmers, k=4, nClusters=NULL, directional=TRUE) {
     ddist <- stats::as.dist(d)
     hcout <- stats::hclust(ddist, method='average')
     if (length(nClusters) == 0) {
+        if (length(maxClusters) == 0) {maxClusters = nrow(d) - 1}
         ctouts <- data.frame(
-            stats::cutree(hcout, k=seq(2, (nrow(d)-1), 1)),
+            stats::cutree(hcout, k=seq(2, maxClusters, 1)),
             check.names = FALSE
         )
         nClusters <- integralOptimize(f=function(nc) {
             mean(cluster::silhouette(ctouts[ , as.character(nc)], ddist)[ , 3])
-        }, lower=2, upper=nrow(d)-1)
+        }, lower=2, upper=maxClusters)
     }
     ctout <- stats::cutree(hcout, k=nClusters)
     clusters <- lapply(

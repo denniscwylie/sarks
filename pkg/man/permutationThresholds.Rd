@@ -4,7 +4,7 @@
 \alias{permutationThresholds}
 \title{Set smoothed score thresholds based on permutation distribution}
 \usage{
-permutationThresholds(filters, permDist, nSigma)
+permutationThresholds(filters, permDist, nSigma = 4)
 }
 \arguments{
 \item{filters}{output from sarksFilters function indicating what

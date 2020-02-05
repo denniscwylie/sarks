@@ -17,7 +17,7 @@ Makes sense only if applying to DNA sequences!}
 
 \item{showMatch}{logical value; if true add additional column to
 output indicating what the exact regex match for each
-occurrence}
+occurrence (can be slow)}
 }
 \value{
 data.frame with three columns: `seqid' containing the name
@@ -28,7 +28,7 @@ data.frame with three columns: `seqid' containing the name
 }
 \description{
 Find locations of matches of list of character vectors of k-mers in
-each element of a named character vector.
+each element of a named character vector. Not case sensitive.
 }
 \examples{
 seqs <- c(
