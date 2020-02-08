@@ -202,7 +202,7 @@ of consecutive motifs, this will be less accurate). Equation
 changes to \R{halfWindow} are likely to impact output $k$-mer lengths,
 not truly predicting the exact lengths which will be seen.
 
-Aside from the trivial value of \R{spatialLength}=0 used to turn off
+Aside from the trivial value of \R{spatialLength=0} used to turn off
 spatial smoothing entirely, it is a bit more difficult to provide
 general guidelines for \R{spatialLength}. Small values (say, 3--10)
 can be useful to help detect individual motifs even when no larger
@@ -250,7 +250,7 @@ tells us that SArKS has identified
 unique(peaks$kmer)
 @ 
 
-as $k$-mers whose occurrence in \R{simulatedSeq} is associated with
+as $k$-mers whose occurrence in \R{simulatedSeqs} is associated with
 higher values of \R{simulatedScores}. \R{sarks} provides a convenience
 function \R{kmerCounts}:
 
@@ -321,7 +321,7 @@ coordinates (e.g., the reported peak \R{peaks[3, ]} from
 follows \R{peaks[8, ]} with \R{block="22"} and \R{wi=194} and
 \R{kmer="CATACTGAGA"}, and is thus merged with that peak).
 
-Further simplifiation is still possible in this case using:
+Further simplification is still possible in this case using:
 
 <<extending>>=
 extendedPeaks <- extendKmers(sarks, nonRedundantPeaks)
@@ -658,7 +658,7 @@ estimateFalsePositiveRate(
 \label{sec:pars}
 
 You may be wondering what the point of the \R{filters} object created
-in the SArKS workflow is, as it seems to specify the \R{halfWindow} ad
+in the SArKS workflow is, as it seems to specify the \R{halfWindow} and
 \R{spatialLength} parameters in a manner redundant to their
 specification in the \R{Sarks} constructor. Aside from the
 specification of the \R{minGini} parameter, the motivation for this

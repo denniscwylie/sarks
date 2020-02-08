@@ -64,7 +64,7 @@ requires two pieces of input data:
               2. containing numeric scores assigned to those sequences
 
 For the purposes of this vignette, we’ll take the sequences to be the named character vector
-simulatedSeqs included in the sarks package. simulatedSeqs is a character vector of
+`simulatedSeqs` included in the sarks package. `simulatedSeqs` is a character vector of
 length 30—representing 30 different (fake) DNA sequences—each 250 characters in length:
 
 Take a look at the first few characters of each sequence:
@@ -91,7 +91,7 @@ vapply(simulatedSeqs, function(s) {paste0(substr(s, 1, 10), '...')}, '')
 Notice that the names of the simulated sequences are just the (string representations of) the
 numbers "0" through "29".
 
-Now let’s look at the simulatedScores:
+Now let’s look at the `simulatedScores`:
 
 ```R
 simulatedScores
@@ -126,10 +126,11 @@ the DNA alphabet.
 ### 1.2.1 SArKS run parameters
 
 Aside from input of data in the form of sequences with matching scores, sarks also requires
-specification of run parameters halfWindow, spatialLength, and minGini.
-I would recommend that users try several (2-4) values of halfWindow and, if interested in spa-
-tial smoothing, spatialLength, using the method described in 1.6 below. For halfWindow,
-you might start with halfWindow values on the order of
+specification of run parameters `halfWindow`, `spatialLength`, and `minGini`.
+
+I would recommend that users try several (2-4) values of `halfWindow` and, if interested in
+spatial smoothing, `spatialLength`, using the method described in 1.6 below.
+For `halfWindow`, you might start with `halfWindow` values on the order of
 
 ```
                   halfWindow ∈ {n/20, n/10, n/5}                          (1)
@@ -137,17 +138,17 @@ you might start with halfWindow values on the order of
 
 where n is the number of input sequences.
 
-To get a sense of the intuition behind the values in (1): If we take halfWindow=n/20, we get a
-full smoothing window of size 2*halfWindow+1 ≈ 10 , which amounts to looking for motifs
-which would be expected to occur about once in every 10 input sequences.
+To get a sense of the intuition behind the values in (1): If we take `halfWindow`=n/20,
+we get a full smoothing window of size 2*`halfWindow`+1 ≈ 10, which amounts to
+looking for motifs which would be expected to occur about once in every 10 input sequences.
 
 The user should of course feel free to vary these fractions in either direction based on his
 or her own data and goals! Especially if the number n of input sequences is very high, so
-that n/20 is very large (say, in the thousands or more), these halfWindow values may be larger
-than optimal.
+that n/20 is very large (say, in the thousands or more), these `halfWindow` values may be
+larger than optimal.
 
-Another consideration to keep in mind when choosing halfWindow values is that there is
-a link between n, the average sequence length |w|, halfWindow, the size (really entropy)
+Another consideration to keep in mind when choosing `halfWindow` values is that there is
+a link between n, the average sequence length |w|, `halfWindow`, the size (really entropy)
 of the sequence alphabet and the length k of the k-mer motif sequences sarks is likely
 to detect. Assuming an approximately uniformly distributed alphabet (often not a valid
 assumption in practice) of a distinct characters:
@@ -158,23 +159,23 @@ assumption in practice) of a distinct characters:
 
 should give a very rough sense of what length the motifs returned are likely to have (though
 when employing spatial smoothing with merging of consecutive motifs, this will be less
-accurate). Equation (2) is mosly useful for understanding how changes to halfWindow are
+accurate). Equation (2) is mosly useful for understanding how changes to `halfWindow` are
 likely to impact output k-mer lengths, not truly predicting the exact lengths which will be
 seen.
 
-Aside from the trivial value of spatialLength=0 used to turn off spatial smoothing entirely,
-it is a bit more difficult to provide general guidelines for spatialLength. Small values (say,
-3–10) can be useful to help detect individual motifs even when no larger spatial structure
-is really expected; in Wylie et al. [2019] we also tried spatialLength=100 when studying
-regulation of gene expression as that is on the order of the low end of the length DNA
-enhancer regions. Users should feel free to experiment with spatialLength values that
-make sense in their own applications.
+Aside from the trivial value of `spatialLength`=0 used to turn off spatial smoothing
+entirely, it is a bit more difficult to provide general guidelines for `spatialLength`.
+Small values (say, 3–10) can be useful to help detect individual motifs even when no larger
+spatial structure is really expected; in Wylie et al. [2019] we also tried
+`spatialLength`=100 when studying regulation of gene expression as that is on the order
+of the low end of the length DNA enhancer regions. Users should feel free to experiment
+with `spatialLength` values that make sense in their own applications.
 
-Finally, for minGini, my current advice would be to start with the value minGini=1.1 (or
-minGini=0 to see what happens without this filter). Interested users should consult sections
-1.4.1 and 2.2 (especially 2.2.1) as well as Wylie et al. [2019] to get a better understanding of
-what this parameter does in order to get a sense of how they might choose better values for
-their own applications.
+Finally, for `minGini`, my current advice would be to start with the value `minGini`=1.1
+(or `minGini`=0 to see what happens without this filter). Interested users should consult
+sections 1.4.1 and 2.2 (especially 2.2.1) as well as Wylie et al. [2019] to get a better
+understanding of what this parameter does in order to get a sense of how they might choose
+better values for their own applications.
 
 
 ## 1.3 Output
@@ -214,7 +215,7 @@ peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
 
 ### 1.3.1 k-mers
 
-For now let’s focus specifically on the column peaks$kmer, which tells us that SArKS has
+For now let’s focus specifically on the column `peaks$kmer`, which tells us that SArKS has
 identified
 
 ```R
@@ -225,8 +226,8 @@ unique(peaks$kmer)
 [1] "ATACTGAG"      "ATACTGAGA"     "CATACTGAGA" "TACTGAG"         "TACTGAGA"
 ```
 
-as k-mers whose occurrence in simulatedSeq is associated with higher values of simulat-
-edScores. sarks provides a convenience function kmerCounts:
+as k-mers whose occurrence in `simulatedSeqs` is associated with higher values of
+`simulatedScores`. sarks provides a convenience function `kmerCounts`:
 
 ```R
 kmerCounts(unique(peaks$kmer), simulatedSeqs)
@@ -266,16 +267,16 @@ kmerCounts(unique(peaks$kmer), simulatedSeqs)
 | 28 |        1 |         1 |          1 |       1 |        1 |
 | 29 |        1 |         1 |          1 |       1 |        1 |
 
-which shows us that each of the identified k-mers appears exactly once in each of the higher-
-scoring sequences ("20"-"29") and never in any of the lower-scoring sequences. Looking a
+which shows us that each of the identified k-mers appears exactly once in each of the
+higher-scoring sequences ("20"-"29") and never in any of the lower-scoring sequences. Looking a
 bit more closely at the specific k-mers identified here, you can see that they are all
 substrings of the longest one, the 10-mer "CATACTGAGA", so that the perfect agreement between
-the columns of the kmerCounts output above are perhaps to be expected. sarks provides
+the columns of the `kmerCounts` output above are perhaps to be expected. sarks provides
 functionality to help to identify such situations and simplify the output, as discussed further
 in section 1.3.2 below.
 
-First let’s go back to the output peaks from the call to kmerPeaks (focusing on the 8th row
-of peaks):
+First let’s go back to the output peaks from the call to `kmerPeaks` (focusing on the 8th row
+of `peaks`):
 
 ```R
 peak8 = peaks[8, ]
@@ -298,7 +299,7 @@ and consider the columns:
 - **wi**  
   the (0-based!) position ωi of the k-mer within the indicated block/sequence
 
-Considering block and wi first, this tells us that, setting
+Considering `block` and `wi` first, this tells us that, setting
 
 ```R
 block <- simulatedSeqs[[peak8$block]]
@@ -306,8 +307,8 @@ kmerStart <- peak8$wi + 1
 kmerEnd <- kmerStart + nchar(peak8$kmer) - 1
 ```
 
-(noting the + 1 required to define kmerStart in 1-based R relative to 0-based wi) we should
-find that
+(noting the + 1 required to define `kmerStart` in 1-based R relative to 0-based `wi`)
+we should find that
 
 ```R
 substr(block, kmerStart, kmerEnd)
@@ -327,7 +328,7 @@ peak8$kmer
 ```
 
 
-### 1.3.2 Reducing redundancy in peaks
+### 1.3.2 Reducing redundancy in `peaks`
 
 In cases such as "CATACTGAGA" in the simulated data set analyzed here, sarks can simplify
 k-mer output using a couple of auxiliary functions:
@@ -347,11 +348,11 @@ nonRedundantPeaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
 | 2258 | 4518 |    25 |   0 | CATACTGAGA |        1 |
 | 1463 | 5595 |    29 |  73 |  ATACTGAG  |        1 |
 
-Here mergedKmerSubPeaks removes redundant k-mer output where multiple k-mer peaks
-are reported with successive spatial s coordinates (e.g., the reported peak peaks[3, ]
-from block="22" at wi=195 and kmer="ATACTGAGA" immediately follows peaks[8, ] with
-block="22" and wi=194 and kmer="CATACTGAGA", and is thus merged with that peak).
-Further simplifiation is still possible in this case using:
+Here `mergedKmerSubPeaks` removes redundant k-mer output where multiple k-mer peaks
+are reported with successive spatial `s` coordinates (e.g., the reported peak `peaks[3, ]`
+from `block`="22" at `wi`=195 and `kmer`="ATACTGAGA" immediately follows `peaks[8, ]`
+with `block`="22" and `wi`=194 and `kmer`="CATACTGAGA", and is thus merged with that
+peak). Further simplification is still possible in this case using:
 
 ```R
 extendedPeaks <- extendKmers(sarks, nonRedundantPeaks)
@@ -369,17 +370,17 @@ extendedPeaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
 | 2260 | 5594 |    29 |  72 | CATACTGAGA | NA       |
 
 which detects that even though the full occurrence of "CATACTGAGA" in input sequence "24"
-was not reported as a k-mer by SArKS, the k-mer "ACACTGAG" in nonRedundantPeaks[1, ] is
+was not reported as a k-mer by SArKS, the k-mer "ACACTGAG" in `nonRedundantPeaks[1, ]` is
 flanked in sequence "24" by a "C" to the left and an "A" to the right and can hence be
 extended to math the full motif.
 
 
 ### 1.3.3 Suffix arrays
 
-How are we to interpret the columns i and s in peaks? This requires understanding a bit
-more about SArKS: Specifically, that the method begins by concatenating all of the input
-sequences into one big string (called catSeq in the underlying java object referenced by
-sarks):
+How are we to interpret the columns `i` and `s` in `peaks`? This requires understanding a
+bit more about SArKS: Specifically, that the method begins by concatenating all of the input
+sequences into one big string (called `catSeq` in the underlying java object referenced by
+`sarks`):
 
 ```R
 concatenated <- sarks$getCatSeq()
@@ -390,13 +391,13 @@ nchar(concatenated)
 [1] 7530
 ```
 
-concatenated is actually a bit longer than the sum of the lengths of the input sequences
+`concatenated` is actually a bit longer than the sum of the lengths of the input sequences
 because it keeps track of where one sequence ends and another begins using a special
-(dollar-sign) character. In this way, concatenated is divided into separate “blocks,” each
-corresponding to one of the input sequences.
+(dollar-sign) character. In this way, `concatenated` is divided into separate “blocks,”
+each corresponding to one of the input sequences.
 
-The column s in peaks then gives us the (0-based!) position of the annotated k-mer in the
-concatenated sequence:
+The column `s` in `peaks` then gives us the (0-based!) position of the annotated k-mer in
+the concatenated sequence:
 
 ```R
 kmerCatStart <- peak8$s + 1
@@ -408,7 +409,7 @@ substr(concatenated, kmerCatStart, kmerCatEnd)
 [1] "CATACTGAGA"
 ```
 
-But what about i? As we will confirm, it is the (0-based) position of the suffix
+But what about `i`? As we will confirm, it is the (0-based) position of the suffix
 
 ```R
 theSuffix <- substr(concatenated, kmerCatStart, nchar(concatenated))
@@ -439,8 +440,8 @@ sortedSuffixes[i1based] == theSuffix
 
 ### 1.3.4 Window averaging (kernel smoothing)
 
-Because the suffixes in sortedSuffixes are sorted, the suffixes in a window centered on
-i1based all start with the same few characters (a k-mer):
+Because the suffixes in `sortedSuffixes` are sorted, the suffixes in a window centered on
+`i1based` all start with the same few characters (a k-mer):
 
 ```R
 iCenteredWindow <- (i1based - 4):(i1based + 4)
@@ -452,8 +453,8 @@ all(substr(iCenteredWindowSuffixes, 1, 10) == 'CATACTGAGA')
 [1] TRUE
 ```
 
-For each suffix in sortedSuffixes, we can identify which input sequence contributed the
-block of concatenated where the suffix begins:
+For each suffix in `sortedSuffixes`, we can identify which input sequence contributed the
+block of `concatenated` where the suffix begins:
 
 ```R
 iCenteredWindow0Based <- iCenteredWindow - 1
@@ -464,22 +465,22 @@ sourceBlock(sarks, i=iCenteredWindow0Based)
 [1] "26" "28" "24" "21" "22" "25" "20" "29" "27"
 ```
 
-Note that the 9 suffixes in iCenteredWindowSuffixes derive from come from 9 of the 10
-higher-scoring sequences (all but "23"). This is not an accident: since the motif "CATACT-
-GAGA" is only present in high-scoring sequences, the suffixes starting with "CATACTGAGA"
-must derive from blocks associated with high-scoring sequences. Thus the average score
-of the sequences contributing the suffixes specified by iCenteredWindowSuffixes must be
-high (value of 1) as well.
+Note that the 9 suffixes in `iCenteredWindowSuffixes` derive from come from 9 of the 10
+higher-scoring sequences (all but "23"). This is not an accident: since the motif
+"CATACTGAGA" is only present in high-scoring sequences, the suffixes starting with
+"CATACTGAGA" must derive from blocks associated with high-scoring sequences. Thus the
+average score of the sequences contributing the suffixes specified by
+`iCenteredWindowSuffixes` must be high (value of 1) as well.
 
 The SArKS algorithm turns this around to identify motifs by hunting for windows in the
-sorted suffix list where the average score of the corresponding sourceBlock sequences is
+sorted suffix list where the average score of the corresponding `sourceBlock` sequences is
 high.
 
-The windowed column of the peaks output contains the average sourceBlock sequence
-scores for the windows centered around each sorted suffix position i and extending to both
-the left and right by halfWindow=4 positions. These average values are also referred to as
+The `windowed` column of the `peaks` output contains the average `sourceBlock` sequence
+scores for the windows centered around each sorted suffix position `i` and extending to both
+the left and right by `halfWindow`=4 positions. These average values are also referred to as
 ŷi in Wylie et al. [2019]; a vector containing all of these values can be obtained from the
-object sarks:
+object `sarks`:
 
 ```R
 yhat <- sarks$getYhat()
@@ -490,18 +491,19 @@ plot(i0based, yhat, type='l', xlab='i')
 
 From the plot of ŷi against i, we can see three peaks at which ŷi spikes up to 1,
 corresponding to the ranges i ∈ [1458, 1463], i ∈ [2256, 2258], and i ∈ [5862, 5865]
-which make up the values in peaks$i.
+which make up the values in `peaks$i`.
 
 
 ## 1.4 Permutations and thresholds
 
-How do we know that a given value of ŷi (or, equivalently, peaks$windowed) is high enough to
-include in the peaks output? In order to set such a threshold without having to make possibly
-unwarranted assumptions about the structure of the input sequences or the distribution of
-the scores, SArKS employs a permutational approach.
+How do we know that a given value of ŷi (or, equivalently, `peaks$windowed`) is high
+enough to include in the `peaks` output? In order to set such a threshold without having
+to make possibly unwarranted assumptions about the structure of the input sequences or the
+distribution of the scores, SArKS employs a permutational approach.
+
 To illustrate the idea here, let’s randomly permute the scores—so that the permuted scores
 have no relationship with which sequences contain "CATACTGAGA"—and construct a new
-Sarks object using the permuted scores:
+`Sarks` object using the permuted scores:
 
 ```R
 set.seed(12345)
@@ -530,12 +532,12 @@ we find that SArKS does not detect anything worthy of reporting after we disrupt
 association between input sequences and input scores by permuting the scores.
 
 This is to be expected given that the thresholds θ used by SArKS are defined by considering
-many (here, reps=250) such permutations and choosing θ such that only very few random
+many (here, `reps`=250) such permutations and choosing θ such that only very few random
 permutations would produce smoothed ŷi scores exceeding θ. The adjustable parameter
-nSigma controls how stringent the thresholds are: higher nSigma values lead to higher
+`nSigma` controls how stringent the thresholds are: higher `nSigma` values lead to higher
 thresholds, reducing sensitivity but also reducing the false positive rate.
 
-Once we’ve set thresholds using permutationThresholds, we can estimate the false positive
+Once we’ve set thresholds using `permutationThresholds`, we can estimate the false positive
 rate, defined here as the frequency of seeing nonempty k-mer result sets when there is really
 no association between sequence and score:
 
@@ -552,30 +554,30 @@ fpr$ci
 
 indicating a point estimate of 2% for the false positive rate, with a 95% confidence interval
 of (0.65%, 4.6%). This confidence interval can be made tighter by using a higher number for
-reps in the estimateFalsePositiveRate call.
+`reps` in the `estimateFalsePositiveRate` call.
 
-Note regarding random number generator seed for estimateFalsePositiveRate: do not use
-the same seed for estimateFalsePositiveRate as was used in permutationDistribution
-call used to set thresholds. The false positive rate estimation procedure assumes that the
-random permutations used in estimateFalsePositiveRate are independent of those used
-to set thresholds.
+**Note regarding random number generator seed** for `estimateFalsePositiveRate`:
+do not use the same seed for `estimateFalsePositiveRate` as was used in
+`permutationDistribution` call used to set thresholds. The false positive rate estimation
+procedure assumes that the random permutations used in `estimateFalsePositiveRate` are
+independent of those used to set thresholds.
 
 
 ### 1.4.1 Gini impurity filter
 
 When considering how to set SArKS thresholds in order to obtain a reasonable tradeoff
-between sensitivity and false positive rate, the mysterious minGini parameter should be
-factored in as well. This parameter is discussed in more detail in sections 2.1.7 and 2.2.1, but
-the basic idea is to filter likely false positive suffix array index positions i out of
+between sensitivity and false positive rate, the mysterious `minGini` parameter should be
+factored in as well. This parameter is discussed in more detail in sections 2.1.7 and 2.2.1,
+but the basic idea is to filter likely false positive suffix array index positions i out of
 consideration regardless of their smoothed scores ŷi . These likely false positive indices i
 come from excessive repetition of the same input sequences contributing repeatedly to the
 smoothing windows centered on i.
 
-My recommendation is to set minGini to a value slightly greater than 1: the value 1.1 seems
-empirically to work well in many situations. Note that for minGini > 1, this filter becomes
-more stringent the closer to 1 it is set; the opposite is true if you set minGini to a value
-less than 1, and you can turn the filter off entirely by setting it to 0. See section 2.2.1
-and Wylie et al. [2019] for more details.
+My recommendation is to set `minGini` to a value slightly greater than 1: the value 1.1 seems
+empirically to work well in many situations. Note that for `minGini` > 1, this filter becomes
+more stringent the closer to 1 it is set; the opposite is true if you set `minGini` to a
+value less than 1, and you can turn the filter off entirely by setting it to 0.
+See section 2.2.1 and Wylie et al. [2019] for more details.
 
 Here we examine the effects of this parameter using the simulated data; first with the filter:
 
@@ -602,8 +604,8 @@ estimateFalsePositiveRate(
 1    exact 42 250 0.168 0.1238429 0.2202254
 ```
 
-Of course we could compute a new set of thresholdsNoGini using filtersNoGini, but the
-results of this on our ability to detect anything are worth considering:
+Of course we could compute a new set of `thresholdsNoGini` using `filtersNoGini`,
+but the results of this on our ability to detect anything are worth considering:
 
 ```R
 permDistNoGini <-
@@ -625,16 +627,16 @@ Setting thresholds and estimating false positive rates using permutation methods
 the most time-consuming step in the SArKS workflow. To facilitate more rapid turnaround,
 the java back end of sarks supports multithreading for these processes. In order to take
 advantage of multithreading, you just need to specify how many threads you’d like to use
-when you invoke the Sarks constructor using the nThreads argument to that function; all
-permutation steps performed using the resulting sarks object will then use the specified
-number of threads.
+when you invoke the `Sarks` constructor using the `nThreads` argument to that function;
+all permutation steps performed using the resulting `sarks` object will then use the
+specified number of threads.
 
-Note regarding sarks multithreading: while the different threads performing the permuta-
-tional analyses share as many data structures as possible to reduce the memory requirements
-of sarks, each thread will need to keep track of its own permuted smoothed scores (and
-spatially smoothed scores if necessary). This can increase memory requirements quickly, so
-make sure you are running sarks on a machine with large RAM if you are planning to use
-many threads on a large data set.
+**Note regarding sarks multithreading:** while the different threads performing the
+permutational analyses share as many data structures as possible to reduce the memory
+requirements of sarks, each thread will need to keep track of its own permuted smoothed
+scores (and spatially smoothed scores if necessary). This can increase memory requirements
+quickly, so make sure you are running sarks on a machine with large RAM if you are
+planning to use many threads on a large data set.
 
 
 ## 1.5 Spatial smoothing
@@ -668,14 +670,15 @@ peaks[ , c('i', 's', 'block', 'wi', 'kmer', 'spatialWindowed')]
 | 2258 | 4518 |    25 |   0 | CATACTGAGA |       1.0000000 |
 | 5863 | 3546 |    21 |  32 |   TACTGAGA |       0.9259259 |
 
-Note that here we use nSigma=5.0, a much more stringent setting than the nSigma=2.0
-value used when no spatial smoothing was employed; had we tried nSigma=5.0 without
+Note that here we use `nSigma`=5.0, a much more stringent setting than the `nSigma`=2.0
+value used when no spatial smoothing was employed; had we tried `nSigma`=5.0 without
 spatial smoothing, SArKS would not have been able to detect the "CATACTGAGA" motif.
 
-The peaks object returned by kmerPeaks when spatial smoothing is employed contains the i
-and s coordinates for the left endpoints of spatial windows (windows in s-space, not i-space)
-enriched in high ŷ scores. Especially when these windows have longer spatialLength values,
-it can also be useful to pick out individual motif “subpeaks” within these spatial windows:
+The `peaks` object returned by `kmerPeaks` when spatial smoothing is employed contains
+the `i` and `s` coordinates for the left endpoints of spatial windows (windows in s-space,
+not i-space) enriched in high ŷ scores. Especially when these windows have longer
+`spatialLength` values, it can also be useful to pick out individual motif
+“subpeaks” within these spatial windows:
 
 ```R
 subpeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
@@ -690,12 +693,12 @@ subpeaks[ , c('i', 's', 'block', 'wi', 'kmer')]
 | 1458 | 4442 |    24 | 175 |  ATACTGAG  |
 | 2258 | 4518 |    25 |   0 | CATACTGAGA |
 
-In this case, with spatialLength=3, this is not such an important step—although it does
-serve to accomplish some simplification of results as was described when mergedKmerSub-
-Peaks was first introduced in section 1.3.2—but in general it is a critical piece of the SArKS
-methodology when spatial smoothing is in use.
+In this case, with `spatialLength`=3, this is not such an important step—although it does
+serve to accomplish some simplification of results as was described when
+`mergedKmerSubPeaks` was first introduced in section 1.3.2—but in general it is a
+critical piece of the SArKS methodology when spatial smoothing is in use.
 
-The subpeaks output of mergedKmerSubPeaks should generally be regarded as the main
+The `subpeaks` output of `mergedKmerSubPeaks` should generally be regarded as the main
 individual motif output for SArKS. Section 2.5 provides more details.
 When employing spatial smoothing to identify MMDs, you may want to inspect individual
 input sequences of interest by visualizing the SArKS results:
@@ -713,11 +716,11 @@ print(ggo)
 ```
 *output plot omitted; see pdf version of vignette in R package*
 
-which here clearly shows the spike at the location wi+1=195 of the "CATACTGAGA" motif in
+which here clearly shows the spike at the location `wi`+1=195 of the "CATACTGAGA" motif in
 sequence "22".
 
-The use of the more stringent nSigma=5.0 setting reduces the false positive rate relative to
-the nSigma=2.0 setting we used when not employing spatial smoothing:
+The use of the more stringent `nSigma`=5.0 setting reduces the false positive rate relative
+to the `nSigma`=2.0 setting we used when not employing spatial smoothing:
 
 ```R
 estimateFalsePositiveRate(
@@ -732,15 +735,15 @@ estimateFalsePositiveRate(
 
 ## 1.6 Varying SArKS parameters
 
-You may be wondering what the point of the filters object created in the SArKS workflow
-is, as it seems to specify the halfWindow ad spatialLength parameters in a manner
-redundant to their specification in the Sarks constructor. Aside from the specification of the
-minGini parameter, the motivation for this step is that we usually don’t know exactly what
-halfWindow or spatialLength values will yield the most useful output (and the answer to
-these questions will be different for different data sets and different questions).
+You may be wondering what the point of the `filters` object created in the SArKS workflow
+is, as it seems to specify the `halfWindow` and `spatialLength` parameters in a manner
+redundant to their specification in the `Sarks` constructor. Aside from the specification
+of the `minGini` parameter, the motivation for this step is that we usually don’t know
+exactly what `halfWindow` or `spatialLength` values will yield the most useful output
+(and the answer to these questions will be different for different data sets and different questions).
 
-To address this, we can use sarksFilters to test a variety of combinations of halfWindow
-and spatialLength (and, if so desired, minGini as well) values like so:
+To address this, we can use `sarksFilters` to test a variety of combinations of
+`halfWindow` and `spatialLength` (and, if so desired, `minGini` as well) values like so:
 
 ```R
 filters <- sarksFilters(
@@ -767,7 +770,7 @@ peaks[ , c('halfWindow', 'spatialLength', 'i', 's', 'block', 'wi', 'kmer')]
 |          8 |             3 | 5860 | 4947 |    26 | 178 |   TACTGA   |
 |          8 |             3 | 2261 | 5173 |    27 | 153 | CATACTGA   |
 
-Note that, as is generally true with SArKS, the results obtained using larger halfWindow
+Note that, as is generally true with SArKS, the results obtained using larger `halfWindow`
 values tend to have shorter identified k-mers.
 
 As always, testing multiple parameter sets can increase false positive rates:
@@ -782,23 +785,23 @@ estimateFalsePositiveRate(
 1    exact 1 250 0.004 0.0001012661 0.02208387
 ```
 
-As suggested in section 1.5 above, this can be countered by using increased nSigma values
+As suggested in section 1.5 above, this can be countered by using increased `nSigma` values
 when setting thresholds if we plan to test a wider range of possible SArKS parameters.
-Note regarding multiple hypothesis testing in SArKS: The false positive rates estimated by
-SArKS test the rate of detecting any results using any of the specified parameter settings, and
-are thus a type of family-wise error rate. As long as all parameter combinations tested are
-included in the filters employed in estimateFalsePositiveRate, no further adjustment
-for multiple testing should be applied to the estimated false positive rates.
+
+**Note regarding multiple hypothesis testing in SArKS:** The false positive rates estimated
+by SArKS test the rate of detecting any results using any of the specified parameter settings,
+and are thus a type of family-wise error rate. As long as all parameter combinations tested
+are included in the `filters` employed in `estimateFalsePositiveRate`, no further
+adjustment for multiple testing should be applied to the estimated false positive rates.
 
 
 ## 1.7 Clustering similar k-mers into broader motifs
 
-While there is essentially one unambiguous k-mer "CATACTGAGA" of note in the simulated-
-Seqs-simulatedScores example, real data sets will generally have more complex sequence
-motifs allowing for some variation both in length and composition of the patterns. When
-applying SArKS methodology to real data, many similar k-mers representing the same basic
-motif may result: sarks provides functions for clustering these k-mers into broader motif
-patterns.
+While there is essentially one unambiguous k-mer "CATACTGAGA" of note in the
+`simulatedSeqs` - `simulatedScores` example, real data sets will generally have more
+complex sequence motifs allowing for some variation both in length and composition of the
+patterns. When applying SArKS methodology to real data, many similar k-mers representing
+the same basic motif may result: sarks provides functions for clustering these k-mers into broader motif patterns.
 
 For example, let’s say we had obtained the following k-mers using sarks:
 
@@ -839,11 +842,10 @@ $GTCCTG
 [1] "GTCCTG"
 ```
 
-The resulting object kmClust is a named list: each element of this list is a character vector
-listing the elements of the vector kmers composing the corresponding cluster, while the name
-of the cluster is a k-mer from kmers found to be particularly representative of the cluster.
-sarks then allows us to count how many times each motif (=cluster of k-mers) occurs in
-each sequence:
+The resulting object `kmClust` is a named list: each element of this list is a character
+vector listing the elements of the vector `kmers` composing the corresponding cluster, while
+the name of the cluster is a k-mer from `kmers` found to be particularly representative of
+the cluster. sarks then allows us to count how many times each motif (=cluster of k-mers) occurs in each sequence:
 
 ```R
 clCounts <- clusterCounts(kmClust, simulatedSeqs, directional=FALSE)

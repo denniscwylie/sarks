@@ -602,10 +602,10 @@ blockScores <- function(sarks) {
 sourceBlock <- function(sarks, s=NULL, i=NULL) {
     seqs <- sarks$getTranscripts()
     if (length(s) == 0) {
-        i = as.integer(i)
-        s = vapply(i, sarks$i2s, 0)
+        i <- as.integer(i)
+        s <- vapply(i, sarks$i2s, 0)
     }
-    s = as.integer(s)
+    s <- as.integer(s)
     return(seqs[sarks$sourceBlock(s) + 1])
 }
 
@@ -724,7 +724,7 @@ dnaRevComp <- function(s) {
 #'
 #' @export
 regexCounts <- function(regex, seqs, overlap=FALSE) {
-    if (length(names(regex)) == 0) {names(regex) = regex}
+    if (length(names(regex)) == 0) {names(regex) <- regex}
     if (length(regex) > 1) {
         return(vapply(
             regex, regexCounts,
@@ -732,7 +732,7 @@ regexCounts <- function(regex, seqs, overlap=FALSE) {
             seqs=seqs, overlap=overlap
         ))
     }
-    if (overlap) {regex = paste0('(?=', regex, ')')}
+    if (overlap) {regex <- paste0('(?=', regex, ')')}
     return(nchar(
             gsub('[^_]+', '', gsub(regex, '_', toupper(seqs), perl=TRUE))))
 }
@@ -876,14 +876,14 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
 #' @export
 regexLocate <- function(regex, seqs, showMatch=FALSE) {
     if (length(names(seqs)) == 0) {stop("seqs must be named vector.")}
-    if (length(names(regex)) == 0) {names(regex) = regex}
+    if (length(names(regex)) == 0) {names(regex) <- regex}
     if (length(regex) > 1) {
         out <- lapply(regex, regexLocate, seqs=seqs, showMatch=showMatch)
         for (rn in names(regex)) {out[[rn]]$regex <- rep(rn, nrow(out[[rn]]))}
         outCols <- c('seqid', 'regex', 'location')
         if (showMatch) {outCols <- c(outCols, 'match')}
         out <- do.call(rbind, out)[ , outCols]
-        rownames(out) = NULL
+        rownames(out) <- NULL
         return(out)
     }
     inseqs <- seqs
@@ -1105,7 +1105,7 @@ clusterKmers <- function(
     ddist <- stats::as.dist(d)
     hcout <- stats::hclust(ddist, method='average')
     if (length(nClusters) == 0) {
-        if (length(maxClusters) == 0) {maxClusters = nrow(d) - 1}
+        if (length(maxClusters) == 0) {maxClusters <- nrow(d) - 1}
         ctouts <- data.frame(
             stats::cutree(hcout, k=seq(2, maxClusters, 1)),
             check.names = FALSE

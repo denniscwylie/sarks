@@ -79,7 +79,7 @@ thresholds <- permutationThresholds(
 ## take a look at thresholds:
 thresholds$theta
 ##   halfWindow minGini spatialLength minSpatialGini     theta spatialTheta
-## 1        250     1.1             0            1.1 0.7376074           NA
+## 1        250     1.1             0            1.1 0.7376174           NA
 ## -----------------------------------------------------------------------------
 ## - theta column will be defined for rows with spatialLength == 0
 ## - spatialTheta column will be defined for rows with spatialTheta > 1
