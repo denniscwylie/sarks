@@ -7,10 +7,10 @@
 kmerCounts(kmer, seqs, directional = TRUE, overlap = FALSE)
 }
 \arguments{
-\item{kmer}{character vector of k-mers to search for.}
+\item{kmer}{character vector or XStringSet of k-mers to search for.}
 
-\item{seqs}{character vector of sequences in which to search for
-and count occurrences of kmer.}
+\item{seqs}{character vector or XStringSet of sequences in which to
+search for and count occurrences of kmer.}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
 either kmer or its reverse-complement. Makes sense only if
@@ -22,7 +22,7 @@ kmer be counted as multiple hits?}
 \value{
 if length(kmer) is one, returns integer vector of counts;
     if length(kmer) is more than one, returns matrix of counts:
-    one row per sequence in seqs, one column per expression in
+    one column per sequence in seqs, one row per expression in
     regex
 }
 \description{

@@ -2,14 +2,15 @@
     rJava::.jpackage(pkgname, lib.loc=libname)
 }
 
+
 #' Suffix Array Kernel Smoothing
 #'
 #' Sarks class implements suffix array kernel smoothing for de novo
 #' correlative motif discovery.
 #' 
 #' @param fasta specification of fasta file containing sequences to be
-#'     analyzed; may also be a named character vector whose elements
-#'     are sequences to be analyzed.
+#'     analyzed; may also be a *named* character vector or
+#'     XStringSet whose elements are sequences to be analyzed.
 #'
 #' @param scores specification of scores associated with sequences in
 #'     fasta argument; can be provided as two column tab-delimited
@@ -40,11 +41,9 @@
 #' @export
 Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
     if (length(fasta) > 1) {
-        seqs <- character(2*length(fasta))
-        seqs[seq(1, length(seqs)-1, by=2)] <- paste0('>', names(fasta))
-        seqs[seq(2, length(seqs), by=2)] <- fasta
         tmpfasta <- tempfile(pattern='seq')
-        writeLines(seqs, tmpfasta)
+        Biostrings::writeXStringSet(
+                Biostrings::BStringSet(fasta), tmpfasta, format='fasta')
         fasta <- tmpfasta
     }
     if (length(scores) > 1) {
@@ -71,6 +70,7 @@ Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
     if (exists('tmpscores')) {suppressWarnings(file.remove(tmpscores))}
     return(sarks)
 }
+
 
 #' Smoothing window and Gini impurity filter settings
 #' 
@@ -674,32 +674,6 @@ blockInfo <- function(sarks, block, filters, thresholds, kMax=12L) {
 }
 
 
-#' Reverse-complement DNA sequence
-#' 
-#' Takes character vector input representing DNA sequence and returns
-#' reverse-complement as character vector.
-#'
-#' @param s character vector DNA sequence(s)
-#'
-#' @return character vector containing reverse-complement(s) of s
-#'
-#' @examples
-#' dnaRevComp(c('TGACCTT', 'CATACTGAGA'))
-#'
-#' @export
-dnaRevComp <- function(s) {
-    if (length(s) > 1) {return(vapply(s, dnaRevComp, ''))}
-    comp <- c(
-        a='t', A='T', c='g', C='G', g='c', G='C',
-        n='n', N='N', t='a', T='A', `[`=']', `]`='[', `-`='-'
-    )
-    return(paste(
-        rev(comp[ strsplit(s, split='')[[1]] ]),
-        collapse = ''
-    ))
-}
-
-
 #' Count occurrences of regular expression
 #'
 #' Counts how often a regular expression (or vector of regular
@@ -707,8 +681,8 @@ dnaRevComp <- function(s) {
 #'
 #' @param regex character vector of regular expressions to search for
 #'
-#' @param seqs character vector of sequences in which to search for
-#'     and count occurrences of regex
+#' @param seqs character vector or XStringSet of sequences in which to
+#'     search for and count occurrences of regex
 #'
 #' @param overlap logical value: should overlapping occurrences of
 #'     regex be counted as multiple hits?
@@ -743,10 +717,10 @@ regexCounts <- function(regex, seqs, overlap=FALSE) {
 #' Counts how often a k-mer (or vector of k-mers) occurs in each
 #' element of a character vector.
 #'
-#' @param kmer character vector of k-mers to search for.
+#' @param kmer character vector or XStringSet of k-mers to search for.
 #'
-#' @param seqs character vector of sequences in which to search for
-#'     and count occurrences of kmer.
+#' @param seqs character vector or XStringSet of sequences in which to
+#'     search for and count occurrences of kmer.
 #'
 #' @param directional logical value: if FALSE, counts occurrences of
 #'     either kmer or its reverse-complement. Makes sense only if
@@ -781,9 +755,13 @@ kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
         names(kmer) <- kmer
     }
     if (!directional) {
-        kmer <- structure(paste0(kmer, '|', dnaRevComp(kmer)), names=kmer)
+        revComps <- as.character(Biostrings::reverseComplement(
+                Biostrings::DNAStringSet(kmer)))
+        kmer <- structure(
+            paste0(kmer, '|', revComps), names=as.character(kmer)
+        )
     } else if (length(names(kmer)) == 0) {
-        kmer <- structure(kmer, names=kmer)
+        kmer <- structure(as.character(kmer), names=as.character(kmer))
     }
     return(regexCounts(kmer, seqs, overlap))    
 }
@@ -794,12 +772,12 @@ kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
 #' Counts how often any k-mer from a cluster of k-mers (or list of
 #' clusters of k-mers) occurs in each element of a character vector.
 #'
-#' @param kmers character vector of k-mers composing cluster to search
-#'     for, or a named list of such character vectors to count
-#'     multiple clusters.
+#' @param kmers character vector or XStringSet of k-mers composing
+#'     cluster to search for, or a named list of such character
+#'     vectors or XStringSet objects to count multiple clusters.
 #'
-#' @param seqs character vector of sequences in which to search for
-#'     and count occurrences of kmers.
+#' @param seqs character vector or XStringSet of sequences in which to
+#'     search for and count occurrences of kmers.
 #'
 #' @param directional logical value: if FALSE, counts occurrences of
 #'     either cluster(s) of k-mers or their reverse-complements. Makes
@@ -808,10 +786,11 @@ kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
 #' @param overlap logical value: should overlapping occurrences of
 #'     k-mers be counted as multiple hits?
 #'
-#' @return if cluster is a single character vector (of any length),
-#'     returns integer vector of counts; if cluster is a list of
-#'     character vectors, returns matrix of counts: one row per
-#'     sequence in seqs, one column per character vector in cluster
+#' @return if cluster is a single character vector or XStringSet
+#'     (of any length), returns integer vector of counts;
+#'     if cluster is a list of character vectors, returns matrix of
+#'     counts: one row per sequence in seqs, one column per
+#'     character vector/XStringSet in cluster
 #'
 #' @examples
 #' seqs <- c(
@@ -841,7 +820,9 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
         return(out)
     }
     if (!directional) {
-        kmers <- sort(unique(c(kmers, dnaRevComp(kmers))))
+        revComps <- as.character(Biostrings::reverseComplement(
+                Biostrings::DNAStringSet(kmers)))
+        kmers <- sort(unique(c(as.character(kmers), revComps)))
     }
     pattern <- paste(kmers, collapse='|')
     return(regexCounts(pattern, seqs, overlap))
@@ -854,10 +835,11 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
 #' regular expressions) in each element of a named character
 #' vector. Not case sensitive.
 #'
-#' @param regex character vector of regular expressions to search for
+#' @param regex character vector or XStringSet of regular expressions
+#'     to search for
 #'
-#' @param seqs named character vector of sequences in which to locate
-#'     regex
+#' @param seqs named character vector or XStringSet of sequences in
+#'     which to locate regex
 #'
 #' @param showMatch logical value; if true add additional column to
 #'     output indicating what the exact regex match for each
@@ -924,10 +906,10 @@ regexLocate <- function(regex, seqs, showMatch=FALSE) {
 #' Find locations of matches of vector of k-mers in each element of a
 #' named character vector. Not case sensitive.
 #'
-#' @param kmers character vector of k-mers to search for
+#' @param kmers character vector or XStringSet of k-mers to search for
 #'
-#' @param seqs named character vector of sequences in which to locate
-#'     kmer
+#' @param seqs named character vector or XStringSet of sequences in
+#'     which to locate kmer
 #'
 #' @param directional logical value: if FALSE, counts occurrences of
 #'     either kmers or their reverse-complements. Makes sense only if
@@ -947,15 +929,16 @@ regexLocate <- function(regex, seqs, showMatch=FALSE) {
 #'
 #' @export
 locateKmers <- function(kmers, seqs, directional=TRUE, showMatch=FALSE) {
-    patterns <- structure(kmers, names=kmers)
+    patterns <- structure(as.character(kmers), names=as.character(kmers))
     if (!directional) {
+        revComps <- as.character(Biostrings::reverseComplement(
+                Biostrings::DNAStringSet(kmers)))
         patterns <- structure(
-            paste0(kmers, '|', dnaRevComp(kmers)),
-            names=kmers
+            paste0(kmers, '|', revComps), names=as.character(kmers)
         )
     }
     locations <- lapply(patterns, regexLocate, seqs=seqs, showMatch=showMatch)
-    for (kmer in kmers) {
+    for (kmer in as.character(kmers)) {
         locations[[kmer]]$kmer <- rep(kmer, nrow(locations[[kmer]]))
     }
     outCols <- c('seqid', 'kmer', 'location')
@@ -971,9 +954,11 @@ locateKmers <- function(kmers, seqs, directional=TRUE, showMatch=FALSE) {
 #' Find locations of matches of list of character vectors of k-mers in
 #' each element of a named character vector. Not case sensitive.
 #'
-#' @param clusters list of character vectors of k-mers to search for
+#' @param clusters list of character vectors or XStringSet objects of
+#'     k-mers to search for
 #'
-#' @param seqs character vector of sequences in which to locate kmer
+#' @param seqs character vector or XStringSet of sequences in which to
+#'     locate kmer
 #'
 #' @param directional logical value: if FALSE, counts occurrences of
 #'     either k-mers within each cluster or their reverse-complements.
@@ -1007,7 +992,9 @@ locateClusters <- function(clusters, seqs, directional=TRUE, showMatch=FALSE) {
     for (cn in names(clusters)) {
         kmers <- clusters[[cn]]
         if (!directional) {
-            kmers <- sort(unique(c(kmers, dnaRevComp(kmers))))
+            revComps <- as.character(Biostrings::reverseComplement(
+                    Biostrings::DNAStringSet(kmers)))
+            kmers <- sort(unique(c(as.character(kmers), revComps)))
         }
         pattern <- paste(kmers, collapse='|')
         locations <- regexLocate(pattern, seqs, showMatch=showMatch)
@@ -1049,7 +1036,8 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #' coefficient distance metric applied treating each k-mer as the set
 #' of all tetramers which can be found as substrings within it.
 #'
-#' @param kmers character vector of k-mers to partition into clusters
+#' @param kmers character vector or XStringSet of k-mers to partition
+#'     into clusters
 #'
 #' @param k length of sub-k-mers (default k=4 to use tetramers) with
 #'     which to calculate Jaccard distances for clustering
@@ -1067,8 +1055,9 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #'     equivalent to its reverse-complement. Makes sense only if
 #'     applying to DNA sequences!
 #'
-#' @return list of character vectors partitioning kmers into clusters:
-#'     the character vector at the i-th element of the output list
+#' @return list of character vectors (or XStringSet objects as per the
+#'     class of kmers argument) partitioning kmers into clusters: the
+#'     character vector at the i-th element of the output list
 #'     contains the elements from kmers assigned to cluster i.
 #'
 #' @examples
@@ -1082,16 +1071,21 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #' @export
 clusterKmers <- function(
             kmers, k=4, nClusters=NULL, maxClusters=NULL, directional=TRUE) {
+    outClass <- gsub('character', 'identity', class(kmers)[[1]])
     kmers <- unique(kmers)
     if (length(kmers) <= 3 && (length(nClusters) == 0 || nClusters > 3)) {
         stop('Must specify nClusters <= 3 for length(kmers) <= 3.')
     }
-    tetraCounts <- kmerCounts(k, kmers, directional=directional, overlap=TRUE)
+    tetraCounts <- kmerCounts(
+        k, kmers, directional=directional, overlap=TRUE
+    )
     tetraCounts <- data.frame(tetraCounts, row.names=kmers)
     if (!directional) {
         unorientedTetramers <- sort(unique(vapply(
-            colnames(tetraCounts), function(km) {min(km, dnaRevComp(km))}, ''
-        )))
+                colnames(tetraCounts), function(km) {
+                    min(km, as.character(Biostrings::reverseComplement(
+                            Biostrings::DNAStringSet(km))))
+                }, '')))
         tetraCounts <- tetraCounts[ , unorientedTetramers]
     }
     tetraCounts <- tetraCounts[ , colSums(tetraCounts) > 0]
@@ -1121,5 +1115,6 @@ clusterKmers <- function(
     )
     names(clusters) <- vapply(
             clusters, function(d) {rownames(d)[which.min(rowMeans(d))]}, '')
-    return(lapply(clusters, function(d) {rownames(d)}))
+    out <- lapply(clusters, function(d) {get(outClass)(rownames(d))})
+    return(out)
 }

@@ -11,7 +11,7 @@ Authors@R:
            comment = c(ORCID = "0000-0003-0380-3549"))
 Description: Suffix Array Kernel Smoothing (see https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797).
 Depends: R (>= 3.3.0)
-Imports: rJava, IRanges, utils, cluster, binom
+Imports: rJava, Biostrings, IRanges, utils, cluster, binom
 Suggests: RUnit, BiocGenerics, ggplot2
 biocViews: MotifDiscovery, GeneRegulation, GeneExpression, Transcriptomics, RNASeq, FeatureExtraction
 SystemRequirements: Java (>= 1.8)

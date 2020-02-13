@@ -7,9 +7,11 @@
 locateClusters(clusters, seqs, directional = TRUE, showMatch = FALSE)
 }
 \arguments{
-\item{clusters}{list of character vectors of k-mers to search for}
+\item{clusters}{list of character vectors or XStringSet objects of
+k-mers to search for}
 
-\item{seqs}{character vector of sequences in which to locate kmer}
+\item{seqs}{character vector or XStringSet of sequences in which to
+locate kmer}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
 either k-mers within each cluster or their reverse-complements.

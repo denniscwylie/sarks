@@ -7,12 +7,12 @@
 clusterCounts(kmers, seqs, directional = TRUE, overlap = FALSE)
 }
 \arguments{
-\item{kmers}{character vector of k-mers composing cluster to search
-for, or a named list of such character vectors to count
-multiple clusters.}
+\item{kmers}{character vector or XStringSet of k-mers composing
+cluster to search for, or a named list of such character
+vectors or XStringSet objects to count multiple clusters.}
 
-\item{seqs}{character vector of sequences in which to search for
-and count occurrences of kmers.}
+\item{seqs}{character vector or XStringSet of sequences in which to
+search for and count occurrences of kmers.}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
 either cluster(s) of k-mers or their reverse-complements. Makes
@@ -22,10 +22,11 @@ sense only if applying to DNA sequences!}
 k-mers be counted as multiple hits?}
 }
 \value{
-if cluster is a single character vector (of any length),
-    returns integer vector of counts; if cluster is a list of
-    character vectors, returns matrix of counts: one row per
-    sequence in seqs, one column per character vector in cluster
+if cluster is a single character vector or XStringSet
+    (of any length), returns integer vector of counts;
+    if cluster is a list of character vectors, returns matrix of
+    counts: one column per sequence in seqs, one row per
+    character vector/XStringSet in cluster
 }
 \description{
 Counts how often any k-mer from a cluster of k-mers (or list of

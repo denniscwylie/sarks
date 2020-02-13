@@ -7,10 +7,11 @@
 regexLocate(regex, seqs, showMatch = FALSE)
 }
 \arguments{
-\item{regex}{character vector of regular expressions to search for}
+\item{regex}{character vector or XStringSet of regular expressions
+to search for}
 
-\item{seqs}{named character vector of sequences in which to locate
-regex}
+\item{seqs}{named character vector or XStringSet of sequences in
+which to locate regex}
 
 \item{showMatch}{logical value; if true add additional column to
 output indicating what the exact regex match for each

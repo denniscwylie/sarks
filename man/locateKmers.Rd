@@ -7,10 +7,10 @@
 locateKmers(kmers, seqs, directional = TRUE, showMatch = FALSE)
 }
 \arguments{
-\item{kmers}{character vector of k-mers to search for}
+\item{kmers}{character vector or XStringSet of k-mers to search for}
 
-\item{seqs}{named character vector of sequences in which to locate
-kmer}
+\item{seqs}{named character vector or XStringSet of sequences in
+which to locate kmer}
 
 \item{directional}{logical value: if FALSE, counts occurrences of
 either kmers or their reverse-complements. Makes sense only if

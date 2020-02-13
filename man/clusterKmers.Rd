@@ -8,7 +8,8 @@ clusterKmers(kmers, k = 4, nClusters = NULL, maxClusters = NULL,
   directional = TRUE)
 }
 \arguments{
-\item{kmers}{character vector of k-mers to partition into clusters}
+\item{kmers}{character vector or XStringSet of k-mers to partition
+into clusters}
 
 \item{k}{length of sub-k-mers (default k=4 to use tetramers) with
 which to calculate Jaccard distances for clustering}
@@ -27,8 +28,9 @@ equivalent to its reverse-complement. Makes sense only if
 applying to DNA sequences!}
 }
 \value{
-list of character vectors partitioning kmers into clusters:
-    the character vector at the i-th element of the output list
+list of character vectors (or XStringSet objects as per the
+    class of kmers argument) partitioning kmers into clusters: the
+    character vector at the i-th element of the output list
     contains the elements from kmers assigned to cluster i.
 }
 \description{
