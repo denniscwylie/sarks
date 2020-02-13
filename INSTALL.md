@@ -22,9 +22,9 @@
    ## if you don't already have remotes installed, uncomment and run:
    # install.packages('remotes')
    library(remotes)
-   install_github('denniscwylie/sarks/pkg')
+   install_github('denniscwylie/sarks')
    ## alternatively, to build vignette as well, try uncommenting and running:
-   # install_github('denniscwylie/sarks/pkg', build_vignettes=TRUE)
+   # install_github('denniscwylie/sarks', build_vignettes=TRUE)
    
    ```
 
@@ -34,7 +34,7 @@
 
 ## Installation: Java
 
-1. Copy sarks.jar from pkg/inst/java/ subdirectory of this repository
+1. Copy sarks.jar from inst/java/ subdirectory of this repository
    to convenient location
    
 2. Test the installation by going through the simulated data example

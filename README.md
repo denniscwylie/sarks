@@ -30,9 +30,9 @@ can be installed in an active R session via:
 ## if you don't already have remotes installed, uncomment and run:
 # install.packages('remotes')
 library(remotes)
-install_github('denniscwylie/sarks/pkg')
+install_github('denniscwylie/sarks')
 ## alternatively, to build vignette as well, try uncommenting and running:
-# install_github('denniscwylie/sarks/pkg', build_vignettes=TRUE)
+# install_github('denniscwylie/sarks', build_vignettes=TRUE)
 ```
 
 The sarks vignette is the best place to start to learn how to use the
