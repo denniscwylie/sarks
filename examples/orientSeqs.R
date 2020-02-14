@@ -2,7 +2,8 @@ orientSeqs <- function(seqs, representative, k=4) {
     if (length(seqs) == 1) {return(seqs)}
     names(seqs) <- seqs
     seqKmers <- kmerCounts(k, seqs, overlap=TRUE)
-    revComps <- sapply(seqs, dnaRevComp)
+    revComps <- as.character(Biostrings::reverseComplement(
+            Biostrings::DNAStringSet(seqs)))
     revKmers <- kmerCounts(k, revComps, overlap=TRUE)
     reverse <- rep(FALSE, length(seqs))
     repKmers <- as.numeric(seqKmers[representative, ])
