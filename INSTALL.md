@@ -11,7 +11,8 @@
     [**utils**](https://www.rdocumentation.org/packages/utils/versions/3.6.2),
     [**cluster**](https://cran.r-project.org/web/packages/cluster/index.html),
     [**binom**](https://cran.r-project.org/web/packages/binom/index.html)
-  - and Bioconductor package
+  - and Bioconductor packages
+    [**Biostrings**](https://bioconductor.org/packages/release/bioc/html/Biostrings.html), and
     [**IRanges**](https://bioconductor.org/packages/release/bioc/html/IRanges.html)
 - for Java version: Java >= 1.8
 
