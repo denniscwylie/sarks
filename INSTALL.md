@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- for R version: Java >= 1.8, R >= 3.6.0 with rJava successfully installed
+- for R version: Java >= 1.8 and R >= 4.0 with rJava successfully installed
   - relies on CRAN package
     [**remotes**](https://cran.r-project.org/web/packages/remotes/index.html)
     for installation

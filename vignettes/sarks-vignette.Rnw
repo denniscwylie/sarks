@@ -2,6 +2,7 @@
 
 \documentclass[11pt]{article}
 
+\usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -18,9 +19,6 @@
 \usepackage{parskip}
 \usepackage{Sweave}
 \usepackage{url}
-\usepackage[dvipsnames]{xcolor}
-\usepackage{xfrac}
-\usepackage{xr}
 
 \geometry{
     top=1in,
