@@ -1,6 +1,6 @@
 Package: sarks
 Title: Suffix Array Kernel Smoothing for discovery of correlative sequence motifs and multi-motif domains
-Version: 0.99.7
+Version: 0.99.8
 Authors@R: 
     person(given = "Dennis",
            family = "Wylie",
@@ -9,8 +9,8 @@ Authors@R:
            comment = c(ORCID = "0000-0003-0380-3549"))
 Description: Suffix Array Kernel Smoothing (see https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797), or SArKS, identifies sequence motifs whose presence correlates with numeric scores (e.g., differential expression statistics) assigned to the sequences (e.g., putative promoter sequences). SArKS uses nonparametric kernel smoothing over sequence similarity as quantified by location within a suffix array based on the full set of input sequences. A second round of smoothing over spatial proximity reveals multi-motif domains (MMDs). Discovered motifs can then be merged or extended based on adjacency within MMDs. False positive rates are estimated and controlled by permutation testing.
 Depends: R (>= 4.0)
-Imports: rJava, Biostrings, IRanges, utils, cluster, binom, ggplot2
-Suggests: RUnit, BiocGenerics
+Imports: rJava, Biostrings, IRanges, utils, cluster, binom
+Suggests: RUnit, BiocGenerics, ggplot2
 biocViews: MotifDiscovery, GeneRegulation, GeneExpression, Transcriptomics, RNASeq, FeatureExtraction
 SystemRequirements: Java (>= 1.8)
 License: BSD_3_clause + file LICENSE

@@ -1383,4 +1383,5 @@ $\hat{\hat{y}}^{(\pi)}_i$ & spatially smoothed scores
 <<echo=FALSE, results=hide>>=
 rm(filters, filtersNoGini, fpr, permDist, permDistNoGini, permDistNull,
         sarks, sarksPerm, thresholds, thresholdsNoGini, thresholdsNull)
+.jinit(force.init=TRUE)
 @
