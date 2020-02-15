@@ -197,6 +197,7 @@ public class SarksUtilities {
             if (curName != null && !out.containsKey(curName)) {
                 out.put(curName, sb.toString());
             }
+            in.close();
         }
         return out;
     }
@@ -222,6 +223,7 @@ public class SarksUtilities {
                 } catch (NumberFormatException nfe) {}
                 curLine = in.readLine();                
             }
+            in.close();
         }
         return out;
     }
