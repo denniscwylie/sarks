@@ -1,8 +1,6 @@
 Package: sarks
 Title: Suffix Array Kernel Smoothing for discovery of correlative sequence motifs and multi-motif domains
-Version: 0.99.2
-Author: Dennis Wylie
-Maintainer: Dennis Wylie <denniscwylie@gmail.com>
+Version: 0.99.3
 Authors@R: 
     person(given = "Dennis",
            family = "Wylie",
