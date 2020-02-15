@@ -66,8 +66,12 @@ Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
         as.integer(halfWindow), as.integer(spatialLength),
         as.integer(nThreads), TRUE
     )
-    if (exists('tmpfasta')) {suppressWarnings(unlink(tmpfasta))}
-    if (exists('tmpscores')) {suppressWarnings(unlink(tmpscores))}
+    if (exists('tmpfasta')) {
+        suppressWarnings(unlink(tmpfasta, recursive=TRUE))
+    }
+    if (exists('tmpscores')) {
+        suppressWarnings(unlink(tmpscores, recursive=TRUE))
+    }
     return(sarks)
 }
 
