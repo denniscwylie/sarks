@@ -5,7 +5,7 @@
 \title{Identify and merge k-mer sub-peaks within multi-motif domains}
 \usage{
 mergedKmerSubPeaks(sarks, filters, thresholds, peakify = TRUE,
-  kMax = 12L)
+    kMax = 12L)
 }
 \arguments{
 \item{sarks}{Sarks object to use for k-mer peak calling.}

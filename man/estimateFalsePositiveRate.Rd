@@ -5,7 +5,7 @@
 \title{Estimating SArKS false positive rate}
 \usage{
 estimateFalsePositiveRate(sarks, reps, filters, thresholds, seed = NULL,
-  conf.level = 0.95)
+    conf.level = 0.95)
 }
 \arguments{
 \item{sarks}{Sarks object to test.}

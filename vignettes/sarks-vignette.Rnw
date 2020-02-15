@@ -1379,3 +1379,8 @@ $\hat{\hat{y}}^{(\pi)}_i$ & spatially smoothed scores
 \addcontentsline{toc}{section}{References}
 
 \end{document}
+
+<<echo=FALSE, results=hide>>=
+rm(filters, filtersNoGini, fpr, permDist, permDistNoGini, permDistNull,
+        sarks, sarksPerm, thresholds, thresholdsNoGini, thresholdsNull)
+@

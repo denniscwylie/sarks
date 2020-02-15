@@ -5,7 +5,7 @@
 \title{Cluster k-mers}
 \usage{
 clusterKmers(kmers, k = 4, nClusters = NULL, maxClusters = NULL,
-  directional = TRUE)
+    directional = TRUE)
 }
 \arguments{
 \item{kmers}{character vector or XStringSet of k-mers to partition
