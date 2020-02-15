@@ -6,14 +6,12 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
-\usepackage[footnotesize,labelfont=bf]{caption}
 \usepackage[scaled=1.04]{couriers}
 \usepackage{fancyhdr}
 \usepackage{float}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage[hidelinks]{hyperref}
-%% \usepackage{IEEEtran}
 \usepackage{microtype}
 \usepackage{natbib}
 \usepackage{parskip}
