@@ -71,7 +71,7 @@ library(rJava)
 ## (making sure not to load any other rJava-dependent packages prior to
 ##  initializing the JVM with .jinit!),
 ## you are now ready to load the sarks library:
-## ----------------------------------------------------------------------
+## ---------------------------------------------------------------------
 library(sarks)
 @ 
 
@@ -1372,9 +1372,3 @@ $\hat{\hat{y}}^{(\pi)}_i$ & spatially smoothed scores
 \addcontentsline{toc}{section}{References}
 
 \end{document}
-
-<<echo=FALSE, results=hide>>=
-rm(filters, filtersNoGini, fpr, permDist, permDistNoGini, permDistNull,
-        sarks, sarksPerm, thresholds, thresholdsNoGini, thresholdsNull)
-.jinit(force.init=TRUE)
-@
