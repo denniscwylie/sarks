@@ -33,8 +33,6 @@
 \newcommand{\java}[1]{\texttt{\color{red}#1}}
 \newcommand{\R}[1]{\texttt{\color{MidnightBlue}#1}}
 
-\rhead{}
-
 \title{\textbf{S}uffix \textbf{Ar}ray \textbf{K}ernel \textbf{S}moothing for \emph{de novo} discovery of correlative sequence motifs and multi-motif domains: \\ the \R{sarks} package}
 \author{Dennis Wylie, Hans A. Hofmann, Boris V. Zemelman}
 
