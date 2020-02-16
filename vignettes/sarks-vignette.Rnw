@@ -5,10 +5,6 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{booktabs}
-\usepackage[scaled=1.04]{couriers}
-\usepackage{fancyhdr}
-\usepackage{float}
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage[hidelinks]{hyperref}
@@ -16,7 +12,6 @@
 \usepackage{natbib}
 \usepackage{parskip}
 \usepackage{Sweave}
-\usepackage{url}
 
 \geometry{
     top=1in,
