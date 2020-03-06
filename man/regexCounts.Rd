@@ -18,7 +18,7 @@ regex be counted as multiple hits?}
 \value{
 if length(regex) is one, returns integer vector of counts;
     if length(regex) is more than one, returns matrix of counts:
-    one column per sequence in seqs, one row per expression in
+    one row per sequence in seqs, one column per expression in
     regex
 }
 \description{
@@ -26,6 +26,7 @@ Counts how often a regular expression (or vector of regular
 expressions) occurs in each element of a character vector.
 }
 \examples{
+data(simulatedSeqs)
 reCounts1 <- regexCounts('AAAAA|TTTTT', simulatedSeqs)
 reCounts2 <- regexCounts(c('AAAAA|TTTTT', 'CG'), simulatedSeqs)
 

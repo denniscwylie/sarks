@@ -39,7 +39,7 @@ public class SarksUtilities {
 
     public static Float sd(Float[] arr) {
         if ((arr == null) || (arr.length == 0)) {return null;}
-        if (arr[0] == null) {return null;}        
+        if (arr[0] == null) {return null;}
         double sum = 0;
         double sumsq = 0;
         for (int i=0; i<arr.length; i++) {
@@ -53,7 +53,7 @@ public class SarksUtilities {
             (meansq - (mean*mean))
         );
     }
-        
+
     public static float median(float[] arr) {
         float[] arrToSort = new float[arr.length];
         for (int i=0; i<arr.length; i++) {arrToSort[i] = arr[i];}
@@ -165,11 +165,11 @@ public class SarksUtilities {
         return out;
     }
 
-    
+
     // -------------------------------------------------------------------------
     public static HashMap<String,String> readFasta(String filename) throws Exception {
         HashMap<String,String> out = new HashMap<String,String>();
-        File file = new File(filename);        
+        File file = new File(filename);
         if (file.exists()) {
             String curName = null;
             StringBuilder sb = new StringBuilder();
@@ -221,7 +221,7 @@ public class SarksUtilities {
                     double score = Double.parseDouble(tokens[1]);
                     out.put(tokens[0], score);
                 } catch (NumberFormatException nfe) {}
-                curLine = in.readLine();                
+                curLine = in.readLine();
             }
             in.close();
         }

@@ -28,6 +28,7 @@ the block of the concatenated sequence within which the specified
 position(s) can be found.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 blocks <- sarks$sourceBlock(i=2253:2261)
 

@@ -29,7 +29,8 @@ thresholds for k-mer peak calling.}
 positive rate confidence interval.}
 }
 \value{
-named list with three elements: `permutation' containing the output from permutationDistribution run
+named list with three elements: `permutation' containing
+the output from permutationDistribution run.
 }
 \description{
 Run second permutation test using the specified number of
@@ -39,11 +40,13 @@ parameters for each permutation, and comparing these values to
 thresholds determined by first round of permutation testing.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 permDist <- permutationDistribution(sarks, 250, filters, seed=123)
 thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
-fpr <- estimateFalsePositiveRate(sarks, 250, filters, thresholds, seed=123456)
+fpr <- estimateFalsePositiveRate(
+        sarks, 250, filters, thresholds, seed=123456)
 
 }
 \references{

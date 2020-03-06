@@ -22,6 +22,7 @@ input sequence from which they are derived would result in another
 reported l-mer string (l > k).
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 permDist <- permutationDistribution(sarks, 250, filters, seed=123)

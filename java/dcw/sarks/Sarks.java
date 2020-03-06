@@ -20,7 +20,7 @@ public class Sarks {
 
     private int halfWindow;
     private int spatialLength;
-        
+
     private double[] scores;
     private String[] transcripts;
     private HashMap<String,Integer> transcriptPosition;
@@ -115,7 +115,7 @@ public class Sarks {
             this.bounds[i] = this.bounds[i-1] + tSeq.length() + 1;
             i++;
         }
-        this.catSeq = sb.toString();        
+        this.catSeq = sb.toString();
     }
 
     private void calcSuffixArray() {
@@ -157,7 +157,7 @@ public class Sarks {
         } else {
             this.spatGini = null;
             this.spatialWindowed = null;
-        }        
+        }
     }
     public void reset(int halfWindow0) {this.reset(halfWindow0, null, true);}
 
@@ -232,7 +232,7 @@ public class Sarks {
         }
         return out;
     }
-    
+
     public static double giniImpurity(int[] counts) {
         double out = 0;
         int total = 0;
@@ -287,14 +287,14 @@ public class Sarks {
             runningMean += this.windGini[ this.saInv[s] ];
         }
         runningMean /= windSize;
-        this.spatGini[0] = (float)runningMean;
+        this.spatGini[ this.saInv[0] ] = (float)runningMean;
         for (int s=1; s<(this.sa.length-this.spatialLength); s++) {
             runningMean -= (this.windGini[ this.saInv[s-1] ] / windSize);
             runningMean += (this.windGini[ this.saInv[s+this.spatialLength] ] / windSize);
             this.spatGini[ this.saInv[s] ] = (float)runningMean;
         }
         for (int s=(this.saInv.length-this.spatialLength); s<this.sa.length; s++) {
-            this.spatGini[s] = (float)runningMean;
+            this.spatGini[ this.saInv[s] ] = (float)runningMean;
         }
     }
 
@@ -381,7 +381,7 @@ public class Sarks {
         }
         return false;
     }
-    
+
     public int[] findKmer(String kmer, int[] limits) {
         if (kmer.equals("")) {return new int[] {0, this.sa.length};}
         if (this.bwt != null) {return this.bwt.findKmer(kmer);}
@@ -451,7 +451,7 @@ public class Sarks {
         return this.catSeq.substring(s1, s2);
     }
     public String kmer(int s, int k) {return this.kmer(s, k, 0);}
-    
+
     public String[] kmers(int[] s, int k, int k0) {
         String[] out = new String[s.length];
         int catSeqMaxPos = this.catSeq.length() - 1;
@@ -481,7 +481,7 @@ public class Sarks {
             if (kwin[0] < wstart) {kwin[0] = wstart;}
             if (kwin[1] > wend) {kwin[1] = wend;}
             agreeSum += (k * ((kstart-kwin[0]) + (kwin[1]-kend)));
-            kstart = kwin[0]; 
+            kstart = kwin[0];
             kend = kwin[1];
         }
         return (double)agreeSum / (2.0 * this.halfWindow);
@@ -626,7 +626,7 @@ public class Sarks {
         }
         return mask;
     }
-    
+
     public ArrayList<Float[][]> permutationDistribution(
             Integer reps, ArrayList<HashMap> filters,
             Long seed, Integer[][] permutations) {
@@ -717,7 +717,7 @@ public class Sarks {
         }
     }
 
-    
+
     // -------------------------------------------------------------------------
     public static String printPermDist(ArrayList<HashMap> filters,
                                        ArrayList<Float[][]> permDist,
@@ -809,14 +809,14 @@ public class Sarks {
                              ArrayList<ArrayList<Integer>> iFilt,
                              String fileRoot,
                              int kmax) throws Exception {
-        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tscore\t" +
-                        "windowed\tspatialWindowed\tkmax\t" +
+        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tspatialGini\t" +
+                        "score\twindowed\tspatialWindowed\tkmax\t" +
                         "halfWindow\tminGini\ttheta\t" +
                         "spatialLength\tminSpatialGini\tspatialTheta\n";
         BufferedWriter peakWriter = null;
         StringBuilder sb = null;
         if (fileRoot != null) {
-            if (!fileRoot.endsWith("/")) {fileRoot += "_";}            
+            if (!fileRoot.endsWith("/")) {fileRoot += "_";}
             String peakFile = fileRoot + "peaks.tsv";
             peakWriter = new BufferedWriter(new FileWriter(peakFile));
             peakWriter.write(header);
@@ -850,10 +850,11 @@ public class Sarks {
                 String block = this.transcripts[blockIndex];
                 int wi = s - this.bounds[blockIndex];
                 float gini = this.windGini[i];
+                Float sg = (this.spatGini == null ? null : this.spatGini[i]);
                 float score = (float)this.scores[blockIndex];
                 Float sw = (this.spatialWindowed == null ? null : this.spatialWindowed[i]);
                 String line = i + "\t" + s + "\t" + km + "\t" + khat + "\t" +
-                              block + "\t" + wi + "\t" + gini + "\t" +
+                              block + "\t" + wi + "\t" + gini + "\t" + sg + "\t" +
                               score + "\t" + this.windowed[i] + "\t" +
                               sw + "\t" + suffix;
                 if (fileRoot != null) {
@@ -970,7 +971,7 @@ public class Sarks {
                 this.reset(hw, sl, true);
             } else if ((sl != null) && (sl != this.spatialLength)) {
                 this.resetSpatial(sl, true);
-            }            
+            }
             subpeaks.add(this.spatialSubPeaks(iFilt.get(f),
                                               thresholds[f][1],
                                               ming));
@@ -1004,14 +1005,14 @@ public class Sarks {
                                       ArrayList<ArrayList<int[]>> mergedKmerIntervals,
                                       String fileRoot,
                                       int kmax) throws Exception {
-        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tscore\t" +
-                        "windowed\tspatialWindowed\tkmax\t" +
+        String header = "i\ts\tkmer\tkhat\tblock\twi\tgini\tspatialGini\t" +
+                        "score\twindowed\tspatialWindowed\tkmax\t" +
                         "halfWindow\tminGini\ttheta\t" +
                         "spatialLength\tminSpatialGini\tspatialTheta\n";
         BufferedWriter peakWriter = null;
         StringBuilder sb = null;
         if (fileRoot != null) {
-            if (!fileRoot.endsWith("/")) {fileRoot += "_";}            
+            if (!fileRoot.endsWith("/")) {fileRoot += "_";}
             String peakFile = fileRoot + "merged_peaks.tsv";
             peakWriter = new BufferedWriter(new FileWriter(peakFile));
             peakWriter.write(header);
@@ -1044,11 +1045,12 @@ public class Sarks {
                 String block = this.transcripts[blockIndex];
                 int wi = sInterval[0] - this.bounds[blockIndex];
                 float gini = this.windGini[i];
+                Float sg = (this.spatGini == null ? null : this.spatGini[i]);
                 float score = (float)this.scores[blockIndex];
                 Float sw = (this.spatialWindowed == null ? null : this.spatialWindowed[i]);
                 String line = i + "\t" + sInterval[0] + "\t" +
                               km + "\t" + khat + "\t" +
-                              block + "\t" + wi + "\t" + gini + "\t" +
+                              block + "\t" + wi + "\t" + gini + "\t" + sg + "\t" +
                               score + "\t" + this.windowed[i] + "\t" +
                               sw + "\t" + suffix;
                 if (fileRoot != null) {

@@ -8,8 +8,8 @@ Sarks(fasta, scores, halfWindow, spatialLength = 0L, nThreads = 1L)
 }
 \arguments{
 \item{fasta}{specification of fasta file containing sequences to be
-analyzed; may also be a named character vector whose elements
-are sequences to be analyzed.}
+analyzed; may also be a *named* character vector or
+XStringSet whose elements are sequences to be analyzed.}
 
 \item{scores}{specification of scores associated with sequences in
 fasta argument; can be provided as two column tab-delimited
@@ -33,6 +33,7 @@ Sarks class implements suffix array kernel smoothing for de novo
 correlative motif discovery.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 
 }

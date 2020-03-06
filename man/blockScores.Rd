@@ -19,6 +19,7 @@ Extracts vector of input scores associated with input sequences
 from sarks object.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 simulatedScores2 <- blockScores(sarks)
 ## simulatedScores2 will be in different order than simulatedScores,

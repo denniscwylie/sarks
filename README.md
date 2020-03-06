@@ -13,8 +13,30 @@ https://www.biorxiv.org/content/early/2018/10/25/133934
 
 
 ## Installation
-See [INSTALL.md](INSTALL.md).
 
+SArKS is implemented in Java (1.8 or greater) with interactive use
+facilitated through an R package built using
+[**rJava**](https://cran.r-project.org/web/packages/rJava/index.html).
+
+Once these dependencies have been installed and correctly configured,
+you can install \R{sarks} by running the following code within an R
+session:
+```R
+## if you don't already have remotes installed, uncomment and run:
+# install.packages('remotes')
+library(remotes)
+install_github('denniscwylie/sarks')
+## alternatively, to build vignette as well, try uncommenting and running:
+# install_github('denniscwylie/sarks', build_vignettes=TRUE)
+```
+
+### Alternative installation: Java only
+
+1. Copy sarks.jar from inst/java/ subdirectory of this repository
+   to convenient location
+
+2. Test the installation by going through the simulated data example
+   using sarks.jar as described below
 
 ## Using sarks
 
@@ -24,16 +46,8 @@ sarks.
 
 ### Using the R package sarks
 
-For most users, we would recommend trying out the R package, which
-can be installed in an active R session via:
-```R
-## if you don't already have remotes installed, uncomment and run:
-# install.packages('remotes')
-library(remotes)
-install_github('denniscwylie/sarks')
-## alternatively, to build vignette as well, try uncommenting and running:
-# install_github('denniscwylie/sarks', build_vignettes=TRUE)
-```
+For most users, we would recommend trying out the R package, which can
+be installed as described above.
 
 The sarks vignette is the best place to start to learn how to use the
 R version of sarks.

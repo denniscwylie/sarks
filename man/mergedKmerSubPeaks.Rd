@@ -37,6 +37,7 @@ threshold used for MMD calling and merges such k-mers when their
 spatial positions overlap.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 3, 1)
 filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
 permDist <- permutationDistribution(sarks, 250, filters, seed=123)

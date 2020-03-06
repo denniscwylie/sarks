@@ -35,6 +35,7 @@ smoothed scores for each combination of filter parameters for each
 permutation.
 }
 \examples{
+data(simulatedSeqs, simulatedScores)
 sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 permDist <- permutationDistribution(sarks, 250, filters, seed=123)

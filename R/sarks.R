@@ -36,19 +36,23 @@
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #'
 #' @export
+#' @importFrom Biostrings BStringSet
+#' @importFrom Biostrings writeXStringSet
+#' @importFrom rJava .jnew
+#' @importFrom utils write.table
 Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
     if (length(fasta) > 1) {
         tmpfasta <- tempfile(pattern='seq')
-        Biostrings::writeXStringSet(
-                Biostrings::BStringSet(fasta), tmpfasta, format='fasta')
+        writeXStringSet(BStringSet(fasta), tmpfasta, format='fasta')
         fasta <- tmpfasta
     }
     if (length(scores) > 1) {
         tmpscores <- tempfile(pattern='scores')
-        utils::write.table(
+        write.table(
             data.frame(
                 block = names(scores),
                 score = scores,
@@ -61,7 +65,7 @@ Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
         )
         scores <- tmpscores
     }
-    sarks <- rJava::.jnew(
+    sarks <- .jnew(
         'dcw/sarks/Sarks', fasta, scores,
         as.integer(halfWindow), as.integer(spatialLength),
         as.integer(nThreads), TRUE
@@ -102,20 +106,21 @@ Sarks <- function(fasta, scores, halfWindow, spatialLength=0L, nThreads=1L) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
-#' filters <- sarksFilters(halfWindow=c(4, 8), spatialLength=c(0, 5), minGini=1.1)
+#' filters <- sarksFilters(
+#'         halfWindow=c(4, 8), spatialLength=c(0, 5), minGini=1.1)
 #'
 #' @export
+#' @importFrom rJava .jnew
 sarksFilters <- function(halfWindow, spatialLength, minGini=1.1) {
-    filters <- rJava::.jnew('java/util/ArrayList')
+    filters <- .jnew('java/util/ArrayList')
     for (hw in halfWindow) {for (sl in spatialLength) {for (mg in minGini) {
-        pars <- rJava::.jnew('java/util/HashMap')
-        pars$put('halfWindow',
-                rJava::.jnew('java/lang/Integer', as.integer(hw)))
-        pars$put('spatialLength',
-                rJava::.jnew('java/lang/Integer', as.integer(sl)))
-        pars$put('minGini', rJava::.jnew('java/lang/Double', mg))
-        pars$put('minSpatialGini', rJava::.jnew('java/lang/Double', mg))
+        pars <- .jnew('java/util/HashMap')
+        pars$put('halfWindow', .jnew('java/lang/Integer', as.integer(hw)))
+        pars$put('spatialLength', .jnew('java/lang/Integer', as.integer(sl)))
+        pars$put('minGini', .jnew('java/lang/Double', mg))
+        pars$put('minSpatialGini', .jnew('java/lang/Double', mg))
         filters$add(pars)
     }}}
     return(filters)
@@ -157,27 +162,31 @@ sarksFilters <- function(halfWindow, spatialLength, minGini=1.1) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
 #'
 #' @export
+#' @importFrom rJava .jnew
+#' @importFrom rJava J
+#' @importFrom utils read.table
 permutationDistribution <- function(sarks, reps, filters, seed=NULL) {
-    jreps <- rJava::.jnew('java/lang/Integer', as.integer(reps))
+    jreps <- .jnew('java/lang/Integer', as.integer(reps))
     if (length(seed) == 0) {
         obj <- sarks$permutationDistribution(jreps, filters)
     } else {
         obj <- sarks$permutationDistribution(jreps, filters, as.integer(seed))
     }
-    jw <- rJava::J('dcw/sarks/Sarks')$printPermDist(filters, obj, NULL, FALSE)
-    js <- rJava::J('dcw/sarks/Sarks')$printPermDist(filters, obj, NULL, TRUE)
+    jw <- J('dcw/sarks/Sarks')$printPermDist(filters, obj, NULL, FALSE)
+    js <- J('dcw/sarks/Sarks')$printPermDist(filters, obj, NULL, TRUE)
     out <- list(
-        windowed = utils::read.table(
+        windowed = read.table(
             textConnection(jw),
             sep='\t', header=TRUE, row.names=NULL, na.strings='null',
             stringsAsFactors=FALSE, check.names=FALSE
         ),
-        spatial = utils::read.table(
+        spatial = read.table(
             textConnection(js),
             sep='\t', header=TRUE, row.names=NULL, na.strings='null',
             stringsAsFactors=FALSE, check.names=FALSE
@@ -215,18 +224,21 @@ permutationDistribution <- function(sarks, reps, filters, seed=NULL) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
 #' thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
 #'
 #' @export
+#' @importFrom rJava J
+#' @importFrom utils read.table
 permutationThresholds <- function(filters, permDist, nSigma=4.0) {
-    obj <- rJava::J('dcw/sarks/SarksUtilities')$thresholdsFromPermutations(
+    obj <- J('dcw/sarks/SarksUtilities')$thresholdsFromPermutations(
             permDist$.java, nSigma)
-    jThresh <- rJava::J('dcw/sarks/Sarks')$printThresholds(filters, obj, NULL)
+    jThresh <- J('dcw/sarks/Sarks')$printThresholds(filters, obj, NULL)
     return(list(
-        theta = utils::read.table(
+        theta = read.table(
             textConnection(jThresh),
             sep='\t', header=TRUE, row.names=NULL, na.strings='null',
             stringsAsFactors=FALSE, check.names=FALSE
@@ -270,6 +282,7 @@ permutationThresholds <- function(filters, permDist, nSigma=4.0) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -277,13 +290,15 @@ permutationThresholds <- function(filters, permDist, nSigma=4.0) {
 #' peaks <- kmerPeaks(sarks, filters, thresholds)
 #'
 #' @export
+#' @importFrom rJava .jnew
+#' @importFrom utils read.table
 kmerPeaks <- function(sarks, filters, thresholds, peakify=TRUE, kMax=12L) {
     kMax <- as.integer(kMax)
     eyes <- sarks$filter(
-        filters, thresholds$.java, rJava::.jnew('java/lang/Boolean', peakify)
+        filters, thresholds$.java, .jnew('java/lang/Boolean', peakify)
     )
     jOut <- sarks$printPeaks(filters, thresholds$.java, eyes, kMax)
-    out <- utils::read.table(
+    out <- read.table(
         textConnection(jOut),
         sep='\t', header=TRUE, row.names=NULL, na.strings='null',
         stringsAsFactors=FALSE, check.names=FALSE
@@ -329,6 +344,7 @@ kmerPeaks <- function(sarks, filters, thresholds, peakify=TRUE, kMax=12L) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 3, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -336,11 +352,13 @@ kmerPeaks <- function(sarks, filters, thresholds, peakify=TRUE, kMax=12L) {
 #' mergedSubPeaks <- mergedKmerSubPeaks(sarks, filters, thresholds)
 #'
 #' @export
+#' @importFrom rJava .jnew
+#' @importFrom utils read.table
 mergedKmerSubPeaks <- function(
             sarks, filters, thresholds, peakify=TRUE, kMax=12L) {
     kMax <- as.integer(kMax)
     eyes <- sarks$filter(
-        filters, thresholds$.java, rJava::.jnew('java/lang/Boolean', peakify)
+        filters, thresholds$.java, .jnew('java/lang/Boolean', peakify)
     )
     mergedKmerIntervals <- sarks$multiMergeKmerIntervals(
         eyes, thresholds$.java, filters, kMax
@@ -348,7 +366,7 @@ mergedKmerSubPeaks <- function(
     jOut <- sarks$printMergedSubPeaks(
         filters, thresholds$.java, mergedKmerIntervals, NULL, kMax
     )
-    out <- utils::read.table(
+    out <- read.table(
         textConnection(jOut),
         sep='\t', header=TRUE, row.names=NULL, na.strings='null',
         stringsAsFactors=FALSE, check.names=FALSE
@@ -386,7 +404,8 @@ mergedKmerSubPeaks <- function(
 #' @param conf.level level of confidence to be used in the false
 #'     positive rate confidence interval.
 #'
-#' @return named list with three elements: `permutation' containing the output from permutationDistribution run 
+#' @return named list with three elements: `permutation' containing
+#'     the output from permutationDistribution run.
 #'
 #' @references Wylie, D.C., Hofmann, H.A., and Zemelman, B.V. (2019)
 #'     SArKS: de novo discovery of gene expression regulatory motif
@@ -396,13 +415,17 @@ mergedKmerSubPeaks <- function(
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
 #' thresholds <- permutationThresholds(filters, permDist, nSigma=2.0)
-#' fpr <- estimateFalsePositiveRate(sarks, 250, filters, thresholds, seed=123456)
+#' fpr <- estimateFalsePositiveRate(
+#'         sarks, 250, filters, thresholds, seed=123456)
 #'
 #' @export
+#' @importFrom binom binom.exact
+#' @importFrom rJava J
 estimateFalsePositiveRate <- function(
             sarks, reps, filters, thresholds, seed=NULL, conf.level=0.95) {
     if (length(seed) == 0) {
@@ -411,13 +434,13 @@ estimateFalsePositiveRate <- function(
         permTest <- permutationDistribution(
                 sarks, as.integer(reps), filters, as.integer(seed))
     }
-    falsePositives <- rJava::J('dcw/sarks/SarksUtilities')$falsePositives(
+    falsePositives <- J('dcw/sarks/SarksUtilities')$falsePositives(
         permTest$.java,
         thresholds$.java
     )
     return(list(
         fp = falsePositives,
-        ci = binom::binom.exact(falsePositives, reps, conf.level),
+        ci = binom.exact(falsePositives, reps, conf.level),
         permutations = permTest
     ))
 }
@@ -456,6 +479,7 @@ estimateFalsePositiveRate <- function(
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -463,6 +487,10 @@ estimateFalsePositiveRate <- function(
 #' peaks <- kmerPeaks(sarks, filters, thresholds)
 #' prunedPeaks <- pruneIntervals(peaks)
 #' @export
+#' @importFrom IRanges findOverlaps
+#' @importFrom IRanges from
+#' @importFrom IRanges IRanges
+#' @importFrom IRanges NCList
 pruneIntervals <- function(intervals, start='s', end=NULL) {
     starts <- intervals[[start]]
     if (length(end) == 0) {
@@ -470,11 +498,11 @@ pruneIntervals <- function(intervals, start='s', end=NULL) {
     } else {
         ends <- intervals[[end]]
     }
-    ncl <- IRanges::NCList(IRanges::IRanges(starts, ends))
-    nests <- IRanges::findOverlaps(
+    ncl <- NCList(IRanges(starts, ends))
+    nests <- findOverlaps(
             ncl, type='within', drop.self=TRUE, drop.redundant=TRUE)
-    if (length(nests@from) > 0) {
-        intervals <- intervals[-nests@from, ]
+    if (length(from(nests)) > 0) {
+        intervals <- intervals[-from(nests), ]
     }
     return(intervals)
 }
@@ -502,6 +530,7 @@ pruneIntervals <- function(intervals, start='s', end=NULL) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -563,6 +592,7 @@ extendKmers <- function(sarks, sarksTable) {
 #'     lexicographically by sequence name.
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' simulatedScores2 <- blockScores(sarks)
 #' ## simulatedScores2 will be in different order than simulatedScores,
@@ -595,6 +625,7 @@ blockScores <- function(sarks) {
 #'     sequence(s)
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' blocks <- sarks$sourceBlock(i=2253:2261)
 #'
@@ -644,6 +675,7 @@ sourceBlock <- function(sarks, s=NULL, i=NULL) {
 #'     \url{https://academic.oup.com/bioinformatics/article-abstract/35/20/3944/5418797}
 #'
 #' @examples
+#' data(simulatedSeqs, simulatedScores)
 #' sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
 #' filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
 #' permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -651,6 +683,7 @@ sourceBlock <- function(sarks, s=NULL, i=NULL) {
 #' bi24 <- blockInfo(sarks, '24', filters, thresholds)
 #'
 #' @export
+#' @importFrom utils read.table
 blockInfo <- function(sarks, block, filters, thresholds, kMax=12L) {
     if (length(block) > 1) {
         return(do.call(
@@ -665,7 +698,7 @@ blockInfo <- function(sarks, block, filters, thresholds, kMax=12L) {
     javaOut <- sarks$printBlockInfo(
         filters, thresholds$.java, block, NULL, kMax
     )
-    out <- utils::read.table(
+    out <- read.table(
         textConnection(javaOut),
         sep='\t', header=TRUE, row.names=NULL, na.strings='null',
         stringsAsFactors=FALSE, check.names=FALSE
@@ -693,6 +726,7 @@ blockInfo <- function(sarks, block, filters, thresholds, kMax=12L) {
 #'     regex
 #'
 #' @examples
+#' data(simulatedSeqs)
 #' reCounts1 <- regexCounts('AAAAA|TTTTT', simulatedSeqs)
 #' reCounts2 <- regexCounts(c('AAAAA|TTTTT', 'CG'), simulatedSeqs)
 #'
@@ -735,6 +769,7 @@ regexCounts <- function(regex, seqs, overlap=FALSE) {
 #'     regex
 #'
 #' @examples
+#' data(simulatedSeqs)
 #' motifCounts <- kmerCounts('CATACTGAGA', simulatedSeqs)
 #' otherCounts <- kmerCounts(
 #'     c('AAAAA', 'CG'),
@@ -743,6 +778,8 @@ regexCounts <- function(regex, seqs, overlap=FALSE) {
 #' )
 #'
 #' @export
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom Biostrings reverseComplement
 kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
     if (is.numeric(kmer)) {
         nucs <- c('A', 'C', 'G', 'T')
@@ -755,8 +792,7 @@ kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
         names(kmer) <- kmer
     }
     if (!directional) {
-        revComps <- as.character(Biostrings::reverseComplement(
-                Biostrings::DNAStringSet(kmer)))
+        revComps <- as.character(reverseComplement(DNAStringSet(kmer)))
         kmer <- structure(
             paste0(kmer, '|', revComps), names=as.character(kmer)
         )
@@ -805,6 +841,8 @@ kmerCounts <- function(kmer, seqs, directional=TRUE, overlap=FALSE) {
 #' clCounts <- clusterCounts(clusters, seqs)
 #'
 #' @export
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom Biostrings reverseComplement
 clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
     if (is.list(kmers)) {
         clCounts <- lapply(
@@ -820,8 +858,7 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
         return(out)
     }
     if (!directional) {
-        revComps <- as.character(Biostrings::reverseComplement(
-                Biostrings::DNAStringSet(kmers)))
+        revComps <- as.character(reverseComplement(DNAStringSet(kmers)))
         kmers <- sort(unique(c(as.character(kmers), revComps)))
     }
     pattern <- paste(kmers, collapse='|')
@@ -853,6 +890,7 @@ clusterCounts <- function(kmers, seqs, directional=TRUE, overlap=FALSE) {
 #'     the regex located.
 #'
 #' @examples
+#' data(simulatedSeqs)
 #' reLoci <- regexLocate('AAAAA|TTTTT', simulatedSeqs)
 #'
 #' @export
@@ -925,14 +963,16 @@ regexLocate <- function(regex, seqs, showMatch=FALSE) {
 #'     position at which the match was found.
 #'
 #' @examples
+#' data(simulatedSeqs)
 #' kmerLoci <- locateKmers(c('AAAAA', 'CATACTGAGA'), simulatedSeqs)
 #'
 #' @export
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom Biostrings reverseComplement
 locateKmers <- function(kmers, seqs, directional=TRUE, showMatch=FALSE) {
     patterns <- structure(as.character(kmers), names=as.character(kmers))
     if (!directional) {
-        revComps <- as.character(Biostrings::reverseComplement(
-                Biostrings::DNAStringSet(kmers)))
+        revComps <- as.character(reverseComplement(DNAStringSet(kmers)))
         patterns <- structure(
             paste0(kmers, '|', revComps), names=as.character(kmers)
         )
@@ -987,13 +1027,14 @@ locateKmers <- function(kmers, seqs, directional=TRUE, showMatch=FALSE) {
 #' clusterLoci <- locateClusters(clusters, seqs)
 #'
 #' @export
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom Biostrings reverseComplement
 locateClusters <- function(clusters, seqs, directional=TRUE, showMatch=FALSE) {
     out <- list()
     for (cn in names(clusters)) {
         kmers <- clusters[[cn]]
         if (!directional) {
-            revComps <- as.character(Biostrings::reverseComplement(
-                    Biostrings::DNAStringSet(kmers)))
+            revComps <- as.character(reverseComplement(DNAStringSet(kmers)))
             kmers <- sort(unique(c(as.character(kmers), revComps)))
         }
         pattern <- paste(kmers, collapse='|')
@@ -1069,6 +1110,12 @@ integralOptimize <- function(f, lower, upper, resolution=10) {
 #' clusterKmers(kmers, directional=FALSE)
 #'
 #' @export
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom Biostrings reverseComplement
+#' @importFrom cluster silhouette
+#' @importFrom stats as.dist
+#' @importFrom stats cutree
+#' @importFrom stats hclust
 clusterKmers <- function(
             kmers, k=4, nClusters=NULL, maxClusters=NULL, directional=TRUE) {
     outClass <- gsub('character', 'identity', class(kmers)[[1]])
@@ -1083,8 +1130,7 @@ clusterKmers <- function(
     if (!directional) {
         unorientedTetramers <- sort(unique(vapply(
                 colnames(tetraCounts), function(km) {
-                    min(km, as.character(Biostrings::reverseComplement(
-                            Biostrings::DNAStringSet(km))))
+                    min(km, as.character(reverseComplement(DNAStringSet(km))))
                 }, '')))
         tetraCounts <- tetraCounts[ , unorientedTetramers]
     }
@@ -1096,19 +1142,19 @@ clusterKmers <- function(
     diag(d) <- Inf
     d[d == 0] <- min(d[d > 0]) / 2
     diag(d) <- 0
-    ddist <- stats::as.dist(d)
-    hcout <- stats::hclust(ddist, method='average')
+    ddist <- as.dist(d)
+    hcout <- hclust(ddist, method='average')
     if (length(nClusters) == 0) {
         if (length(maxClusters) == 0) {maxClusters <- nrow(d) - 1}
         ctouts <- data.frame(
-            stats::cutree(hcout, k=seq(2, maxClusters, 1)),
+            cutree(hcout, k=seq(2, maxClusters, 1)),
             check.names = FALSE
         )
         nClusters <- integralOptimize(f=function(nc) {
-            mean(cluster::silhouette(ctouts[ , as.character(nc)], ddist)[ , 3])
+            mean(silhouette(ctouts[ , as.character(nc)], ddist)[ , 3])
         }, lower=2, upper=maxClusters)
     }
-    ctout <- stats::cutree(hcout, k=nClusters)
+    ctout <- cutree(hcout, k=nClusters)
     clusters <- lapply(
         seq(length.out=max(ctout)),
         function(cl) {d[ctout==cl, ctout==cl, drop=FALSE]}

@@ -50,6 +50,19 @@ correlative motifs and multi-motif domains (MMDs).
 
 \tableofcontents
 
+\section{How to install \R{sarks}}
+
+The \R{sarks} package relies on \java{Java} (1.8 or greater) through
+use of the \R{rJava} package. Once both of these are installed and
+correctly configured, you can install \R{sarks} by running the
+following code within an R session:
+
+<<install, eval=FALSE>>=
+if(!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("sarks")
+@
+
 \section{How to use \R{sarks}}
 \label{sec:how-to-use}
 
@@ -106,6 +119,8 @@ package. \R{simulatedSeqs} is a character vector of length
 30---representing 30 different (fake) DNA sequences---each 250
 characters in length:
 <<check-length>>=
+options(continue="  ")  ## for vignette formatting, can be ignored
+data(simulatedSeqs)
 length(simulatedSeqs)
 table(nchar(simulatedSeqs))
 @ 
@@ -122,6 +137,7 @@ representations of) the numbers \texttt{"0"} through \texttt{"29"}.
 Now let's look at the \R{simulatedScores}:
 
 <<check-scores>>=
+data(simulatedScores)
 simulatedScores
 @ 
 
@@ -359,9 +375,6 @@ theSuffix <- substr(concatenated, kmerCatStart, nchar(concatenated))
 
 in the list of all suffixes \emph{after they have been
 lexicographically sorted}:
-<<echo=FALSE, results=hide>>=
-options(continue="  ")
-@ 
 
 <<>>=
 extractSuffix <- function(s) {
@@ -1280,6 +1293,12 @@ $\left\{ \left( \theta^{(\alpha)}, \theta^{(\alpha)}_{\text{spatial}}
     \right) \right\}$, you should make sure that you do not repeat the
 same seed for the random number generator in the calls to
 \R{permutationDistribution} and \R{estimateFalsePositiveRate}.
+
+\section{Session Info}
+
+<<sessionInfo>>=
+sessionInfo()
+@
 
 \section{Notation glossary}
 \label{sec:equation-glossary}

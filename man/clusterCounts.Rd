@@ -25,7 +25,7 @@ k-mers be counted as multiple hits?}
 if cluster is a single character vector or XStringSet
     (of any length), returns integer vector of counts;
     if cluster is a list of character vectors, returns matrix of
-    counts: one column per sequence in seqs, one row per
+    counts: one row per sequence in seqs, one column per
     character vector/XStringSet in cluster
 }
 \description{

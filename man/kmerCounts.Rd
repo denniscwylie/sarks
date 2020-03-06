@@ -22,7 +22,7 @@ kmer be counted as multiple hits?}
 \value{
 if length(kmer) is one, returns integer vector of counts;
     if length(kmer) is more than one, returns matrix of counts:
-    one column per sequence in seqs, one row per expression in
+    one row per sequence in seqs, one column per expression in
     regex
 }
 \description{
@@ -30,6 +30,7 @@ Counts how often a k-mer (or vector of k-mers) occurs in each
 element of a character vector.
 }
 \examples{
+data(simulatedSeqs)
 motifCounts <- kmerCounts('CATACTGAGA', simulatedSeqs)
 otherCounts <- kmerCounts(
     c('AAAAA', 'CG'),

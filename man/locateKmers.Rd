@@ -31,6 +31,7 @@ Find locations of matches of vector of k-mers in each element of a
 named character vector. Not case sensitive.
 }
 \examples{
+data(simulatedSeqs)
 kmerLoci <- locateKmers(c('AAAAA', 'CATACTGAGA'), simulatedSeqs)
 
 }

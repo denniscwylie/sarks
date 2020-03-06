@@ -13,7 +13,7 @@ public class SarksMain {
                                   int[] spatialLengths,
                                   double[] minGinis,
                                   int reps,
-                                  Integer kMax,                                  
+                                  Integer kMax,
                                   double nSigma,
                                   String outDir,
                                   Integer nThreads,
@@ -183,12 +183,12 @@ public class SarksMain {
                 "  -h, --help              show this help message and exit\n";
         }
         return null;
-    }    
+    }
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println(SarksMain.helpMessage(null));
-            System.exit(0);            
+            System.exit(0);
         }
         String application = args[0].toLowerCase();
         String key = null;
@@ -271,7 +271,7 @@ public class SarksMain {
             }
             if (!(new File((String)options.get("scoreFile"))).exists()) {
                 System.out.println((String)options.get("scoreFile") + " not found.");
-                System.exit(-1);                
+                System.exit(-1);
             }
         }
         if (application.equals("select")) {

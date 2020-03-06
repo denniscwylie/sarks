@@ -31,6 +31,7 @@ regular expressions) in each element of a named character
 vector. Not case sensitive.
 }
 \examples{
+data(simulatedSeqs)
 reLoci <- regexLocate('AAAAA|TTTTT', simulatedSeqs)
 
 }

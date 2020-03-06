@@ -79,7 +79,7 @@ thresholds$theta
 
 ## call k-mer peaks using thresholds:
 ## use mergedKmerSubPeaks function when spatial smoothing is included
-## (see discussion in vignette section 1.5)
+## (see discussion in vignette)
 peaks <- mergedKmerSubPeaks(sarks, filters=filters, thresholds=thresholds)
 
 ## =============================================================================
@@ -148,27 +148,3 @@ fpr$ci
 ## this indicates that 1 out of 100 permutations yielded a false positive,
 ## for a point estimate of 0.01 (1%) FPR, with 95% confidence interval
 ## of (0.025%, 5.4%)
-
-
-## =============================================================================
-bi <- blockInfo(sarks, 'ENSMUST00000024702', filters, thresholds)
-
-library(ggplot2)
-ggo <- ggplot(bi, aes(x=wi+1))  ## +1 because R indexing is 1-based
-ggo <- ggo + geom_point(aes(y=windowed), alpha=0.3, size=0.5)
-ggo <- ggo + facet_grid(halfWindow ~ spatialLength)
-ggo <- ggo + geom_line(aes(y=spatialWindowed), alpha=1, size=0.5)
-ggo <- ggo + geom_hline(aes(yintercept=theta), color='red')
-ggo <- ggo + geom_hline(aes(yintercept=spatialTheta), color='red')
-ggo <- ggo + ylab('yhat') + ggtitle('Paqr4')
-ggo <- ggo + theme_bw()
-print(ggo)
-
-sum(bi$spatialWindowed > bi$spatialTheta, na.rm=TRUE)  ## 6
-summary(bi[(!is.na(bi$spatialTheta)) &
-           (bi$spatialWindowed > bi$spatialTheta), 'gini'])
-##   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## 0.9991  0.9992  0.9993  0.9993  0.9993  0.9993
-summary(bi$gini)
-##   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## 0.9863  0.9988  0.9989  0.9990  0.9993  0.9995 

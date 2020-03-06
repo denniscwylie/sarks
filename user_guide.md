@@ -8,7 +8,7 @@ within a fasta file) is correlated with numeric scores assigned to
 those sequences (contained with a two column tab-separated-values
 file, or tsv).
 
-For installation instructions, consult [INSTALL.md](INSTALL.md).
+For installation instructions, consult [README.md](README.md).
 
 # sarks R package
 

@@ -1,4 +1,5 @@
 test_Sarks <- function() {
+    data(simulatedSeqs, simulatedScores)
     sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
     yhat <- sarks$getYhat()
     checkEquals(length(yhat), 7530)
@@ -7,6 +8,7 @@ test_Sarks <- function() {
 }
 
 test_permutationDistribution <- function() {
+    data(simulatedSeqs, simulatedScores)
     sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
     filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
     permDist <- permutationDistribution(sarks, 20, filters, seed=123)
@@ -16,6 +18,7 @@ test_permutationDistribution <- function() {
 }
 
 test_kmerPeaks <- function() {
+    data(simulatedSeqs, simulatedScores)
     sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 0, 1)
     filters <- sarksFilters(halfWindow=4, spatialLength=0, minGini=1.1)
     permDist <- permutationDistribution(sarks, 250, filters, seed=123)
@@ -25,6 +28,7 @@ test_kmerPeaks <- function() {
 }
 
 test_mergedKmerSubPeaks <- function() {
+    data(simulatedSeqs, simulatedScores)
     sarks <- Sarks(simulatedSeqs, simulatedScores, 4, 3, 1)
     filters <- sarksFilters(halfWindow=4, spatialLength=3, minGini=1.1)
     permDist <- permutationDistribution(sarks, 250, filters, seed=123)
