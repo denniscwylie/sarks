@@ -122,10 +122,6 @@ the commands line-by-line as you get to them.
 
 ### Mo 2015 upstream example
 
-The [Mo 2015 upstream example](examples/mo2015_upstream_example.md) is
-similar to the downstream example but
-1. runs on a larger data set and
-2. uses a few more SArKS features, including spatial smoothing.
-
-Because of these features, this example will run slower and require
-a good deal more memory than the other examples included.
+**NOTE:** this example has been removed from the main sarks repository
+because of Bioconductor file size limitations; you can find it in the
+separate sarks_examples git repository.

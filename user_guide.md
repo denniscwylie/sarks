@@ -56,9 +56,10 @@ reading through the comments and running the commands line-by-line):
 - [examples/mo2015_downstream_example.md](examples/mo2015_downstream_example.md)  
   minimal introductory example of sarks applied to RNA-seq
   differential expression results, can still be run fairly quickly  
-- [examples/mo2015_upstream_example.md](examples/mo2015_upstream_example.md)  
-  this example uses longer sequences and includes spatial smoothing,
-  hence it takes longer and requires more RAM.
+- **NOTE:** corresponding mo2015 upstream example has been removed
+  from the main sarks repository because of Bioconductor file size
+  limitations; you can find it in the separate sarks_examples git
+  repository.
 
 ## java -jar sarks.jar select
 
