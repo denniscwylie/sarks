@@ -10,6 +10,6 @@ citEntry(entry="article",
          issue = 20,
          pages = 3944-3952,
          textVersion = 
-         paste("Wylie, D.C., Hofmann, H.A., Zemelman, B.V", 
+         paste("Wylie, D.C., Hofmann, H.A., Zemelman, B.V.",
                "SArKS: de novo discovery of gene expression regulatory motif sites and domains by suffix array kernel smoothing",
                 "Bioinformatics 35(20):3944-3952 (2019)" ) )
