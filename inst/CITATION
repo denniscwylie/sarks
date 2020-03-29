@@ -8,7 +8,7 @@ citEntry(entry="article",
          doi = "10.1093/bioinformatics/btz198",
          volume = 35,
          issue = 20,
-         pages = 3944-3952,
+         pages = 3944,
          textVersion = 
          paste("Wylie, D.C., Hofmann, H.A., Zemelman, B.V.",
                "SArKS: de novo discovery of gene expression regulatory motif sites and domains by suffix array kernel smoothing",
