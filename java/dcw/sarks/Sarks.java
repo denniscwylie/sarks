@@ -332,7 +332,7 @@ public class Sarks {
             runningMean += this.windowed[ this.saInv[s] ];
         }
         runningMean /= windSize;
-        this.spatialWindowed[0] = (float)runningMean;
+        this.spatialWindowed[ this.saInv[0] ] = (float)runningMean;
         for (int s=1; s<=(this.sa.length-this.spatialLength); s++) {
             runningMean -= (this.windowed[ this.saInv[s-1] ] / windSize);
             runningMean += (this.windowed[ this.saInv[s+this.spatialLength-1] ] / windSize);
