@@ -911,7 +911,8 @@ public class Sarks {
         TreeSet<Integer> subPeaks = new TreeSet<Integer>();
         for (int i : iFilt) {
             int sLeft = this.sa[i];
-            for (int s=sLeft; s<(sLeft+this.spatialLength); s++) {subPeaks.add(s);}
+            int sRangeMax = Math.min(sLeft+this.spatialLength, this.sa.length);
+            for (int s=sLeft; s<sRangeMax; s++) {subPeaks.add(s);}
         }
         HashSet<Integer> filteredOut = new HashSet<Integer>();
         for (int s : subPeaks) {
