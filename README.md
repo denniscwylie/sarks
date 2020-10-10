@@ -19,7 +19,7 @@ facilitated through an R package built using
 [**rJava**](https://cran.r-project.org/web/packages/rJava/index.html).
 
 Once these dependencies have been installed and correctly configured,
-you can install \R{sarks} by running the following code within an R
+you can install `sarks` by running the following code within an R
 session:
 ```R
 ## if you don't already have remotes installed, uncomment and run:

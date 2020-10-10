@@ -213,7 +213,7 @@ general guidelines for \R{spatialLength}. Small values (say, 3--10)
 can be useful to help detect individual motifs even when no larger
 spatial structure is really expected; in \cite{wylie2019sarks} we also
 tried \R{spatialLength=100} when studying regulation of gene
-expression as that is on the order of the low end of the length DNA
+expression as that is on the order of the low end of the length of DNA
 enhancer regions. Users should feel free to experiment with
 \R{spatialLength} values that make sense in their own applications.
 
