@@ -1,7 +1,7 @@
 Package: sarks
 Title: Suffix Array Kernel Smoothing for discovery of correlative
     sequence motifs and multi-motif domains
-Version: 1.6.0
+Version: 1.7.0
 Authors@R: 
     person(given = "Dennis",
            family = "Wylie",
