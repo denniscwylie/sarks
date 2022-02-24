@@ -8,7 +8,7 @@
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage[hidelinks]{hyperref}
-\usepackage{microtype}
+%% \usepackage{microtype}
 \usepackage{natbib}
 \usepackage{parskip}
 \usepackage{Sweave}
@@ -333,10 +333,10 @@ extendedPeaks <- extendKmers(sarks, nonRedundantPeaks)
 extendedPeaks[ , c('i', 's', 'block', 'wi', 'kmer', 'windowed')]
 @ 
 
-which detects that even though the full occurrence of
+which detects, for example, that even though the full occurrence of
 \texttt{"CATACTGAGA"} in input sequence \texttt{"24"} was not reported
 as a $k$-mer by SArKS, the $k$-mer \texttt{"ACACTGAG"} in
-\R{nonRedundantPeaks[1, ]} is flanked in sequence \texttt{"24"} by a
+\R{nonRedundantPeaks[4, ]} is flanked in sequence \texttt{"24"} by a
 \texttt{"C"} to the left and an \texttt{"A"} to the right and can
 hence be extended to math the full motif.
 

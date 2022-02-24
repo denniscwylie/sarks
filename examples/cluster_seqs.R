@@ -151,7 +151,7 @@ if (is.na(nClusters)) {
         }
     }
     ctouts = data.frame(cutree(hcout, k=2:(nrow(d)-1)), check.names=FALSE)
-	nClusters = integralOptimize(
+    nClusters = integralOptimize(
         f = function(nc) {
             mean(cluster:::silhouette.default(ctouts[ , as.character(nc)],
                                               ddist)[ , 3])

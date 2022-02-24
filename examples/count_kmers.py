@@ -54,7 +54,8 @@ def fastaToSeries(infasta):
     else:
         with open(infasta, 'r') as inf:
             lines = [line.strip() for line in inf]
-    lines = pd.Series(lines).str.replace(r'^>(.*)$', r'>>>\1>>>')
+    lines = pd.Series(lines).str.replace(r'^>(.*)$', r'>>>\1>>>',
+                                         regex = True)
     slurped = ''.join(lines.values)
     slurped = re.sub(r'^>>>', '', slurped)
     lines = pd.Series(slurped.split('>>>'))
@@ -67,8 +68,8 @@ def regexCounts(regex, seqs, overlap=False):
     if overlap:
         regex = r'(?=' + regex + ')'
     counts = seqs.str.upper()\
-                 .str.replace(regex, '_')\
-                 .str.replace(r'[^_]+', '')\
+                 .str.replace(regex, '_', regex=True)\
+                 .str.replace(r'[^_]+', '', regex=True)\
                  .str.len()
     return counts
 
@@ -89,7 +90,7 @@ def regexLocate(regex, seqs):
     inseqs = seqs
     seqs = '_' + seqs.copy()
     frags = seqs.str.upper()\
-                .str.replace('('+regex+')', r'_\1')\
+                .str.replace('('+regex+')', r'_\1', regex=True)\
                 .str.split('_', expand=True)\
                 .stack()\
                 .reset_index()
